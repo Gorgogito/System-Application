@@ -1,0 +1,17 @@
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\bin\Debug\net10.0\BDAplication.Infrastructure.deps.json
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\bin\Debug\net10.0\BDAplication.Infrastructure.dll
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\bin\Debug\net10.0\BDAplication.Infrastructure.pdb
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\bin\Debug\net10.0\BDAplication.Application.dll
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\bin\Debug\net10.0\BDAplication.Domain.dll
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\bin\Debug\net10.0\BDAplication.Application.pdb
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\bin\Debug\net10.0\BDAplication.Domain.pdb
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\obj\Debug\net10.0\BDAplication.Infrastructure.csproj.AssemblyReference.cache
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\obj\Debug\net10.0\BDAplication.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\obj\Debug\net10.0\BDAplication.Infrastructure.AssemblyInfoInputs.cache
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\obj\Debug\net10.0\BDAplication.Infrastructure.AssemblyInfo.cs
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\obj\Debug\net10.0\BDAplication.Infrastructure.csproj.CoreCompileInputs.cache
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\obj\Debug\net10.0\BDAplica.491F40EE.Up2Date
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\obj\Debug\net10.0\BDAplication.Infrastructure.dll
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\obj\Debug\net10.0\refint\BDAplication.Infrastructure.dll
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\obj\Debug\net10.0\BDAplication.Infrastructure.pdb
+C:\JTorres\IA\project01\Backend\src\BDAplication.Infrastructure\obj\Debug\net10.0\ref\BDAplication.Infrastructure.dll

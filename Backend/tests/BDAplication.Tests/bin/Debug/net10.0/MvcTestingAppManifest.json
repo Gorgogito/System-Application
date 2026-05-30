@@ -1,0 +1,7 @@
+{
+  "BDAplication.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\JTorres\\IA\\project01\\Backend\\src\\BDAplication.API",
+  "BDAplication.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\JTorres\\IA\\project01\\Backend\\src\\BDAplication.Application",
+  "BDAplication.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\JTorres\\IA\\project01\\Backend\\src\\BDAplication.Domain",
+  "BDAplication.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\JTorres\\IA\\project01\\Backend\\src\\BDAplication.Infrastructure",
+  "BDAplication.Persistence, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\JTorres\\IA\\project01\\Backend\\src\\BDAplication.Persistence"
+}

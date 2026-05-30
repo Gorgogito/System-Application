@@ -1,0 +1,459 @@
+@page "/taskplanner"
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@inject BacklogApiService BacklogApi
+@inject PlannerApiService PlannerApi
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@implements IDisposable
+
+<PageTitle>Task Planner - BDAplication</PageTitle>
+
+<style>
+    .backlog-card {
+        cursor: grab;
+        border-left: 4px solid;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        user-select: none;
+    }
+    .backlog-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important; }
+    .backlog-card.dragging { opacity: 0.5; transform: rotate(2deg); }
+    .day-cell {
+        min-height: 90px;
+        border-radius: 10px;
+        border: 2px dashed transparent;
+        transition: border-color 0.2s, background 0.2s;
+        position: relative;
+    }
+    .day-cell.drag-over { border-color: var(--mud-palette-primary) !important; background: rgba(var(--mud-palette-primary-rgb),0.07) !important; }
+    .planner-task {
+        cursor: grab;
+        border-left: 3px solid;
+        font-size: 0.72rem;
+        line-height: 1.2;
+        transition: transform 0.12s;
+    }
+    .planner-task:hover { transform: translateX(2px); }
+    .planner-task.dragging { opacity: 0.4; }
+    .priority-low    { border-color: #4caf50 !important; }
+    .priority-medium { border-color: #ff9800 !important; }
+    .priority-high   { border-color: #f44336 !important; }
+    .priority-critical { border-color: #9c27b0 !important; }
+    .pill-low     { background:#e8f5e9; color:#2e7d32; }
+    .pill-medium  { background:#fff3e0; color:#e65100; }
+    .pill-high    { background:#ffebee; color:#c62828; }
+    .pill-critical{ background:#f3e5f5; color:#6a1b9a; }
+    .calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+    .calendar-header { text-align:center; font-weight:600; font-size:0.75rem; padding:4px 0; opacity:0.65; }
+    .day-number { font-size:0.78rem; font-weight:600; color:#555; margin-bottom:4px; }
+    .today-cell { background: rgba(var(--mud-palette-primary-rgb),0.05); }
+    .other-month { opacity: 0.35; }
+    .backlog-panel { height: calc(100vh - 112px); display:flex; flex-direction:column; }
+    .backlog-list   { flex:1; overflow-y:auto; padding-right:6px; margin-top:8px; }
+    .planner-panel  { height: calc(100vh - 112px); overflow-y:auto; }
+    .backlog-list::-webkit-scrollbar { width:4px; }
+    .backlog-list::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.18); border-radius:4px; }
+</style>
+
+<MudGrid Spacing="2" Style="height:100%">
+
+    <!-- ===== PANEL BACKLOG ===== -->
+    <MudItem xs="12" md="3">
+        <MudPaper Elevation="3" Class="pa-3 backlog-panel" Style="border-radius:14px">
+
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                <MudIcon Icon="@Icons.Material.Filled.List" Color="Color.Primary" Size="Size.Small" />
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold">Backlog</MudText>
+                <MudSpacer />
+                <MudChip T="string" Color="Color.Primary" Size="Size.Small">@_backlogs.Count</MudChip>
+                <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small"
+                               Color="Color.Primary" OnClick="OpenBacklogDialog" />
+            </MudStack>
+
+            <!-- Búsqueda + Filtro en una sola fila -->
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                <MudTextField @bind-Value="_backlogSearch"
+                              @bind-Value:after="RefreshBacklog"
+                              Placeholder="Buscar..."
+                              Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Clearable="true"
+                              Style="flex:1;min-width:0" />
+
+                <MudSelect @bind-Value="_filterPriority"
+                           @bind-Value:after="RefreshBacklog"
+                           Variant="Variant.Outlined" Margin="Margin.Dense"
+                           Clearable="true" T="Priority?"
+                           Style="width:105px"
+                           Placeholder="Todo">
+                    @foreach (Priority p in Enum.GetValues<Priority>())
+                    {
+                        <MudSelectItem Value="@((Priority?)p)">
+                            @p
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </MudStack>
+
+            @if (_loadingBacklog)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Primary" Style="height:2px;margin-top:4px" />
+            }
+
+            <div class="backlog-list">
+                @foreach (var item in _backlogs)
+                {
+                    var cssClass = $"priority-{item.Priority.ToString().ToLower()}";
+                    var pillClass = $"pill-{item.Priority.ToString().ToLower()}";
+                    <MudPaper id="@($"bl-{item.Id}")"
+                              Elevation="2"
+                              Class="@($"backlog-card {cssClass} pa-2 mb-2")"
+                              Style="border-radius:8px;">
+                        <MudStack Spacing="0">
+                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                <MudText Typo="Typo.body2" Class="font-weight-bold flex-grow-1"
+                                         Style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                    @item.Name
+                                </MudText>
+                                <span class="@($"mud-chip mud-chip-filled mud-chip-size-small {pillClass}")"
+                                      style="font-size:0.6rem;padding:1px 6px;border-radius:12px;margin-left:4px">
+                                    @item.PriorityLabel
+                                </span>
+                            </MudStack>
+                            @if (!string.IsNullOrWhiteSpace(item.Description))
+                            {
+                                <MudText Typo="Typo.caption" Style="opacity:0.65;font-size:0.68rem;">
+                                    @(item.Description.Length > 60 ? item.Description[..60] + "…" : item.Description)
+                                </MudText>
+                            }
+                            <MudText Typo="Typo.caption" Style="opacity:0.45;font-size:0.62rem;">
+                                @item.DateCreated.ToLocalTime().ToString("dd/MM/yy")
+                            </MudText>
+                        </MudStack>
+                    </MudPaper>
+                }
+                @if (!_loadingBacklog && _backlogs.Count == 0)
+                {
+                    <MudText Typo="Typo.body2" Align="Align.Center" Style="opacity:0.5;padding-top:24px">
+                        No hay tareas en backlog
+                    </MudText>
+                }
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <!-- ===== PANEL PLANNER CALENDARIO ===== -->
+    <MudItem xs="12" md="9">
+        <MudPaper Elevation="3" Class="pa-3 planner-panel" Style="border-radius:14px">
+
+            <!-- Header Planner -->
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3" Wrap="Wrap.Wrap">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Secondary" />
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold ml-1">Planner Mensual</MudText>
+                <MudSpacer />
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Size="Size.Small"
+                               OnClick="PrevMonth" />
+                <MudText Typo="Typo.subtitle2" Class="mx-2" Style="min-width:140px;text-align:center">
+                    @_currentDate.ToString("MMMM yyyy").ToUpper()
+                </MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small"
+                               OnClick="NextMonth" />
+                <MudIconButton Icon="@Icons.Material.Filled.Today" Size="Size.Small"
+                               Color="Color.Primary" OnClick="GoToToday" />
+                @if (_loadingPlanner)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Secondary" Class="ml-2" />
+                }
+            </MudStack>
+
+            <!-- Cabecera días -->
+            <div class="calendar-grid mb-1">
+                @foreach (var d in new[]{"Lun","Mar","Mié","Jue","Vie","Sáb","Dom"})
+                {
+                    <div class="calendar-header">@d</div>
+                }
+            </div>
+
+            <!-- Celdas del calendario -->
+            <div class="calendar-grid">
+                @foreach (var cell in _calendarCells)
+                {
+                    var isToday = cell.Date == DateTime.Today;
+                    var isOther = cell.Date.Month != _currentDate.Month;
+                    var tasksForDay = _plannerByDay.ContainsKey(cell.Day) && !isOther
+                        ? _plannerByDay[cell.Day] : new List<PlannerModel>();
+                    var cellId = $"drop-{cell.Date:yyyyMMdd}";
+
+                    <div id="@cellId"
+                         class="@($"day-cell pa-1 {(isToday ? "today-cell" : "")} {(isOther ? "other-month" : "")}")"
+                         style="@($"background:{(isToday ? "rgba(var(--mud-palette-primary-rgb),0.06)" : "rgba(0,0,0,0.02)") }")">
+                        <div class="day-number" style="@(isToday ? "color:var(--mud-palette-primary)" : "")">
+                            @(isToday ? $"● {cell.Date.Day}" : cell.Date.Day.ToString())
+                        </div>
+                        @foreach (var task in tasksForDay.Take(3))
+                        {
+                            var tc = $"priority-{task.Priority.ToString().ToLower()}";
+                            <div id="@($"pt-{task.Id}")"
+                                 class="@($"planner-task {tc} pa-1 mb-1 mud-paper")"
+                                 style="border-radius:4px;background:white;">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="0">
+                                    <MudText Style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.68rem;">
+                                        @task.BacklogName
+                                    </MudText>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                                   Size="Size.Small"
+                                                   Style="width:16px;height:16px;padding:0;"
+                                                   OnClick="() => ConfirmInactivate(task)" />
+                                </MudStack>
+                            </div>
+                        }
+                        @if (tasksForDay.Count > 3)
+                        {
+                            <MudText Typo="Typo.caption" Style="font-size:0.6rem;opacity:0.6">
+                                +@(tasksForDay.Count - 3) más
+                            </MudText>
+                        }
+                    </div>
+                }
+            </div>
+
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<!-- Dialog nuevo backlog -->
+<MudDialog @bind-Visible="_backlogDialogOpen" Options="@(new DialogOptions { MaxWidth=MaxWidth.Small, FullWidth=true, CloseButton=true })">
+    <TitleContent><MudText Typo="Typo.h6">Nueva Tarea</MudText></TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="_newBacklog.Name" Label="Nombre" Variant="Variant.Outlined"
+                          Required="true" Counter="100" />
+            <MudTextField @bind-Value="_newBacklog.Description" Label="Descripción"
+                          Variant="Variant.Outlined" Lines="3" Counter="500" />
+            <MudSelect @bind-Value="_newBacklog.Priority" Label="Prioridad" Variant="Variant.Outlined">
+                @foreach (Priority p in Enum.GetValues<Priority>())
+                {
+                    <MudSelectItem Value="@p">@p</MudSelectItem>
+                }
+            </MudSelect>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _backlogDialogOpen = false">Cancelar</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   OnClick="SaveBacklog" Disabled="_savingBacklog">
+            @(_savingBacklog ? "Guardando…" : "Crear Tarea")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    // ── State ──────────────────────────────────────────────────────
+    private List<BacklogModel> _backlogs = new();
+    private Dictionary<int, List<PlannerModel>> _plannerByDay = new();
+    private List<(DateTime Date, int Day)> _calendarCells = new();
+
+    private DateTime _currentDate = DateTime.Today;
+    private bool _loadingBacklog, _loadingPlanner;
+    private string _backlogSearch = string.Empty;
+    private Priority? _filterPriority;
+
+    private bool _backlogDialogOpen;
+    private BacklogRegisterRequest _newBacklog = new();
+    private bool _savingBacklog;
+
+    private DotNetObjectReference<TaskPlanner>? _selfRef;
+
+    // ── Lifecycle ──────────────────────────────────────────────────
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var state = await AuthProvider.GetAuthenticationStateAsync();
+        if (!state.User.Identity?.IsAuthenticated ?? true) { Nav.NavigateTo("/login"); return; }
+
+        _selfRef = DotNetObjectReference.Create(this);
+        await Task.WhenAll(LoadBacklogAsync(), LoadPlannerAsync());
+        BuildCalendar();
+        StateHasChanged();
+        await InitDragDropAsync();
+    }
+
+    // ── Backlog ────────────────────────────────────────────────────
+    private async Task LoadBacklogAsync()
+    {
+        _loadingBacklog = true;
+        try
+        {
+            var result = await BacklogApi.GetListAsync(_backlogSearch, _filterPriority);
+            _backlogs = result?.Data?.Items?.ToList() ?? new();
+        }
+        catch { Snackbar.Add("Error al cargar backlog", Severity.Error); }
+        finally { _loadingBacklog = false; }
+    }
+
+    private async Task RefreshBacklog()
+    {
+        await LoadBacklogAsync();
+        StateHasChanged();
+        await InitBacklogDragAsync();
+    }
+
+    private void OpenBacklogDialog()
+    {
+        _newBacklog = new BacklogRegisterRequest { Priority = Priority.Medium };
+        _backlogDialogOpen = true;
+    }
+
+    private async Task SaveBacklog()
+    {
+        if (string.IsNullOrWhiteSpace(_newBacklog.Name)) { Snackbar.Add("El nombre es requerido", Severity.Warning); return; }
+        _savingBacklog = true;
+        try
+        {
+            var result = await BacklogApi.RegisterAsync(_newBacklog);
+            if (result?.Success == true)
+            {
+                Snackbar.Add("Tarea creada", Severity.Success);
+                _backlogDialogOpen = false;
+                await LoadBacklogAsync();
+                StateHasChanged();
+                await InitBacklogDragAsync();
+            }
+            else Snackbar.Add(result?.Message ?? "Error", Severity.Error);
+        }
+        catch { Snackbar.Add("Error de conexión", Severity.Error); }
+        finally { _savingBacklog = false; }
+    }
+
+    // ── Planner ────────────────────────────────────────────────────
+    private async Task LoadPlannerAsync()
+    {
+        _loadingPlanner = true;
+        try
+        {
+            var result = await PlannerApi.ListByMonthAsync(_currentDate.Month, _currentDate.Year);
+            _plannerByDay = result?.Data?
+                .ToDictionary(d => d.Day, d => d.Tasks.ToList())
+                ?? new();
+        }
+        catch { Snackbar.Add("Error al cargar planner", Severity.Error); }
+        finally { _loadingPlanner = false; }
+    }
+
+    private async Task ConfirmInactivate(PlannerModel task)
+    {
+        var ok = await DialogService.ShowMessageBox("Inactivar tarea",
+            $"¿Inactivar '{task.BacklogName}' del día {task.Day}?",
+            yesText: "Inactivar", cancelText: "Cancelar");
+        if (ok != true) return;
+
+        var result = await PlannerApi.InactivateAsync(task.Id);
+        if (result?.Success == true)
+        {
+            Snackbar.Add("Tarea inactivada", Severity.Success);
+            await LoadPlannerAsync();
+            StateHasChanged();
+            await InitPlannerDragAsync();
+        }
+        else Snackbar.Add(result?.Message ?? "Error", Severity.Error);
+    }
+
+    // ── Drag & Drop ────────────────────────────────────────────────
+    [JSInvokable]
+    public async Task OnDropped(string type, int id, int day, int month, int year)
+    {
+        if (type == "backlog")
+        {
+            var result = await PlannerApi.RegisterAsync(new PlannerRegisterRequest
+                { BacklogId = id, Day = day, Month = month, Year = year, Notes = "" });
+            if (result?.Success == true) Snackbar.Add($"Tarea planificada para el {day}/{month}", Severity.Success);
+            else Snackbar.Add(result?.Message ?? "Error al planificar", Severity.Error);
+        }
+        else if (type == "planner")
+        {
+            var result = await PlannerApi.MoveAsync(new MovePlannerRequest
+                { PlannerId = id, NewDay = day, NewMonth = month, NewYear = year });
+            if (result?.Success == true) Snackbar.Add($"Tarea movida al {day}/{month}", Severity.Success);
+            else Snackbar.Add(result?.Message ?? "Error al mover", Severity.Error);
+        }
+
+        await LoadPlannerAsync();
+        StateHasChanged();
+        await InitPlannerDragAsync();
+    }
+
+    private async Task InitDragDropAsync()
+    {
+        await InitBacklogDragAsync();
+        await InitDropZonesAsync();
+        await InitPlannerDragAsync();
+    }
+
+    private async Task InitBacklogDragAsync()
+    {
+        foreach (var item in _backlogs)
+            await JS.InvokeVoidAsync("TaskPlanner.initDrag", $"bl-{item.Id}", "backlog", item.Id);
+    }
+
+    private async Task InitDropZonesAsync()
+    {
+        foreach (var cell in _calendarCells.Where(c => c.Date.Month == _currentDate.Month))
+            await JS.InvokeVoidAsync("TaskPlanner.initDrop",
+                $"drop-{cell.Date:yyyyMMdd}", _selfRef, cell.Date.Day, cell.Date.Month, cell.Date.Year);
+    }
+
+    private async Task InitPlannerDragAsync()
+    {
+        foreach (var day in _plannerByDay.Values)
+            foreach (var task in day)
+                await JS.InvokeVoidAsync("TaskPlanner.initDrag", $"pt-{task.Id}", "planner", task.Id);
+    }
+
+    // ── Calendario ─────────────────────────────────────────────────
+    private void BuildCalendar()
+    {
+        _calendarCells.Clear();
+        var first = new DateTime(_currentDate.Year, _currentDate.Month, 1);
+        var startDow = (int)first.DayOfWeek;
+        var offset = startDow == 0 ? 6 : startDow - 1; // Lunes=0
+        var start = first.AddDays(-offset);
+        for (int i = 0; i < 42; i++)
+        {
+            var d = start.AddDays(i);
+            _calendarCells.Add((d, d.Day));
+        }
+    }
+
+    private async Task PrevMonth()
+    {
+        _currentDate = _currentDate.AddMonths(-1);
+        BuildCalendar();
+        await LoadPlannerAsync();
+        StateHasChanged();
+        await InitDragDropAsync();
+    }
+
+    private async Task NextMonth()
+    {
+        _currentDate = _currentDate.AddMonths(1);
+        BuildCalendar();
+        await LoadPlannerAsync();
+        StateHasChanged();
+        await InitDragDropAsync();
+    }
+
+    private async Task GoToToday()
+    {
+        _currentDate = DateTime.Today;
+        BuildCalendar();
+        await LoadPlannerAsync();
+        StateHasChanged();
+        await InitDragDropAsync();
+    }
+
+    public void Dispose() => _selfRef?.Dispose();
+}

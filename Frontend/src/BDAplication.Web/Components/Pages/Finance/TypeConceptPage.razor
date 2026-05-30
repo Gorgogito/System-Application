@@ -1,0 +1,129 @@
+@page "/finance/typeconcept"
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Models.Finance
+@using BDAplication.Web.Services.Finance
+@using BDAplication.Web.Components.Finance
+@using MudBlazor
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@inject TypeConceptApiService TypeConceptApi
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudStack Spacing="3">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+        <MudText Typo="Typo.h5" Style="font-weight:700">
+            <MudIcon Icon="@Icons.Material.Filled.Category" Style="vertical-align:middle;margin-right:8px"/>
+            Tipos de Concepto
+        </MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreate"
+                   Disabled="_loading">
+            Nuevo
+        </MudButton>
+    </div>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+
+    <MudTable T="TypeConceptModel" Items="@_items" Dense="true" Hover="true" Striped="true"
+              Elevation="2" Loading="_loading" LoadingProgressColor="Color.Primary">
+        <HeaderContent>
+            <MudTh>Código</MudTh>
+            <MudTh>Descripción</MudTh>
+            <MudTh>Creado por</MudTh>
+            <MudTh>Fecha</MudTh>
+            <MudTh Style="text-align:center">Acciones</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Código"><MudText Typo="Typo.body2" Style="font-family:monospace">@context.Code</MudText></MudTd>
+            <MudTd DataLabel="Descripción">@context.Description</MudTd>
+            <MudTd DataLabel="Creado por">@context.CreatedBy</MudTd>
+            <MudTd DataLabel="Fecha">@context.CreatedDate.ToLocalTime().ToString("dd/MM/yyyy")</MudTd>
+            <MudTd Style="text-align:center">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                               OnClick="@(() => OpenEdit(context))"/>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                               OnClick="@(() => ConfirmDelete(context))"/>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Align="Align.Center" Class="pa-6 mud-text-secondary">No hay tipos de concepto registrados</MudText>
+        </NoRecordsContent>
+    </MudTable>
+</MudStack>
+
+@code {
+    private bool _loading = true;
+    private List<TypeConceptModel> _items = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        if (auth.User.Identity?.IsAuthenticated != true)
+        { Nav.NavigateTo("/login", forceLoad: true); return; }
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true; StateHasChanged();
+        try { var resp = await TypeConceptApi.ListAsync(); _items = resp?.Data ?? new(); }
+        finally { _loading = false; StateHasChanged(); }
+    }
+
+    private async Task OpenCreate()
+    {
+        var dialog = await DialogService.ShowAsync<TypeConceptFormDialog>("Nuevo Tipo de Concepto",
+            new DialogParameters<TypeConceptFormDialog> { { x => x.IsEdit, false } },
+            new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true, CloseButton = true });
+        var result = await dialog.Result;
+        if (result?.Canceled == true) return;
+        if (result?.Data is CreateTypeConceptRequest req)
+        {
+            var resp = await TypeConceptApi.CreateAsync(req);
+            if (resp?.Success == true && resp.Data != null)
+            { _items.Add(resp.Data); Snackbar.Add("Creado correctamente", Severity.Success); StateHasChanged(); }
+            else Snackbar.Add(resp?.Message ?? "Error", Severity.Error);
+        }
+    }
+
+    private async Task OpenEdit(TypeConceptModel item)
+    {
+        var p = new DialogParameters<TypeConceptFormDialog>
+        {
+            { x => x.IsEdit, true },
+            { x => x.Item, item }
+        };
+        var dialog = await DialogService.ShowAsync<TypeConceptFormDialog>("Editar", p,
+            new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true, CloseButton = true });
+        var result = await dialog.Result;
+        if (result?.Canceled == true) return;
+        if (result?.Data is UpdateTypeConceptRequest req)
+        {
+            var resp = await TypeConceptApi.UpdateAsync(req);
+            if (resp?.Success == true && resp.Data != null)
+            {
+                var idx = _items.FindIndex(i => i.Id == resp.Data.Id);
+                if (idx >= 0) _items[idx] = resp.Data;
+                Snackbar.Add("Actualizado", Severity.Success);
+                StateHasChanged();
+            }
+            else Snackbar.Add(resp?.Message ?? "Error", Severity.Error);
+        }
+    }
+
+    private async Task ConfirmDelete(TypeConceptModel item)
+    {
+        var ok = await DialogService.ShowMessageBox("Eliminar",
+            $"¿Eliminar «{item.Description}»?", yesText: "Eliminar", cancelText: "Cancelar");
+        if (ok != true) return;
+        var resp = await TypeConceptApi.DeleteAsync(item.Id);
+        if (resp?.Success == true)
+        { _items.Remove(item); Snackbar.Add("Eliminado", Severity.Success); StateHasChanged(); }
+        else Snackbar.Add(resp?.Message ?? "No se puede eliminar", Severity.Error);
+    }
+}

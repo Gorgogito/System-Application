@@ -1,0 +1,144 @@
+@inherits LayoutComponentBase
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Models
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+
+<MudThemeProvider @bind-IsDarkMode="_isDark" />
+<MudPopoverProvider />
+<MudDialogProvider FullWidth="true" />
+<MudSnackbarProvider />
+
+<MudLayout>
+
+    <!-- AppBar superior -->
+    <MudAppBar Elevation="2" Color="Color.Primary" Fixed="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="ToggleDrawer" />
+        <MudText Typo="Typo.h6" Class="ml-2">BDAplication</MudText>
+        <MudSpacer />
+        <MudTooltip Text="@(_isDark ? "Modo claro" : "Modo oscuro")">
+            <MudIconButton Icon="@(_isDark ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                           Color="Color.Inherit"
+                           OnClick="ToggleTheme" />
+        </MudTooltip>
+        <MudTooltip Text="Cerrar sesión">
+            <MudIconButton Icon="@Icons.Material.Filled.Logout"
+                           Color="Color.Inherit"
+                           OnClick="LogoutAsync" />
+        </MudTooltip>
+    </MudAppBar>
+
+    <!-- Sidebar izquierdo -->
+    <MudDrawer @bind-Open="_drawerOpen"
+               ClipMode="DrawerClipMode.Always"
+               Elevation="3"
+               Variant="DrawerVariant.Persistent"
+               Color="Color.Dark">
+
+        <!-- Perfil del usuario -->
+        <div style="padding: 24px 16px 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.12);">
+            <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                <MudAvatar Color="Color.Primary"
+                           Style="width:64px;height:64px;font-size:1.6rem;font-weight:bold;">
+                    @_inicial
+                </MudAvatar>
+                <MudText Typo="Typo.subtitle1"
+                         Style="color:white;font-weight:600;text-align:center;margin-top:8px;">
+                    @(_currentUser?.FullName ?? "Cargando...")
+                </MudText>
+                <MudChip T="string"
+                         Color="Color.Primary"
+                         Size="Size.Small"
+                         Style="margin-top:2px;">
+                    @(_currentRole?.Name ?? "---")
+                </MudChip>
+            </MudStack>
+        </div>
+
+        <!-- Menú de navegación -->
+        <MudNavMenu Color="Color.Primary" Style="margin-top:8px;">
+            <MudNavLink Href="/dashboard"
+                        Icon="@Icons.Material.Filled.Dashboard"
+                        Match="NavLinkMatch.All"
+                        Style="color:rgba(255,255,255,0.85);">
+                Dashboard
+            </MudNavLink>
+            <MudNavLink Href="/users"
+                        Icon="@Icons.Material.Filled.People"
+                        Style="color:rgba(255,255,255,0.85);">
+                Usuarios
+            </MudNavLink>
+            <MudNavLink Href="/roles"
+                        Icon="@Icons.Material.Filled.AdminPanelSettings"
+                        Style="color:rgba(255,255,255,0.85);">
+                Roles
+            </MudNavLink>
+            <MudDivider Class="my-1" Style="border-color:rgba(255,255,255,0.15)" />
+            <MudNavLink Href="/taskplanner"
+                        Icon="@Icons.Material.Filled.CalendarMonth"
+                        Style="color:rgba(255,255,255,0.85);">
+                Task Planner
+            </MudNavLink>
+            <MudNavLink Href="/taskboard"
+                        Icon="@Icons.Material.Filled.ViewKanban"
+                        Style="color:rgba(255,255,255,0.85);">
+                Task Board
+            </MudNavLink>
+            <MudDivider Class="my-1" Style="border-color:rgba(255,255,255,0.15)" />
+            <MudNavGroup Title="Finanzas"
+                         Icon="@Icons.Material.Filled.AccountBalance"
+                         Style="color:rgba(255,255,255,0.85);"
+                         IconColor="Color.Inherit"
+                         Expanded="false">
+                <MudNavLink Href="/finance/statement"
+                            Icon="@Icons.Material.Filled.ReceiptLong"
+                            Style="color:rgba(255,255,255,0.75);padding-left:16px">
+                    Estado de Cuenta
+                </MudNavLink>
+                <MudNavLink Href="/finance/typeconcept"
+                            Icon="@Icons.Material.Filled.Category"
+                            Style="color:rgba(255,255,255,0.75);padding-left:16px">
+                    Tipos de Concepto
+                </MudNavLink>
+            </MudNavGroup>
+        </MudNavMenu>
+
+    </MudDrawer>
+
+    <!-- Contenido principal -->
+    <MudMainContent>
+        <div style="padding: 24px; height: calc(100vh - 64px); overflow-y: auto;">
+            @Body
+        </div>
+    </MudMainContent>
+
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private bool _isDark = false;
+    private UserModel? _currentUser;
+    private RoleModel? _currentRole;
+    private string _inicial = "U";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _currentUser = await AuthProvider.GetCurrentUserAsync();
+        _currentRole = await AuthProvider.GetCurrentRoleAsync();
+        _inicial = (_currentUser?.FullName ?? "U").FirstOrDefault().ToString().ToUpper();
+        StateHasChanged();
+    }
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+    private void ToggleTheme() => _isDark = !_isDark;
+
+    private async Task LogoutAsync()
+    {
+        await AuthProvider.LogoutAsync();
+        Nav.NavigateTo("/login", forceLoad: true);
+    }
+}

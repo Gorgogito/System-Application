@@ -1,0 +1,15 @@
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\bin\Debug\net10.0\BDAplication.Application.deps.json
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\bin\Debug\net10.0\BDAplication.Application.dll
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\bin\Debug\net10.0\BDAplication.Application.pdb
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\bin\Debug\net10.0\BDAplication.Domain.dll
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\bin\Debug\net10.0\BDAplication.Domain.pdb
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\obj\Debug\net10.0\BDAplication.Application.csproj.AssemblyReference.cache
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\obj\Debug\net10.0\BDAplication.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\obj\Debug\net10.0\BDAplication.Application.AssemblyInfoInputs.cache
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\obj\Debug\net10.0\BDAplication.Application.AssemblyInfo.cs
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\obj\Debug\net10.0\BDAplication.Application.csproj.CoreCompileInputs.cache
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\obj\Debug\net10.0\BDAplica.AABAEF47.Up2Date
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\obj\Debug\net10.0\BDAplication.Application.dll
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\obj\Debug\net10.0\refint\BDAplication.Application.dll
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\obj\Debug\net10.0\BDAplication.Application.pdb
+C:\JTorres\IA\project01\Backend\src\BDAplication.Application\obj\Debug\net10.0\ref\BDAplication.Application.dll

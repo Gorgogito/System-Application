@@ -1,0 +1,6 @@
+@BDAplication.API_HostAddress = http://localhost:5129
+
+GET {{BDAplication.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

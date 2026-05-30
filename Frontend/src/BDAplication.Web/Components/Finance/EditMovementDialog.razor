@@ -1,0 +1,74 @@
+@using BDAplication.Web.Models.Finance
+@using MudBlazor
+
+<MudDialog Style="min-width:480px">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-2"/>
+            Editar Movimiento
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+            <MudStack Spacing="3">
+                <MudTextField Value="@Movement.Code" Label="Código" Variant="Variant.Outlined"
+                              ReadOnly="true" Disabled="true"/>
+
+                <MudDatePicker @bind-Date="_date" Label="Fecha" Variant="Variant.Outlined"
+                               DateFormat="dd/MM/yyyy" Required="true"/>
+
+                <MudTextField @bind-Value="_req.Concept" Label="Concepto" Variant="Variant.Outlined"
+                              Required="true" MaxLength="300" Immediate="true"/>
+
+                <MudSelect @bind-Value="_req.TypeConceptId" Label="Tipo de Concepto" Variant="Variant.Outlined"
+                           T="int?" Clearable="true">
+                    @foreach (var tc in TypeConcepts)
+                    {
+                        <MudSelectItem Value="@((int?)tc.Id)">@tc.Code — @tc.Description</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudNumericField @bind-Value="_req.Amount" Label="Importe" Variant="Variant.Outlined"
+                                 Format="N2" Min="0.01m" Required="true"
+                                 Adornment="Adornment.Start" AdornmentText="$"/>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="!_valid">Guardar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public MovementModel Movement { get; set; } = default!;
+    [Parameter] public List<TypeConceptModel> TypeConcepts { get; set; } = new();
+
+    private MudForm _form = default!;
+    private bool _valid;
+    private DateTime? _date;
+    private UpdateMovementRequest _req = new();
+
+    protected override void OnParametersSet()
+    {
+        _req = new UpdateMovementRequest
+        {
+            Id = Movement.Id,
+            Concept = Movement.Concept,
+            TypeConceptId = Movement.TypeConceptId,
+            Amount = Movement.Amount
+        };
+        _date = Movement.Date;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_valid || !_date.HasValue) return;
+        _req.Date = _date.Value;
+        MudDialog.Close(DialogResult.Ok(_req));
+    }
+}

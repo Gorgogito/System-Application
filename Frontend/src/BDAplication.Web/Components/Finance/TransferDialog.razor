@@ -1,0 +1,91 @@
+@using BDAplication.Web.Models.Finance
+@using MudBlazor
+
+<MudDialog Style="min-width:520px">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.SwapHoriz" Class="mr-2"/>
+            Transferencia entre Cuentas
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+            <MudStack Spacing="3">
+                <MudSelect @bind-Value="_req.SourceAccountId" Label="Cuenta Origen" Variant="Variant.Outlined"
+                           T="int" Required="true" RequiredError="Seleccione cuenta origen">
+                    @foreach (var a in Accounts)
+                    {
+                        <MudSelectItem Value="@a.Id">@a.Code — @a.Name (Saldo: @a.Balance.ToString("N2"))</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect @bind-Value="_req.DestinyAccountId" Label="Cuenta Destino" Variant="Variant.Outlined"
+                           T="int" Required="true" RequiredError="Seleccione cuenta destino">
+                    @foreach (var a in Accounts.Where(a => a.Id != _req.SourceAccountId))
+                    {
+                        <MudSelectItem Value="@a.Id">@a.Code — @a.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudDatePicker @bind-Date="_date" Label="Fecha" Variant="Variant.Outlined"
+                               DateFormat="dd/MM/yyyy" Required="true"/>
+
+                <MudTextField @bind-Value="_req.Concept" Label="Concepto" Variant="Variant.Outlined"
+                              Required="true" MaxLength="300" Immediate="true"/>
+
+                <MudNumericField @bind-Value="_req.Amount" Label="Importe" Variant="Variant.Outlined"
+                                 Format="N2" Min="0.01m" Required="true"
+                                 Adornment="Adornment.Start" AdornmentText="$"/>
+
+                @if (_req.SourceAccountId > 0 && _req.DestinyAccountId > 0 && _req.Amount > 0)
+                {
+                    var src = Accounts.FirstOrDefault(a => a.Id == _req.SourceAccountId);
+                    var dst = Accounts.FirstOrDefault(a => a.Id == _req.DestinyAccountId);
+                    if (src != null && dst != null)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true">
+                            <MudText Typo="Typo.body2">
+                                <b>@src.Name</b> → <b>@dst.Name</b> &nbsp;|&nbsp; Importe: <b>$@_req.Amount.ToString("N2")</b>
+                            </MudText>
+                        </MudAlert>
+                    }
+                }
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="!_valid">Transferir</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public List<AccountModel> Accounts { get; set; } = new();
+    [Parameter] public int? PreselectedSourceId { get; set; }
+
+    private MudForm _form = default!;
+    private bool _valid;
+    private DateTime? _date = DateTime.Today;
+    private CreateTransferRequest _req = new();
+
+    protected override void OnParametersSet()
+    {
+        if (PreselectedSourceId.HasValue) _req.SourceAccountId = PreselectedSourceId.Value;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_valid || !_date.HasValue) return;
+        if (_req.SourceAccountId == _req.DestinyAccountId)
+        {
+            // handled by validator on backend
+            return;
+        }
+        _req.Date = _date.Value;
+        MudDialog.Close(DialogResult.Ok(_req));
+    }
+}

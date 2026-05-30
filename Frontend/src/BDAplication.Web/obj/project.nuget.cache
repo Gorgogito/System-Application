@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Q42pWK0WeJE=",
+  "success": true,
+  "projectFilePath": "C:\\JTorres\\IA\\project01\\Frontend\\src\\BDAplication.Web\\BDAplication.Web.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Jorge\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.0\\microsoft.aspnetcore.app.internal.assets.10.0.0.nupkg.sha512",
+    "C:\\Users\\Jorge\\.nuget\\packages\\mudblazor\\8.6.0\\mudblazor.8.6.0.nupkg.sha512"
+  ],
+  "logs": []
+}

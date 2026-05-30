@@ -1,0 +1,84 @@
+@using BDAplication.Web.Models
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.AddTask" Class="mr-2" />
+            Nueva Tarea
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_request.Title"
+                              Label="Título"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              RequiredError="El título es obligatorio"
+                              MaxLength="200"
+                              Counter="200"
+                              Immediate="true" />
+
+                <MudTextField @bind-Value="_request.Description"
+                              Label="Descripción"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              MaxLength="1000"
+                              Counter="1000" />
+
+                <MudSelect @bind-Value="_request.Priority"
+                           Label="Prioridad"
+                           Variant="Variant.Outlined"
+                           T="Priority">
+                    <MudSelectItem Value="Priority.Low">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#4caf50;font-size:12px" />
+                            <span>Baja</span>
+                        </MudStack>
+                    </MudSelectItem>
+                    <MudSelectItem Value="Priority.Medium">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#ff9800;font-size:12px" />
+                            <span>Media</span>
+                        </MudStack>
+                    </MudSelectItem>
+                    <MudSelectItem Value="Priority.High">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#f44336;font-size:12px" />
+                            <span>Alta</span>
+                        </MudStack>
+                    </MudSelectItem>
+                    <MudSelectItem Value="Priority.Critical">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#9c27b0;font-size:12px" />
+                            <span>Crítica</span>
+                        </MudStack>
+                    </MudSelectItem>
+                </MudSelect>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="!_valid">Guardar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private MudForm _form = default!;
+    private bool _valid;
+    private CreateTaskBoardRequest _request = new();
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_valid) return;
+        MudDialog.Close(DialogResult.Ok(_request));
+    }
+}

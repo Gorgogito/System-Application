@@ -1,0 +1,85 @@
+@using BDAplication.Web.Models
+
+<div class="tb-column @(_dragOver ? "tb-column-drag-over" : "")"
+     @ondragover:preventDefault
+     @ondragenter="OnDragEnter"
+     @ondragleave="OnDragLeave"
+     @ondrop="HandleDrop">
+
+    <!-- Cabecera de columna -->
+    <div class="tb-column-header" style="background:@HeaderColor">
+        <div class="tb-column-header-content">
+            <MudIcon Icon="@HeaderIcon" Style="color:white;font-size:18px" />
+            <MudText Typo="Typo.subtitle1" Style="color:white;font-weight:700;letter-spacing:.5px">
+                @Label
+            </MudText>
+        </div>
+        <span class="tb-column-count">@Tasks.Count</span>
+    </div>
+
+    <!-- Lista de tarjetas -->
+    <div class="tb-column-body">
+        @if (Tasks.Count == 0)
+        {
+            <div class="tb-column-empty">
+                <MudIcon Icon="@Icons.Material.Outlined.Inbox" Style="font-size:36px;opacity:.3" />
+                <MudText Typo="Typo.caption" Style="opacity:.4;margin-top:4px">Sin tareas</MudText>
+            </div>
+        }
+        else
+        {
+            @foreach (var task in Tasks)
+            {
+                <TaskCard Task="task"
+                          IsDragging="DraggingTaskId == task.Id"
+                          OnDragStart="OnDragStart"
+                          OnDragEnd="OnDragEnd"
+                          OnEdit="OnEdit"
+                          OnDelete="OnDelete" />
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public TaskBoardStatus Status { get; set; }
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public List<TaskBoardModel> Tasks { get; set; } = new();
+    [Parameter] public int DraggingTaskId { get; set; }
+    [Parameter] public EventCallback<int> OnDragStart { get; set; }
+    [Parameter] public EventCallback OnDragEnd { get; set; }
+    [Parameter] public EventCallback<TaskBoardStatus> OnDrop { get; set; }
+    [Parameter] public EventCallback<TaskBoardModel> OnEdit { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+
+    private bool _dragOver;
+
+    private string HeaderColor => Status switch
+    {
+        TaskBoardStatus.Pending    => "#1565c0",
+        TaskBoardStatus.InProgress => "#e65100",
+        TaskBoardStatus.Suspended  => "#f9a825",
+        TaskBoardStatus.Cancelled  => "#b71c1c",
+        TaskBoardStatus.Completed  => "#2e7d32",
+        _                          => "#546e7a"
+    };
+
+    private string HeaderIcon => Status switch
+    {
+        TaskBoardStatus.Pending    => Icons.Material.Filled.RadioButtonUnchecked,
+        TaskBoardStatus.InProgress => Icons.Material.Filled.PlayCircle,
+        TaskBoardStatus.Suspended  => Icons.Material.Filled.PauseCircle,
+        TaskBoardStatus.Cancelled  => Icons.Material.Filled.Cancel,
+        TaskBoardStatus.Completed  => Icons.Material.Filled.CheckCircle,
+        _                          => Icons.Material.Filled.Circle
+    };
+
+    private void OnDragEnter() => _dragOver = true;
+    private void OnDragLeave() => _dragOver = false;
+
+    private async Task HandleDrop()
+    {
+        _dragOver = false;
+        await OnDrop.InvokeAsync(Status);
+    }
+}

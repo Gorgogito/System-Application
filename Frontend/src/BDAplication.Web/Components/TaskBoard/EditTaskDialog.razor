@@ -1,0 +1,225 @@
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@using MudBlazor
+@inject TaskBoardApiService TaskBoardApi
+@inject ISnackbar Snackbar
+
+<MudDialog Style="min-width:480px">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-2" />
+            Editar Tarea
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+            <MudStack Spacing="3">
+
+                <!-- Campos principales -->
+                <MudTextField @bind-Value="_request.Title"
+                              Label="Título"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              RequiredError="El título es obligatorio"
+                              MaxLength="200"
+                              Counter="200"
+                              Immediate="true" />
+
+                <MudTextField @bind-Value="_request.Description"
+                              Label="Descripción"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              MaxLength="1000"
+                              Counter="1000" />
+
+                <MudSelect @bind-Value="_request.Priority"
+                           Label="Prioridad"
+                           Variant="Variant.Outlined"
+                           T="Priority">
+                    <MudSelectItem Value="Priority.Low">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#4caf50;font-size:12px" />
+                            <span>Baja</span>
+                        </MudStack>
+                    </MudSelectItem>
+                    <MudSelectItem Value="Priority.Medium">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#ff9800;font-size:12px" />
+                            <span>Media</span>
+                        </MudStack>
+                    </MudSelectItem>
+                    <MudSelectItem Value="Priority.High">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#f44336;font-size:12px" />
+                            <span>Alta</span>
+                        </MudStack>
+                    </MudSelectItem>
+                    <MudSelectItem Value="Priority.Critical">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#9c27b0;font-size:12px" />
+                            <span>Crítica</span>
+                        </MudStack>
+                    </MudSelectItem>
+                </MudSelect>
+
+                <!-- Subtareas -->
+                <MudDivider />
+                <div>
+                    <MudText Typo="Typo.subtitle2" Style="margin-bottom:8px;font-weight:600">
+                        <MudIcon Icon="@Icons.Material.Filled.Checklist" Style="font-size:16px;vertical-align:middle;margin-right:4px" />
+                        Subtareas (@_subtasks.Count(s => s.IsCompleted)/@_subtasks.Count)
+                    </MudText>
+
+                    <!-- Lista de subtareas -->
+                    @if (_subtasks.Count > 0)
+                    {
+                        <div style="max-height:180px;overflow-y:auto;margin-bottom:10px">
+                            @foreach (var sub in _subtasks)
+                            {
+                                <div class="subtask-row @(sub.IsCompleted ? "subtask-done" : "")">
+                                    <MudCheckBox T="bool"
+                                                 Value="sub.IsCompleted"
+                                                 ValueChanged="@(v => ToggleSubTask(sub))"
+                                                 Color="Color.Success"
+                                                 Dense="true" />
+                                    <span class="subtask-title">@sub.Title</span>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                                   Size="Size.Small"
+                                                   Color="Color.Default"
+                                                   OnClick="@(() => DeleteSubTask(sub))" />
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <!-- Agregar subtarea -->
+                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                        <MudTextField @bind-Value="_newSubTaskTitle"
+                                      Placeholder="Nueva subtarea..."
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      @onkeydown="OnSubTaskKeyDown"
+                                      Style="flex:1" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Add"
+                                       Color="Color.Primary"
+                                       Variant="Variant.Filled"
+                                       Size="Size.Medium"
+                                       Disabled="@string.IsNullOrWhiteSpace(_newSubTaskTitle)"
+                                       OnClick="AddSubTask" />
+                    </MudStack>
+                </div>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="!_valid">Guardar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .subtask-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 0;
+        border-radius: 6px;
+        transition: background .15s;
+    }
+    .subtask-row:hover { background: rgba(0,0,0,.04); }
+    .subtask-title {
+        flex: 1;
+        font-size: .88rem;
+        line-height: 1.3;
+    }
+    .subtask-done .subtask-title {
+        text-decoration: line-through;
+        opacity: .55;
+    }
+</style>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public TaskBoardModel Task { get; set; } = default!;
+
+    private MudForm _form = default!;
+    private bool _valid;
+    private UpdateTaskBoardRequest _request = new();
+    private List<SubTaskModel> _subtasks = new();
+    private string _newSubTaskTitle = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        _request = new UpdateTaskBoardRequest
+        {
+            Id          = Task.Id,
+            Title       = Task.Title,
+            Description = Task.Description,
+            Priority    = Task.Priority
+        };
+        _subtasks = Task.SubTasks.ToList();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_valid) return;
+        MudDialog.Close(DialogResult.Ok(_request));
+    }
+
+    private async Task AddSubTask()
+    {
+        var title = _newSubTaskTitle.Trim();
+        if (string.IsNullOrWhiteSpace(title)) return;
+
+        var resp = await TaskBoardApi.CreateSubTaskAsync(new CreateSubTaskRequest
+        {
+            BoardTaskId = Task.Id,
+            Title = title
+        });
+
+        if (resp?.Success == true && resp.Data is not null)
+        {
+            _subtasks.Add(resp.Data);
+            Task.SubTasks.Add(resp.Data);
+            _newSubTaskTitle = string.Empty;
+        }
+        else
+        {
+            Snackbar.Add("Error al agregar subtarea", Severity.Error);
+        }
+    }
+
+    private async Task OnSubTaskKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await AddSubTask();
+    }
+
+    private async Task ToggleSubTask(SubTaskModel sub)
+    {
+        var resp = await TaskBoardApi.ToggleSubTaskAsync(sub.Id);
+        if (resp?.Success == true && resp.Data is not null)
+        {
+            sub.IsCompleted = resp.Data.IsCompleted;
+            var parent = Task.SubTasks.FirstOrDefault(s => s.Id == sub.Id);
+            if (parent is not null) parent.IsCompleted = resp.Data.IsCompleted;
+        }
+    }
+
+    private async Task DeleteSubTask(SubTaskModel sub)
+    {
+        var resp = await TaskBoardApi.DeleteSubTaskAsync(sub.Id);
+        if (resp?.Success == true)
+        {
+            _subtasks.Remove(sub);
+            Task.SubTasks.Remove(Task.SubTasks.FirstOrDefault(s => s.Id == sub.Id)!);
+        }
+        else
+        {
+            Snackbar.Add("Error al eliminar subtarea", Severity.Error);
+        }
+    }
+}

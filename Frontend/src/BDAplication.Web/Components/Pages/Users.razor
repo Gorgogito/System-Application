@@ -1,0 +1,291 @@
+@page "/users"
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@inject UserApiService UserApi
+@inject RoleApiService RoleApi
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+
+<PageTitle>Usuarios - BDAplication</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+        <MudText Typo="Typo.h5">Gestión de Usuarios</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.PersonAdd"
+                   OnClick="OpenCreateDialog">
+            Nuevo Usuario
+        </MudButton>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudPaper Elevation="3" Style="border-radius:12px;overflow:hidden">
+            <MudTable Items="_users" Hover="true" Striped="true" Dense="true"
+                      Filter="FilterFunc" @bind-SelectedItem="_selectedUser">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Usuarios</MudText>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="_searchText" Placeholder="Buscar..."
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium" Class="mt-0" />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>ID</MudTh>
+                    <MudTh>Usuario</MudTh>
+                    <MudTh>Nombre Completo</MudTh>
+                    <MudTh>Email</MudTh>
+                    <MudTh>Rol</MudTh>
+                    <MudTh>Estado</MudTh>
+                    <MudTh>Creado</MudTh>
+                    <MudTh>Acciones</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Id</MudTd>
+                    <MudTd>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudAvatar Size="Size.Small" Color="Color.Primary">
+                                @context.FullName.FirstOrDefault()
+                            </MudAvatar>
+                            <MudText>@context.Username</MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>@context.FullName</MudTd>
+                    <MudTd>@context.Email</MudTd>
+                    <MudTd>
+                        <MudChip T="string" Color="Color.Secondary" Size="Size.Small">
+                            @context.RoleName
+                        </MudChip>
+                    </MudTd>
+                    <MudTd>
+                        <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Error)" Size="Size.Small">
+                            @(context.IsActive ? "Activo" : "Inactivo")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd>@context.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                       Color="Color.Warning" OnClick="() => OpenEditDialog(context)" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                       Color="Color.Error" OnClick="() => ConfirmDelete(context)" />
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>No hay usuarios registrados.</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </MudPaper>
+    }
+
+    <!-- Dialog Crear/Editar -->
+    <MudDialog @bind-Visible="_dialogOpen" Options="_dialogOptions">
+        <TitleContent>
+            <MudText Typo="Typo.h6">@(_isEditing ? "Editar Usuario" : "Nuevo Usuario")</MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_formUsername" Label="Usuario" Variant="Variant.Outlined"
+                                  Required="true" Disabled="_isEditing" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_formPassword" Label="@(_isEditing ? "Nueva contraseña (opcional)" : "Contraseña")"
+                                  InputType="InputType.Password" Variant="Variant.Outlined"
+                                  Required="!_isEditing" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_formFullName" Label="Nombre Completo"
+                                  Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_formEmail" Label="Email" InputType="InputType.Email"
+                                  Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="_formRoleId" Label="Rol" Variant="Variant.Outlined" Required="true">
+                        @foreach (var role in _roles)
+                        {
+                            <MudSelectItem Value="@role.Id">@role.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                @if (_isEditing)
+                {
+                    <MudItem xs="12">
+                        <MudSwitch @bind-Value="_formIsActive" Color="Color.Primary" Label="Activo" />
+                    </MudItem>
+                }
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="() => _dialogOpen = false">Cancelar</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       OnClick="SaveAsync" Disabled="_saving">
+                @(_saving ? "Guardando..." : "Guardar")
+            </MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudContainer>
+
+@code {
+    private List<UserModel> _users = new();
+    private List<RoleModel> _roles = new();
+    private UserModel? _selectedUser;
+    private bool _loading = true;
+    private bool _dialogOpen;
+    private bool _isEditing;
+    private bool _saving;
+    private string _searchText = string.Empty;
+
+    private string _formUsername = string.Empty;
+    private string _formPassword = string.Empty;
+    private string _formFullName = string.Empty;
+    private string _formEmail = string.Empty;
+    private int _formRoleId;
+    private bool _formIsActive = true;
+    private int _editingId;
+
+    private DialogOptions _dialogOptions = new()
+    {
+        CloseButton = true,
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var state = await AuthProvider.GetAuthenticationStateAsync();
+        if (!state.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+        await Task.WhenAll(LoadUsersAsync(), LoadRolesAsync());
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        try
+        {
+            var result = await UserApi.GetAllAsync();
+            _users = result?.Data?.ToList() ?? new();
+        }
+        catch { Snackbar.Add("Error al cargar usuarios", Severity.Error); }
+    }
+
+    private async Task LoadRolesAsync()
+    {
+        try
+        {
+            var result = await RoleApi.GetAllAsync();
+            _roles = result?.Data?.ToList() ?? new();
+        }
+        catch { }
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        await LoadUsersAsync();
+        _loading = false;
+    }
+
+    private bool FilterFunc(UserModel u) =>
+        string.IsNullOrWhiteSpace(_searchText) ||
+        u.Username.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+        u.FullName.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+        u.Email.Contains(_searchText, StringComparison.OrdinalIgnoreCase);
+
+    private void OpenCreateDialog()
+    {
+        _isEditing = false;
+        _formUsername = _formPassword = _formFullName = _formEmail = string.Empty;
+        _formRoleId = _roles.FirstOrDefault()?.Id ?? 0;
+        _formIsActive = true;
+        _dialogOpen = true;
+    }
+
+    private void OpenEditDialog(UserModel user)
+    {
+        _isEditing = true;
+        _editingId = user.Id;
+        _formUsername = user.Username;
+        _formPassword = string.Empty;
+        _formFullName = user.FullName;
+        _formEmail = user.Email;
+        _formRoleId = user.RoleId;
+        _formIsActive = user.IsActive;
+        _dialogOpen = true;
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        try
+        {
+            if (_isEditing)
+            {
+                var result = await UserApi.UpdateAsync(new UpdateUserModel
+                {
+                    Id = _editingId, Username = _formUsername,
+                    Password = string.IsNullOrWhiteSpace(_formPassword) ? null : _formPassword,
+                    FullName = _formFullName, Email = _formEmail,
+                    RoleId = _formRoleId, IsActive = _formIsActive
+                });
+                if (result?.Success == true)
+                {
+                    Snackbar.Add("Usuario actualizado", Severity.Success);
+                    _dialogOpen = false;
+                    await LoadAsync();
+                }
+                else Snackbar.Add(result?.Message ?? "Error al actualizar", Severity.Error);
+            }
+            else
+            {
+                var result = await UserApi.CreateAsync(new CreateUserModel
+                {
+                    Username = _formUsername, Password = _formPassword,
+                    FullName = _formFullName, Email = _formEmail, RoleId = _formRoleId
+                });
+                if (result?.Success == true)
+                {
+                    Snackbar.Add("Usuario creado", Severity.Success);
+                    _dialogOpen = false;
+                    await LoadAsync();
+                }
+                else Snackbar.Add(result?.Message ?? "Error al crear", Severity.Error);
+            }
+        }
+        catch { Snackbar.Add("Error de conexión", Severity.Error); }
+        finally { _saving = false; }
+    }
+
+    private async Task ConfirmDelete(UserModel user)
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Eliminar Usuario",
+            $"¿Deseas eliminar al usuario '{user.Username}'?",
+            yesText: "Eliminar", cancelText: "Cancelar");
+
+        if (result == true)
+        {
+            var response = await UserApi.DeleteAsync(user.Id);
+            if (response?.Success == true)
+            {
+                Snackbar.Add("Usuario eliminado", Severity.Success);
+                await LoadAsync();
+            }
+            else Snackbar.Add(response?.Message ?? "Error al eliminar", Severity.Error);
+        }
+    }
+}

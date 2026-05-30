@@ -1,0 +1,88 @@
+@using BDAplication.Web.Models.Finance
+@using MudBlazor
+
+<MudDialog Style="min-width:480px">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.AddCircle" Class="mr-2"/>
+            Nuevo Movimiento
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+            <MudStack Spacing="3">
+                <MudSelect @bind-Value="_req.AccountId" Label="Cuenta" Variant="Variant.Outlined"
+                           T="int" Required="true" RequiredError="Seleccione una cuenta">
+                    @foreach (var a in Accounts)
+                    {
+                        <MudSelectItem Value="@a.Id">@a.Code — @a.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudDatePicker @bind-Date="_date" Label="Fecha" Variant="Variant.Outlined"
+                               DateFormat="dd/MM/yyyy" Required="true"/>
+
+                <MudTextField @bind-Value="_req.Concept" Label="Concepto" Variant="Variant.Outlined"
+                              Required="true" MaxLength="300" Immediate="true"/>
+
+                <MudSelect @bind-Value="_req.TypeConceptId" Label="Tipo de Concepto" Variant="Variant.Outlined"
+                           T="int?" Clearable="true">
+                    @foreach (var tc in TypeConcepts)
+                    {
+                        <MudSelectItem Value="@((int?)tc.Id)">@tc.Code — @tc.Description</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudButtonGroup Variant="Variant.Outlined" Color="Color.Primary" OverrideStyles="false" Class="mt-1">
+                    <MudButton Color="@(_req.Type == "I" ? Color.Success : Color.Default)"
+                               Variant="@(_req.Type == "I" ? Variant.Filled : Variant.Outlined)"
+                               OnClick='() => _req.Type = "I"'
+                               StartIcon="@Icons.Material.Filled.ArrowCircleUp">
+                        Ingreso
+                    </MudButton>
+                    <MudButton Color="@(_req.Type == "O" ? Color.Error : Color.Default)"
+                               Variant="@(_req.Type == "O" ? Variant.Filled : Variant.Outlined)"
+                               OnClick='() => _req.Type = "O"'
+                               StartIcon="@Icons.Material.Filled.ArrowCircleDown">
+                        Salida
+                    </MudButton>
+                </MudButtonGroup>
+
+                <MudNumericField @bind-Value="_req.Amount" Label="Importe" Variant="Variant.Outlined"
+                                 Format="N2" Min="0.01m" Required="true"
+                                 Adornment="Adornment.Start" AdornmentText="$"/>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="!_valid">Registrar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public List<AccountModel> Accounts { get; set; } = new();
+    [Parameter] public List<TypeConceptModel> TypeConcepts { get; set; } = new();
+    [Parameter] public int? PreselectedAccountId { get; set; }
+
+    private MudForm _form = default!;
+    private bool _valid;
+    private DateTime? _date = DateTime.Today;
+    private CreateMovementRequest _req = new();
+
+    protected override void OnParametersSet()
+    {
+        if (PreselectedAccountId.HasValue) _req.AccountId = PreselectedAccountId.Value;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_valid || !_date.HasValue) return;
+        _req.Date = _date.Value;
+        MudDialog.Close(DialogResult.Ok(_req));
+    }
+}

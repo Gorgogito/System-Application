@@ -1,0 +1,470 @@
+@page "/finance/statement"
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Models.Finance
+@using BDAplication.Web.Services.Finance
+@using BDAplication.Web.Components.Finance
+@using MudBlazor
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@inject AccountApiService AccountApi
+@inject TypeConceptApiService TypeConceptApi
+@inject MovementApiService MovementApi
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<style>
+    .fin-page { display:flex; flex-direction:column; height:calc(100vh - 112px); overflow:hidden; gap:16px; }
+    .fin-top { flex:0 0 auto; min-height:180px; max-height:260px; display:flex; flex-direction:column; }
+    .fin-bottom { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+
+    .fin-account-header {
+        display:flex; gap:24px; align-items:center; flex-wrap:wrap;
+        padding:12px 16px; border-radius:8px;
+        background:var(--mud-palette-primary);
+        color:white; margin-bottom:10px; flex-shrink:0;
+    }
+    .fin-account-stat { text-align:center; }
+    .fin-account-stat-label { font-size:.72rem; opacity:.8; }
+    .fin-account-stat-value { font-size:1.1rem; font-weight:700; }
+
+    .fin-grid-scroll { overflow-y:auto; flex:1; }
+    .fin-grid-scroll::-webkit-scrollbar { width:5px; }
+    .fin-grid-scroll::-webkit-scrollbar-thumb { background:rgba(0,0,0,.15); border-radius:4px; }
+
+    .mov-income  { color:#2e7d32; font-weight:600; }
+    .mov-outcome { color:#c62828; font-weight:600; }
+    .mov-balance { font-weight:700; }
+    .mov-transfer-badge {
+        font-size:.65rem; background:#1565c0; color:white;
+        padding:1px 5px; border-radius:8px; margin-left:4px;
+    }
+    .selected-row td { background:rgba(25,118,210,.08) !important; }
+</style>
+
+<div class="fin-page">
+
+    <!-- ── TOP: Grid de cuentas ─────────────────────────────── -->
+    <div class="fin-top">
+        <MudPaper Elevation="2" Style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--mud-palette-divider);flex-shrink:0">
+                <MudText Typo="Typo.subtitle1" Style="font-weight:700">
+                    <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Style="vertical-align:middle;margin-right:6px"/>
+                    Cuentas
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                           StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateAccount">
+                    Nueva Cuenta
+                </MudButton>
+            </div>
+            <div class="fin-grid-scroll">
+                <MudTable T="AccountModel" Items="@_accounts" Dense="true" Hover="true" Striped="true"
+                          SelectedItem="@_selectedAccount"
+                          SelectedItemChanged="OnAccountSelected"
+                          RowClassFunc="AccountRowClass">
+                    <HeaderContent>
+                        <MudTh>Código</MudTh>
+                        <MudTh>Nombre</MudTh>
+                        <MudTh>Descripción</MudTh>
+                        <MudTh Style="text-align:right">Saldo</MudTh>
+                        <MudTh>Creado</MudTh>
+                        <MudTh Style="text-align:center">Acciones</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Código"><MudText Typo="Typo.body2" Style="font-family:monospace">@context.Code</MudText></MudTd>
+                        <MudTd DataLabel="Nombre">@context.Name</MudTd>
+                        <MudTd DataLabel="Descripción">@context.Description</MudTd>
+                        <MudTd DataLabel="Saldo" Style="text-align:right">
+                            <span class="@(context.Balance >= 0 ? "mov-income" : "mov-outcome")">
+                                $@context.Balance.ToString("N2")
+                            </span>
+                        </MudTd>
+                        <MudTd DataLabel="Creado">@context.CreatedDate.ToLocalTime().ToString("dd/MM/yyyy")</MudTd>
+                        <MudTd Style="text-align:center">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                           OnClick="@(() => OpenEditAccount(context))"/>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                           OnClick="@(() => ConfirmDeleteAccount(context))"/>
+                        </MudTd>
+                    </RowTemplate>
+                    <NoRecordsContent>
+                        <MudText Align="Align.Center" Class="pa-4 mud-text-secondary">No hay cuentas registradas</MudText>
+                    </NoRecordsContent>
+                </MudTable>
+            </div>
+        </MudPaper>
+    </div>
+
+    <!-- ── BOTTOM: Detalle de cuenta y movimientos ─────────── -->
+    @if (_selectedAccount != null)
+    {
+        <div class="fin-bottom">
+            <MudPaper Elevation="2" Style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+
+                <!-- Cabecera de cuenta seleccionada -->
+                <div class="fin-account-header">
+                    <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Style="font-size:36px;opacity:.9"/>
+                    <div class="fin-account-stat">
+                        <div class="fin-account-stat-label">Código</div>
+                        <div class="fin-account-stat-value" style="font-family:monospace">@_selectedAccount.Code</div>
+                    </div>
+                    <div class="fin-account-stat">
+                        <div class="fin-account-stat-label">Nombre</div>
+                        <div class="fin-account-stat-value">@_selectedAccount.Name</div>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(_selectedAccount.Description))
+                    {
+                        <div class="fin-account-stat">
+                            <div class="fin-account-stat-label">Descripción</div>
+                            <div class="fin-account-stat-value" style="font-size:.9rem">@_selectedAccount.Description</div>
+                        </div>
+                    }
+                    <MudSpacer/>
+                    <div class="fin-account-stat" style="text-align:right">
+                        <div class="fin-account-stat-label">Saldo Disponible</div>
+                        <div class="fin-account-stat-value" style="font-size:1.5rem">
+                            $@_selectedAccount.Balance.ToString("N2")
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toolbar de acciones -->
+                <div style="display:flex;gap:8px;padding:8px 16px;border-bottom:1px solid var(--mud-palette-divider);flex-shrink:0;flex-wrap:wrap">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Add" OnClick="OpenNewMovement">
+                        Nuevo
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Edit"
+                               Disabled="@(_selectedMovement == null || _selectedMovement.IsTransfer)"
+                               OnClick="OpenEditMovement">
+                        Editar
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Info" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.SwapHoriz" OnClick="OpenTransfer">
+                        Transferencia
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Delete"
+                               Disabled="@(_selectedMovement == null || _selectedMovement.IsTransfer)"
+                               OnClick="ConfirmDeleteMovement">
+                        Eliminar
+                    </MudButton>
+                    <MudSpacer/>
+                    <MudButton Variant="Variant.Text" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Close" OnClick="ClearSelection">
+                        Cerrar
+                    </MudButton>
+                    @if (_loadingMovements)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary"/>
+                    }
+                </div>
+
+                <!-- Grid de movimientos -->
+                <div class="fin-grid-scroll">
+                    <MudTable T="MovementModel" Items="@_movements" Dense="true" Hover="true"
+                              SelectedItem="@_selectedMovement"
+                              SelectedItemChanged="@(m => _selectedMovement = m)"
+                              RowClassFunc="MovementRowClass">
+                        <HeaderContent>
+                            <MudTh>Código</MudTh>
+                            <MudTh>Fecha</MudTh>
+                            <MudTh>Concepto</MudTh>
+                            <MudTh>Tipo Concepto</MudTh>
+                            <MudTh Style="text-align:center">Tipo</MudTh>
+                            <MudTh Style="text-align:right">Importe</MudTh>
+                            <MudTh Style="text-align:right">Saldo</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Código">
+                                <MudText Typo="Typo.body2" Style="font-family:monospace">@context.Code</MudText>
+                                @if (context.IsTransfer)
+                                {
+                                    <span class="mov-transfer-badge">
+                                        @(context.TransferSourceDestiny == "O" ? "⬆ Origen" : "⬇ Destino")
+                                    </span>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Fecha">@context.Date.ToString("dd/MM/yyyy")</MudTd>
+                            <MudTd DataLabel="Concepto">@context.Concept</MudTd>
+                            <MudTd DataLabel="Tipo Concepto">@context.TypeConceptDescription</MudTd>
+                            <MudTd DataLabel="Tipo" Style="text-align:center">
+                                @if (context.Type == "I")
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Success"
+                                             Style="height:22px;font-size:.72rem">
+                                        <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" Style="font-size:13px"/> Ingreso
+                                    </MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Error"
+                                             Style="height:22px;font-size:.72rem">
+                                        <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Style="font-size:13px"/> Salida
+                                    </MudChip>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Importe" Style="text-align:right">
+                                <span class="@(context.Type == "I" ? "mov-income" : "mov-outcome")">
+                                    $@context.Amount.ToString("N2")
+                                </span>
+                            </MudTd>
+                            <MudTd DataLabel="Saldo" Style="text-align:right">
+                                <span class="mov-balance">$@context.Balance.ToString("N2")</span>
+                            </MudTd>
+                        </RowTemplate>
+                        <NoRecordsContent>
+                            <MudText Align="Align.Center" Class="pa-6 mud-text-secondary">
+                                Sin movimientos — presione <b>Nuevo</b> para registrar el primero
+                            </MudText>
+                        </NoRecordsContent>
+                    </MudTable>
+                </div>
+            </MudPaper>
+        </div>
+    }
+    else
+    {
+        <MudPaper Elevation="1" Class="d-flex align-center justify-center"
+                  Style="flex:1;opacity:.55">
+            <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Outlined.TouchApp" Style="font-size:48px"/>
+                <MudText Typo="Typo.body1">Seleccione una cuenta para ver sus movimientos</MudText>
+            </MudStack>
+        </MudPaper>
+    }
+</div>
+
+@code {
+    private bool _loadingMovements;
+    private List<AccountModel> _accounts = new();
+    private List<TypeConceptModel> _typeConcepts = new();
+    private List<MovementModel> _movements = new();
+    private AccountModel? _selectedAccount;
+    private MovementModel? _selectedMovement;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        if (auth.User.Identity?.IsAuthenticated != true)
+        { Nav.NavigateTo("/login", forceLoad: true); return; }
+
+        await Task.WhenAll(LoadAccountsAsync(), LoadTypeConceptsAsync());
+    }
+
+    private async Task LoadAccountsAsync()
+    {
+        var resp = await AccountApi.ListAsync();
+        _accounts = resp?.Data ?? new();
+        StateHasChanged();
+    }
+
+    private async Task LoadTypeConceptsAsync()
+    {
+        var resp = await TypeConceptApi.ListAsync();
+        _typeConcepts = resp?.Data ?? new();
+    }
+
+    private async Task OnAccountSelected(AccountModel? account)
+    {
+        _selectedAccount = account;
+        _selectedMovement = null;
+        _movements.Clear();
+        if (account == null) { StateHasChanged(); return; }
+        await LoadMovementsAsync(account.Id);
+    }
+
+    private async Task LoadMovementsAsync(int accountId)
+    {
+        _loadingMovements = true;
+        StateHasChanged();
+        try
+        {
+            var resp = await MovementApi.ListByAccountAsync(accountId);
+            _movements = resp?.Data ?? new();
+        }
+        finally { _loadingMovements = false; StateHasChanged(); }
+    }
+
+    private void ClearSelection() { _selectedAccount = null; _selectedMovement = null; _movements.Clear(); StateHasChanged(); }
+
+    // ── Cuentas ────────────────────────────────────────────
+    private async Task OpenCreateAccount()
+    {
+        var dialog = await DialogService.ShowAsync<AccountFormDialog>("Nueva Cuenta",
+            new DialogParameters<AccountFormDialog> { { x => x.IsEdit, false } },
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true });
+        var result = await dialog.Result;
+        if (result?.Canceled == true) return;
+
+        if (result?.Data is CreateAccountRequest req)
+        {
+            var resp = await AccountApi.CreateAsync(req);
+            if (resp?.Success == true && resp.Data != null)
+            { _accounts.Add(resp.Data); Snackbar.Add("Cuenta creada", Severity.Success); StateHasChanged(); }
+            else Snackbar.Add(resp?.Message ?? "Error al crear cuenta", Severity.Error);
+        }
+    }
+
+    private async Task OpenEditAccount(AccountModel account)
+    {
+        var p = new DialogParameters<AccountFormDialog>
+        {
+            { x => x.IsEdit, true },
+            { x => x.Account, account }
+        };
+        var dialog = await DialogService.ShowAsync<AccountFormDialog>("Editar Cuenta", p,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true });
+        var result = await dialog.Result;
+        if (result?.Canceled == true) return;
+
+        if (result?.Data is UpdateAccountRequest req)
+        {
+            var resp = await AccountApi.UpdateAsync(req);
+            if (resp?.Success == true && resp.Data != null)
+            {
+                var idx = _accounts.FindIndex(a => a.Id == resp.Data.Id);
+                if (idx >= 0) _accounts[idx] = resp.Data;
+                if (_selectedAccount?.Id == resp.Data.Id) _selectedAccount = resp.Data;
+                Snackbar.Add("Cuenta actualizada", Severity.Success);
+                StateHasChanged();
+            }
+            else Snackbar.Add(resp?.Message ?? "Error al actualizar", Severity.Error);
+        }
+    }
+
+    private async Task ConfirmDeleteAccount(AccountModel account)
+    {
+        var ok = await DialogService.ShowMessageBox("Eliminar cuenta",
+            $"¿Eliminar la cuenta «{account.Name}»? Solo se permite si no tiene movimientos.",
+            yesText: "Eliminar", cancelText: "Cancelar");
+        if (ok != true) return;
+
+        var resp = await AccountApi.DeleteAsync(account.Id);
+        if (resp?.Success == true)
+        {
+            _accounts.Remove(account);
+            if (_selectedAccount?.Id == account.Id) ClearSelection();
+            Snackbar.Add("Cuenta eliminada", Severity.Success);
+            StateHasChanged();
+        }
+        else Snackbar.Add(resp?.Message ?? "No se puede eliminar", Severity.Error);
+    }
+
+    // ── Movimientos ────────────────────────────────────────
+    private async Task OpenNewMovement()
+    {
+        var p = new DialogParameters<NewMovementDialog>
+        {
+            { x => x.Accounts, _accounts },
+            { x => x.TypeConcepts, _typeConcepts },
+            { x => x.PreselectedAccountId, _selectedAccount?.Id }
+        };
+        var dialog = await DialogService.ShowAsync<NewMovementDialog>("Nuevo Movimiento", p,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true });
+        var result = await dialog.Result;
+        if (result?.Canceled == true) return;
+
+        if (result?.Data is CreateMovementRequest req)
+        {
+            var resp = await MovementApi.CreateAsync(req);
+            if (resp?.Success == true)
+            {
+                Snackbar.Add("Movimiento registrado", Severity.Success);
+                await RefreshAfterMovement(req.AccountId);
+            }
+            else Snackbar.Add(resp?.Message ?? "Error al registrar", Severity.Error);
+        }
+    }
+
+    private async Task OpenEditMovement()
+    {
+        if (_selectedMovement == null) return;
+        var p = new DialogParameters<EditMovementDialog>
+        {
+            { x => x.Movement, _selectedMovement },
+            { x => x.TypeConcepts, _typeConcepts }
+        };
+        var dialog = await DialogService.ShowAsync<EditMovementDialog>("Editar Movimiento", p,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true });
+        var result = await dialog.Result;
+        if (result?.Canceled == true) return;
+
+        if (result?.Data is UpdateMovementRequest req)
+        {
+            var resp = await MovementApi.UpdateAsync(req);
+            if (resp?.Success == true)
+            {
+                Snackbar.Add("Movimiento actualizado", Severity.Success);
+                await RefreshAfterMovement(_selectedAccount!.Id);
+            }
+            else Snackbar.Add(resp?.Message ?? "Error al actualizar", Severity.Error);
+        }
+    }
+
+    private async Task OpenTransfer()
+    {
+        var p = new DialogParameters<TransferDialog>
+        {
+            { x => x.Accounts, _accounts },
+            { x => x.PreselectedSourceId, _selectedAccount?.Id }
+        };
+        var dialog = await DialogService.ShowAsync<TransferDialog>("Transferencia", p,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true });
+        var result = await dialog.Result;
+        if (result?.Canceled == true) return;
+
+        if (result?.Data is CreateTransferRequest req)
+        {
+            var resp = await MovementApi.TransferAsync(req);
+            if (resp?.Success == true)
+            {
+                Snackbar.Add("Transferencia registrada", Severity.Success);
+                // Refresh both accounts
+                var accResp = await AccountApi.ListAsync();
+                _accounts = accResp?.Data ?? _accounts;
+                if (_selectedAccount != null)
+                {
+                    _selectedAccount = _accounts.FirstOrDefault(a => a.Id == _selectedAccount.Id);
+                    if (_selectedAccount != null) await LoadMovementsAsync(_selectedAccount.Id);
+                }
+                StateHasChanged();
+            }
+            else Snackbar.Add(resp?.Message ?? "Error en transferencia", Severity.Error);
+        }
+    }
+
+    private async Task ConfirmDeleteMovement()
+    {
+        if (_selectedMovement == null) return;
+        var ok = await DialogService.ShowMessageBox("Eliminar movimiento",
+            $"¿Eliminar el movimiento «{_selectedMovement.Code}»?",
+            yesText: "Eliminar", cancelText: "Cancelar");
+        if (ok != true) return;
+
+        var resp = await MovementApi.DeleteAsync(_selectedMovement.Id);
+        if (resp?.Success == true)
+        {
+            Snackbar.Add("Movimiento eliminado", Severity.Success);
+            _selectedMovement = null;
+            await RefreshAfterMovement(_selectedAccount!.Id);
+        }
+        else Snackbar.Add(resp?.Message ?? "Error al eliminar", Severity.Error);
+    }
+
+    private async Task RefreshAfterMovement(int accountId)
+    {
+        var accResp = await AccountApi.ListAsync();
+        _accounts = accResp?.Data ?? _accounts;
+        _selectedAccount = _accounts.FirstOrDefault(a => a.Id == accountId);
+        if (_selectedAccount != null) await LoadMovementsAsync(accountId);
+        StateHasChanged();
+    }
+
+    private string AccountRowClass(AccountModel item, int index) =>
+        _selectedAccount?.Id == item.Id ? "selected-row" : string.Empty;
+
+    private string MovementRowClass(MovementModel item, int index) =>
+        _selectedMovement?.Id == item.Id ? "selected-row" : string.Empty;
+}
