@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "BXn639iHpTA=",
+  "dgSpecHash": "VZxtyD3ELEQ=",
   "success": true,
-  "projectFilePath": "C:\\JTorres\\IA\\project01\\Backend\\src\\BDAplication.Application\\BDAplication.Application.csproj",
+  "projectFilePath": "D:\\ProjectsIA\\System-Application\\Backend\\src\\BDAplication.Application\\BDAplication.Application.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Jorge\\.nuget\\packages\\fluentvalidation\\11.11.0\\fluentvalidation.11.11.0.nupkg.sha512"
+    "C:\\Users\\ta_jo\\.nuget\\packages\\fluentvalidation\\11.11.0\\fluentvalidation.11.11.0.nupkg.sha512"
   ],
   "logs": []
 }

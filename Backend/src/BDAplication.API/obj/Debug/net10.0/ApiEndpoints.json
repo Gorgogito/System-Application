@@ -1,0 +1,643 @@
+[
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.AccountController",
+    "Method": "Create",
+    "RelativePath": "api/finance/account/create",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.Finance.CreateAccountRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.AccountController",
+    "Method": "Delete",
+    "RelativePath": "api/finance/account/delete",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.AccountController",
+    "Method": "Get",
+    "RelativePath": "api/finance/account/get",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "code",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.AccountController",
+    "Method": "List",
+    "RelativePath": "api/finance/account/list",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.AccountController",
+    "Method": "Update",
+    "RelativePath": "api/finance/account/update",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.Finance.UpdateAccountRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.MovementController",
+    "Method": "Create",
+    "RelativePath": "api/finance/movement/create",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.Finance.CreateMovementRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.MovementController",
+    "Method": "Delete",
+    "RelativePath": "api/finance/movement/delete",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.MovementController",
+    "Method": "Get",
+    "RelativePath": "api/finance/movement/get",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "code",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.MovementController",
+    "Method": "ListByAccount",
+    "RelativePath": "api/finance/movement/listbyaccount",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "accountId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.MovementController",
+    "Method": "Transfer",
+    "RelativePath": "api/finance/movement/transfer",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.Finance.CreateTransferRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.MovementController",
+    "Method": "Update",
+    "RelativePath": "api/finance/movement/update",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.Finance.UpdateMovementRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.TypeConceptController",
+    "Method": "Create",
+    "RelativePath": "api/finance/typeconcept/create",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.Finance.CreateTypeConceptRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.TypeConceptController",
+    "Method": "Delete",
+    "RelativePath": "api/finance/typeconcept/delete",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.TypeConceptController",
+    "Method": "Get",
+    "RelativePath": "api/finance/typeconcept/get",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "code",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.TypeConceptController",
+    "Method": "List",
+    "RelativePath": "api/finance/typeconcept/list",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.Finance.TypeConceptController",
+    "Method": "Update",
+    "RelativePath": "api/finance/typeconcept/update",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.Finance.UpdateTypeConceptRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.MasterController",
+    "Method": "Login",
+    "RelativePath": "api/master/authentication",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.LoginRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.MasterController",
+    "Method": "CreateRole",
+    "RelativePath": "api/master/createrol",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.CreateRoleRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.MasterController",
+    "Method": "CreateUser",
+    "RelativePath": "api/master/createuser",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.CreateUserRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.MasterController",
+    "Method": "DeleteRole",
+    "RelativePath": "api/master/deleterol",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.MasterController",
+    "Method": "DeleteUser",
+    "RelativePath": "api/master/deleteuser",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.MasterController",
+    "Method": "GetRoles",
+    "RelativePath": "api/master/getrol",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.MasterController",
+    "Method": "GetUsers",
+    "RelativePath": "api/master/getuser",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.MasterController",
+    "Method": "UpdateRole",
+    "RelativePath": "api/master/updaterol",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.UpdateRoleRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.MasterController",
+    "Method": "UpdateUser",
+    "RelativePath": "api/master/updateuser",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.UpdateUserRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.ProcessController",
+    "Method": "BacklogList",
+    "RelativePath": "api/process/backlog/BacklogList",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "search",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "priority",
+        "Type": "System.Nullable\u00601[[BDAplication.Domain.Enums.Priority, BDAplication.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.ProcessController",
+    "Method": "BacklogRegister",
+    "RelativePath": "api/process/backlog/BacklogRegister",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.TaskPlanner.BacklogRegisterRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.ProcessController",
+    "Method": "MovePlanner",
+    "RelativePath": "api/process/planner/MovePlanner",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.TaskPlanner.MovePlannerRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.ProcessController",
+    "Method": "PlannerInactive",
+    "RelativePath": "api/process/planner/PlannerInactive",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.TaskPlanner.PlannerInactiveRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.ProcessController",
+    "Method": "PlannerList",
+    "RelativePath": "api/process/planner/PlannerList",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.TaskPlanner.PlannerListRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.ProcessController",
+    "Method": "PlannerRegister",
+    "RelativePath": "api/process/planner/PlannerRegister",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.TaskPlanner.PlannerRegisterRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.TaskBoardController",
+    "Method": "CreateTask",
+    "RelativePath": "api/process/taskboard/CreateTask",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.TaskBoard.CreateTaskBoardRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.TaskBoardController",
+    "Method": "DeleteTask",
+    "RelativePath": "api/process/taskboard/DeleteTask",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.TaskBoardController",
+    "Method": "GetTaskById",
+    "RelativePath": "api/process/taskboard/GetTaskById",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.TaskBoardController",
+    "Method": "GetTasks",
+    "RelativePath": "api/process/taskboard/GetTasks",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "status",
+        "Type": "System.Nullable\u00601[[BDAplication.Domain.Enums.TaskBoardStatus, BDAplication.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "priority",
+        "Type": "System.Nullable\u00601[[BDAplication.Domain.Enums.Priority, BDAplication.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "search",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.TaskBoardController",
+    "Method": "MoveTask",
+    "RelativePath": "api/process/taskboard/MoveTask",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.TaskBoard.MoveTaskBoardRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.TaskBoardController",
+    "Method": "CreateSubTask",
+    "RelativePath": "api/process/taskboard/subtask/Create",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.TaskBoard.CreateSubTaskRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.TaskBoardController",
+    "Method": "DeleteSubTask",
+    "RelativePath": "api/process/taskboard/subtask/Delete",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.TaskBoardController",
+    "Method": "ToggleSubTask",
+    "RelativePath": "api/process/taskboard/subtask/Toggle",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.TaskBoard.ToggleSubTaskRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BDAplication.API.Controllers.TaskBoardController",
+    "Method": "UpdateTask",
+    "RelativePath": "api/process/taskboard/UpdateTask",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "BDAplication.Application.DTOs.TaskBoard.UpdateTaskBoardRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

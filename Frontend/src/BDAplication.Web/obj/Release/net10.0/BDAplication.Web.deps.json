@@ -1,0 +1,41 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "BDAplication.Web/1.0.0": {
+        "dependencies": {
+          "MudBlazor": "8.6.0"
+        },
+        "runtime": {
+          "BDAplication.Web.dll": {}
+        }
+      },
+      "MudBlazor/8.6.0": {
+        "runtime": {
+          "lib/net9.0/MudBlazor.dll": {
+            "assemblyVersion": "8.6.0.0",
+            "fileVersion": "8.6.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "BDAplication.Web/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "MudBlazor/8.6.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-vJROmWdTjiBmyiZBSbD8RcYVFfLbNMEQpKoCOMfY2628KbOLGVcnH1RBziHGyJH9pqc99UoCQS81XLm8X+49ug==",
+      "path": "mudblazor/8.6.0",
+      "hashPath": "mudblazor.8.6.0.nupkg.sha512"
+    }
+  }
+}

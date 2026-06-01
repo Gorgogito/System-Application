@@ -48,9 +48,10 @@ builder.Services.AddValidatorsFromAssemblyContaining<
     BDAplication.Application.Validators.CreateUserValidator>();
 
 // CORS para el frontend Blazor
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
 builder.Services.AddCors(opts =>
     opts.AddPolicy("BlazorPolicy", p =>
-        p.WithOrigins("https://localhost:7280", "http://localhost:5236", "https://localhost:7200", "http://localhost:5200")
+        p.WithOrigins(allowedOrigins)
          .AllowAnyMethod()
          .AllowAnyHeader()
          .AllowCredentials()));

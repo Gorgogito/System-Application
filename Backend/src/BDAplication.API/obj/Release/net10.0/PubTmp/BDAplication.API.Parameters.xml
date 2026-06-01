@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<parameters>
+  <parameter name="IIS Web Application Name" description="" value="TaskPlannerApi" tags="IisApp">
+    <parameterEntry kind="ProviderPath" scope="IisApp" match="^D:\\ProjectsIA\\System-Application\\Backend\\src\\BDAplication\.API\\obj\\Release\\net10\.0\\PubTmp\\Out\\$" />
+  </parameter>
+</parameters>

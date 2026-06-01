@@ -1,0 +1,133 @@
+<step title="Incoming Request" date="2026-05-31T01:22:14.202" instance="79e06d" url="/api/publish?type=zip&amp;async=False" method="POST" type="request" pid="13324,2,9" Cache-Control="no-cache" Content-Length="6926575" Content-Type="application/octet-stream" Accept="*/*" Accept-Encoding="gzip, deflate" Authorization="Bea..." Host="taskplannerapi-ejcaf8bwfze5f9hh.scm.canadacentral-01.azurewebsites.net" User-Agent="AZURECLI/2.86.0 (MSI)" x-ms-client-request-id="1de69cda-5c8f-11f1-a611-d85ed3a4ccd4" X-ARR-LOG-ID="1de69cda-5c8f-11f1-a611-d85ed3a4ccd4" CLIENT-IP="38.25.29.21:32948" X-SITE-DEPLOYMENT-ID="TaskPlannerApi" WAS-DEFAULT-HOSTNAME="taskplannerapi-ejcaf8bwfze5f9hh.scm.canadacentral-01.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/publish?type=zip&amp;async=False" >
+  <step title="OneDeploy" date="2026-05-31T01:22:14.420" >
+    <step title="Starting PushDeployAsync" date="2026-05-31T01:22:14.436" /><!-- duration: 16ms -->
+    <step title="Updating shutdown sentinel last write time" date="2026-05-31T01:22:14.483" SemaphoreCount="7" /><!-- duration: 0ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2026-05-31T01:22:14.483" /><!-- duration: 16ms -->
+    <step title="Saving request content to C:\local\Temp\zipdeploy\0ddafhoe.zip" date="2026-05-31T01:22:14.498" >
+      <step title="Total 6,926,575 bytes written to C:\local\Temp\zipdeploy\0ddafhoe.zip" date="2026-05-31T01:22:14.561" /><!-- duration: 0ms -->
+    </step><!-- duration: 63ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2026-05-31T01:22:14.561" /><!-- duration: 16ms -->
+    <step title="Deleting shutdown sentinel file" date="2026-05-31T01:22:14.577" SemaphoreCount="8" /><!-- duration: 0ms -->
+    <step title="Starting FetchDeploy" date="2026-05-31T01:22:14.592" /><!-- duration: 0ms -->
+    <step title="Attempting to fetch target branch HEAD" date="2026-05-31T01:22:14.592" /><!-- duration: 16ms -->
+    <step title="Updating shutdown sentinel last write time" date="2026-05-31T01:22:14.623" SemaphoreCount="7" /><!-- duration: 0ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2026-05-31T01:22:14.623" /><!-- duration: 0ms -->
+    <step title="Performing fetch based deployment" date="2026-05-31T01:22:14.639" >
+      <step title="Creating temporary deployment" date="2026-05-31T01:22:14.639" /><!-- duration: 47ms -->
+      <step title="Fetching changes." date="2026-05-31T01:22:14.733" /><!-- duration: 16ms -->
+      <step title="Starting LocalZipHandler" date="2026-05-31T01:22:14.748" /><!-- duration: 0ms -->
+      <step title="Starting LocalZipFetch" date="2026-05-31T01:22:14.764" /><!-- duration: 0ms -->
+      <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\0ddafhoe.zip (6.61 MB) to C:\local\Temp\zipdeploy\extracted" date="2026-05-31T01:22:14.780" /><!-- duration: 0ms -->
+      <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\0ddafhoe.zip (6.61 MB) to C:\local\Temp\zipdeploy\extracted" date="2026-05-31T01:22:14.780" >
+        <step title="Extracting 74 entries to C:\local\Temp\zipdeploy\extracted directory" date="2026-05-31T01:22:14.795" >
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\runtimes\unix\lib\net6.0\Microsoft.Data.SqlClient.dll ..." date="2026-05-31T01:22:14.795" /><!-- duration: 31ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\runtimes\unix\lib\net6.0\System.Drawing.Common.dll ..." date="2026-05-31T01:22:14.842" /><!-- duration: 0ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\runtimes\win\lib\net6.0\Microsoft.Data.SqlClient.dll ..." date="2026-05-31T01:22:14.842" /><!-- duration: 31ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\runtimes\win\lib\net6.0\Microsoft.Win32.SystemEvents.dll ..." date="2026-05-31T01:22:14.889" /><!-- duration: 0ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\runtimes\win\lib\net6.0\System.Drawing.Common.dll ..." date="2026-05-31T01:22:14.889" /><!-- duration: 16ms -->
+          <step title="Omitting extracting file traces ..." date="2026-05-31T01:22:14.905" /><!-- duration: 0ms -->
+        </step><!-- duration: 312ms -->
+      </step><!-- duration: 344ms -->
+      <step title="None repository commit" date="2026-05-31T01:22:15.123" >
+        <step title="Commit id: e1f1f00390604ded8aa84ca7ce9d85ee" date="2026-05-31T01:22:15.123" Message="OneDeploy" AuthorName="N/A" AuthorEmail="N/A" /><!-- duration: 0ms -->
+      </step><!-- duration: 16ms -->
+      <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2026-05-31T01:22:15.139" /><!-- duration: 0ms -->
+      <step title="DeploymentManager.Deploy(id:e1f1f00390604ded8aa84ca7ce9d85ee)" date="2026-05-31T01:22:15.155" >
+        <step title="Collecting changeset information" date="2026-05-31T01:22:15.155" /><!-- duration: 31ms -->
+        <step title="Updating submodules" date="2026-05-31T01:22:15.202" >
+          <step title="Updating submodules." date="2026-05-31T01:22:15.233" /><!-- duration: 0ms -->
+        </step><!-- duration: 47ms -->
+        <step title="Preparing deployment for commit id &apos;e1f1f00390&apos;." date="2026-05-31T01:22:15.280" /><!-- duration: 0ms -->
+        <step title="Determining deployment builder" date="2026-05-31T01:22:15.311" >
+          <step title="Builder is OneDeployBuilder" date="2026-05-31T01:22:15.327" /><!-- duration: 0ms -->
+        </step><!-- duration: 16ms -->
+        <step title="Copying SSH keys" date="2026-05-31T01:22:15.358" /><!-- duration: 0ms -->
+        <step title="Building" date="2026-05-31T01:22:15.373" >
+          <step title="Running build. Project type: OneDeploy" date="2026-05-31T01:22:15.405" /><!-- duration: 0ms -->
+          <step title="Copying the manifest" date="2026-05-31T01:22:15.436" /><!-- duration: 16ms -->
+          <step title="Clean deploying to C:\home\site\wwwroot" date="2026-05-31T01:22:15.483" /><!-- duration: 16ms -->
+          <step title="Generating deployment script." date="2026-05-31T01:22:15.530" /><!-- duration: 0ms -->
+          <step title="Generating deployment script" date="2026-05-31T01:22:15.545" >
+            <step title="Using the following command to generate deployment script: &apos;azure site deploymentscript -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --basic --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;&apos;." date="2026-05-31T01:22:15.577" /><!-- duration: 0ms -->
+            <step title="Executing external process" date="2026-05-31T01:22:15.608" type="process" path="starter.cmd" arguments="&quot;C:\Program Files (x86)\SiteExtensions\Kudu\2025.11.1.1\bin\node_modules\.bin\kuduscript.cmd&quot; -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --basic --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;" >
+              <step title="Generating deployment script for Web Site" date="2026-05-31T01:22:15.780" /><!-- duration: 16ms -->
+              <step title="Generated deployment script files" date="2026-05-31T01:22:15.795" /><!-- duration: 16ms -->
+            </step><!-- duration: 203ms -->
+            <step title="Saved cached version of the deployment script for command -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --basic --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;" date="2026-05-31T01:22:15.827" /><!-- duration: 0ms -->
+          </step><!-- duration: 297ms -->
+          <step title="Running deployment command..." date="2026-05-31T01:22:15.873" /><!-- duration: 0ms -->
+          <step title="Command: &quot;C:\home\site\deployments\tools\deploy.cmd&quot;" date="2026-05-31T01:22:15.889" /><!-- duration: 0ms -->
+          <step title="Executing external process" date="2026-05-31T01:22:15.889" type="process" path="starter.cmd" arguments="&quot;C:\home\site\deployments\tools\deploy.cmd&quot;" >
+            <step title="Handling Basic Web Site deployment." date="2026-05-31T01:22:16.014" /><!-- duration: 0ms -->
+            <step title="Creating app_offline.htm" date="2026-05-31T01:22:16.170" /><!-- duration: 16ms -->
+            <step title="KuduSync.NET from: &apos;C:\local\Temp\zipdeploy\extracted&apos; to: &apos;C:\home\site\wwwroot&apos;" date="2026-05-31T01:22:16.233" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;cs\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.248" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;cs&apos;" date="2026-05-31T01:22:16.264" /><!-- duration: 16ms -->
+            <step title="Deleting file: &apos;de\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.280" /><!-- duration: 16ms -->
+            <step title="Deleting directory: &apos;de&apos;" date="2026-05-31T01:22:16.295" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;es\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.311" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;es&apos;" date="2026-05-31T01:22:16.327" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;fr\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.342" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;fr&apos;" date="2026-05-31T01:22:16.358" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;it\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.373" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;it&apos;" date="2026-05-31T01:22:16.389" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;ja\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.405" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;ja&apos;" date="2026-05-31T01:22:16.420" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;ko\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.436" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;ko&apos;" date="2026-05-31T01:22:16.452" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;pl\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.467" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;pl&apos;" date="2026-05-31T01:22:16.483" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;pt-BR\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.498" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;pt-BR&apos;" date="2026-05-31T01:22:16.514" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;ru\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.530" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;ru&apos;" date="2026-05-31T01:22:16.545" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;tr\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.561" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;tr&apos;" date="2026-05-31T01:22:16.577" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;zh-Hans\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.592" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;zh-Hans&apos;" date="2026-05-31T01:22:16.608" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;zh-Hant\Microsoft.Data.SqlClient.resources.dll&apos;" date="2026-05-31T01:22:16.623" /><!-- duration: 0ms -->
+            <step title="Deleting directory: &apos;zh-Hant&apos;" date="2026-05-31T01:22:16.639" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;AutoMapper.dll&apos;" date="2026-05-31T01:22:16.655" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;Dapper.dll&apos;" date="2026-05-31T01:22:16.670" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;hostingstart.html&apos;" date="2026-05-31T01:22:16.686" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Api.deps.json&apos;" date="2026-05-31T01:22:16.702" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Api.dll&apos;" date="2026-05-31T01:22:16.717" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Api.exe&apos;" date="2026-05-31T01:22:16.733" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Api.pdb&apos;" date="2026-05-31T01:22:16.748" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Api.runtimeconfig.json&apos;" date="2026-05-31T01:22:16.764" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Api.staticwebassets.endpoints.json&apos;" date="2026-05-31T01:22:16.780" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Api.xml&apos;" date="2026-05-31T01:22:16.795" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Application.DTO.dll&apos;" date="2026-05-31T01:22:16.811" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Application.DTO.pdb&apos;" date="2026-05-31T01:22:16.827" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Application.Interface.dll&apos;" date="2026-05-31T01:22:16.842" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Application.Interface.pdb&apos;" date="2026-05-31T01:22:16.858" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Application.Main.dll&apos;" date="2026-05-31T01:22:16.873" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Application.Main.pdb&apos;" date="2026-05-31T01:22:16.889" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Application.Validator.dll&apos;" date="2026-05-31T01:22:16.905" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Application.Validator.pdb&apos;" date="2026-05-31T01:22:16.920" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Cross.Common.dll&apos;" date="2026-05-31T01:22:16.936" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Cross.Common.pdb&apos;" date="2026-05-31T01:22:16.952" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Cross.Logging.dll&apos;" date="2026-05-31T01:22:16.967" /><!-- duration: 0ms -->
+            <step title="Deleting file: &apos;TaskPlanner.Cross.Logging.pdb&apos;" date="2026-05-31T01:22:16.983" /><!-- duration: 0ms -->
+            <step title="Omitting next output lines..." date="2026-05-31T01:22:16.998" /><!-- duration: 0ms -->
+            <step title="Finished successfully." date="2026-05-31T01:22:17.139" /><!-- duration: 0ms -->
+          </step><!-- duration: 1266ms -->
+          <step title="Build completed succesfully." date="2026-05-31T01:22:17.186" /><!-- duration: 0ms -->
+          <step title="Running post deployment command(s)..." date="2026-05-31T01:22:17.217" /><!-- duration: 16ms -->
+          <step title="Requesting site restart" date="2026-05-31T01:22:17.280" /><!-- duration: 0ms -->
+          <step title="Requesting site restart" date="2026-05-31T01:22:17.280" /><!-- duration: 16ms -->
+          <step title="Requesting site restart. Attempt #1" date="2026-05-31T01:22:17.327" /><!-- duration: 0ms -->
+          <step title="Requesting site restart. Attempt #1" date="2026-05-31T01:22:17.342" /><!-- duration: 0ms -->
+          <step title="Successfully requested a restart. Attempt #1" date="2026-05-31T01:22:17.686" /><!-- duration: 0ms -->
+          <step title="Successfully requested a restart. Attempt #1" date="2026-05-31T01:22:17.686" /><!-- duration: 16ms -->
+          <step title="Deployment successful. DEPLOYMENTINFO: deploymentPath = OneDeploy, deployer = OneDeploy, os = windows, sku = Free, siteName = TaskPlannerApi, siteHostName = taskplannerapi-ejcaf8bwfze5f9hh.canadacentral-01.azurewebsites.net, deploymentStatus = Success" date="2026-05-31T01:22:17.733" /><!-- duration: 0ms -->
+        </step><!-- duration: 2469ms -->
+      </step><!-- duration: 2703ms -->
+      <step title="Cleaning up temp files" date="2026-05-31T01:22:17.858" /><!-- duration: 0ms -->
+      <step title="Skip function trigger and logicapp sync because function is not enabled." date="2026-05-31T01:22:17.873" /><!-- duration: 0ms -->
+    </step><!-- duration: 3266ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2026-05-31T01:22:17.920" /><!-- duration: 0ms -->
+    <step title="Deleting shutdown sentinel file" date="2026-05-31T01:22:17.920" SemaphoreCount="8" /><!-- duration: 0ms -->
+  </step><!-- duration: 3516ms -->
+  <step title="Outgoing response" date="2026-05-31T01:22:17.936" type="response" statusCode="200" statusText="OK" Server="Microsoft-IIS/10.0" x-ms-request-id="1de69cda-5c8f-11f1-a611-d85ed3a4ccd4" Cache-Control="private" X-AspNet-Version="4.0.30319" /><!-- duration: 16ms -->
+</step><!-- duration: 3750ms -->

@@ -1,0 +1,8 @@
+D:\ProjectsIA\System-Application\publish\web\BDAplication.Web.exe
+D:\ProjectsIA\System-Application\publish\web\appsettings.Development.json
+D:\ProjectsIA\System-Application\publish\web\appsettings.json
+D:\ProjectsIA\System-Application\publish\web\BDAplication.Web.dll
+D:\ProjectsIA\System-Application\publish\web\BDAplication.Web.runtimeconfig.json
+D:\ProjectsIA\System-Application\publish\web\BDAplication.Web.pdb
+D:\ProjectsIA\System-Application\publish\web\MudBlazor.dll
+D:\ProjectsIA\System-Application\publish\web\BDAplication.Web.deps.json

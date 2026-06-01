@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<entries>
+  <entry time="2026-02-08T16:23:43.1742373+00:00" type="Message">
+    <message>[Information] [user: ta_jorge_luis@hotmail.com] [50676004-c522-40eb-8aa1-9e038f062e98] WebDeploy operation complete. Performing post-deployment operations.</message>
+  </entry>
+  <entry time="2026-02-08T16:23:43.2680057+00:00" type="Message">
+    <message>[Verbose] [user: ta_jorge_luis@hotmail.com] Skip function trigger and logicapp sync because function is not enabled.</message>
+  </entry>
+  <entry time="2026-02-08T16:23:43.2680057+00:00" type="Message">
+    <message>[Verbose] [user: ta_jorge_luis@hotmail.com] AutoSwap is not enabled</message>
+  </entry>
+  <entry time="2026-02-08T16:23:43.2680057+00:00" type="Message">
+    <message>[Information] [user: ta_jorge_luis@hotmail.com] [50676004-c522-40eb-8aa1-9e038f062e98] Post-deployment operations complete.</message>
+  </entry>
+  <entry time="2026-05-31T00:53:08.2600948+00:00" type="Message">
+    <message>[Information] [user: ta_jorge_luis@hotmail.com] [2f4b0fb4-5e79-4cee-9a28-ef43cbcdb6b5] WebDeploy operation complete. Performing post-deployment operations.</message>
+  </entry>
+  <entry time="2026-05-31T00:53:08.3538601+00:00" type="Message">
+    <message>[Verbose] [user: ta_jorge_luis@hotmail.com] Skip function trigger and logicapp sync because function is not enabled.</message>
+  </entry>
+  <entry time="2026-05-31T00:53:08.3694903+00:00" type="Message">
+    <message>[Verbose] [user: ta_jorge_luis@hotmail.com] AutoSwap is not enabled</message>
+  </entry>
+  <entry time="2026-05-31T00:53:08.3694903+00:00" type="Message">
+    <message>[Information] [user: ta_jorge_luis@hotmail.com] [2f4b0fb4-5e79-4cee-9a28-ef43cbcdb6b5] Post-deployment operations complete.</message>
+  </entry>
+  <entry time="2026-05-31T00:55:56.3586614Z" type="Message">
+    <message>[Information] [user: ta_jorge_luis@hotmail.com] [aecfcd04-d2fd-4a4d-be98-2168a62b26c0] WebDeploy operation complete. Performing post-deployment operations.</message>
+  </entry>
+  <entry time="2026-05-31T00:55:56.3742864Z" type="Message">
+    <message>[Verbose] [user: ta_jorge_luis@hotmail.com] Skip function trigger and logicapp sync because function is not enabled.</message>
+  </entry>
+  <entry time="2026-05-31T00:55:56.3742864Z" type="Message">
+    <message>[Verbose] [user: ta_jorge_luis@hotmail.com] AutoSwap is not enabled</message>
+  </entry>
+  <entry time="2026-05-31T00:55:56.3742864Z" type="Message">
+    <message>[Information] [user: ta_jorge_luis@hotmail.com] [aecfcd04-d2fd-4a4d-be98-2168a62b26c0] Post-deployment operations complete.</message>
+  </entry>
+</entries>

@@ -1,21 +1,21 @@
 {
   "version": 2,
-  "dgSpecHash": "utXNqrtVbJc=",
+  "dgSpecHash": "1gfEttUgno4=",
   "success": true,
-  "projectFilePath": "C:\\JTorres\\IA\\project01\\Backend\\src\\BDAplication.Infrastructure\\BDAplication.Infrastructure.csproj",
+  "projectFilePath": "D:\\ProjectsIA\\System-Application\\Backend\\src\\BDAplication.Infrastructure\\BDAplication.Infrastructure.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Jorge\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
-    "C:\\Users\\Jorge\\.nuget\\packages\\fluentvalidation\\11.11.0\\fluentvalidation.11.11.0.nupkg.sha512",
-    "C:\\Users\\Jorge\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\9.0.5\\microsoft.aspnetcore.authentication.jwtbearer.9.0.5.nupkg.sha512",
-    "C:\\Users\\Jorge\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
-    "C:\\Users\\Jorge\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.0\\microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
-    "C:\\Users\\Jorge\\.nuget\\packages\\microsoft.identitymodel.abstractions\\8.12.1\\microsoft.identitymodel.abstractions.8.12.1.nupkg.sha512",
-    "C:\\Users\\Jorge\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\8.12.1\\microsoft.identitymodel.jsonwebtokens.8.12.1.nupkg.sha512",
-    "C:\\Users\\Jorge\\.nuget\\packages\\microsoft.identitymodel.logging\\8.12.1\\microsoft.identitymodel.logging.8.12.1.nupkg.sha512",
-    "C:\\Users\\Jorge\\.nuget\\packages\\microsoft.identitymodel.protocols\\8.0.1\\microsoft.identitymodel.protocols.8.0.1.nupkg.sha512",
-    "C:\\Users\\Jorge\\.nuget\\packages\\microsoft.identitymodel.protocols.openidconnect\\8.0.1\\microsoft.identitymodel.protocols.openidconnect.8.0.1.nupkg.sha512",
-    "C:\\Users\\Jorge\\.nuget\\packages\\microsoft.identitymodel.tokens\\8.12.1\\microsoft.identitymodel.tokens.8.12.1.nupkg.sha512",
-    "C:\\Users\\Jorge\\.nuget\\packages\\system.identitymodel.tokens.jwt\\8.12.1\\system.identitymodel.tokens.jwt.8.12.1.nupkg.sha512"
+    "C:\\Users\\ta_jo\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
+    "C:\\Users\\ta_jo\\.nuget\\packages\\fluentvalidation\\11.11.0\\fluentvalidation.11.11.0.nupkg.sha512",
+    "C:\\Users\\ta_jo\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\9.0.5\\microsoft.aspnetcore.authentication.jwtbearer.9.0.5.nupkg.sha512",
+    "C:\\Users\\ta_jo\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\ta_jo\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.0\\microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\ta_jo\\.nuget\\packages\\microsoft.identitymodel.abstractions\\8.12.1\\microsoft.identitymodel.abstractions.8.12.1.nupkg.sha512",
+    "C:\\Users\\ta_jo\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\8.12.1\\microsoft.identitymodel.jsonwebtokens.8.12.1.nupkg.sha512",
+    "C:\\Users\\ta_jo\\.nuget\\packages\\microsoft.identitymodel.logging\\8.12.1\\microsoft.identitymodel.logging.8.12.1.nupkg.sha512",
+    "C:\\Users\\ta_jo\\.nuget\\packages\\microsoft.identitymodel.protocols\\8.0.1\\microsoft.identitymodel.protocols.8.0.1.nupkg.sha512",
+    "C:\\Users\\ta_jo\\.nuget\\packages\\microsoft.identitymodel.protocols.openidconnect\\8.0.1\\microsoft.identitymodel.protocols.openidconnect.8.0.1.nupkg.sha512",
+    "C:\\Users\\ta_jo\\.nuget\\packages\\microsoft.identitymodel.tokens\\8.12.1\\microsoft.identitymodel.tokens.8.12.1.nupkg.sha512",
+    "C:\\Users\\ta_jo\\.nuget\\packages\\system.identitymodel.tokens.jwt\\8.12.1\\system.identitymodel.tokens.jwt.8.12.1.nupkg.sha512"
   ],
   "logs": []
 }

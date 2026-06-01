@@ -1,0 +1,45 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\ProjectsIA\\System-Application\\Frontend\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{635AEC9D-1C12-ACCD-F341-C44AAC1C288A}|src\\BDAplication.Web\\BDAplication.Web.csproj|d:\\projectsia\\system-application\\frontend\\src\\bdaplication.web\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{635AEC9D-1C12-ACCD-F341-C44AAC1C288A}|src\\BDAplication.Web\\BDAplication.Web.csproj|solutionrelative:src\\bdaplication.web\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\ProjectsIA\\System-Application\\Frontend\\src\\BDAplication.Web\\appsettings.json",
+              "RelativeDocumentMoniker": "src\\BDAplication.Web\\appsettings.json",
+              "ToolTip": "D:\\ProjectsIA\\System-Application\\Frontend\\src\\BDAplication.Web\\appsettings.json",
+              "RelativeToolTip": "src\\BDAplication.Web\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAABgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-05-30T21:06:46.486Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -9,3 +9,15 @@ C:\JTorres\IA\project01\Backend\src\BDAplication.Domain\obj\Debug\net10.0\BDApli
 C:\JTorres\IA\project01\Backend\src\BDAplication.Domain\obj\Debug\net10.0\refint\BDAplication.Domain.dll
 C:\JTorres\IA\project01\Backend\src\BDAplication.Domain\obj\Debug\net10.0\BDAplication.Domain.pdb
 C:\JTorres\IA\project01\Backend\src\BDAplication.Domain\obj\Debug\net10.0\ref\BDAplication.Domain.dll
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\bin\Debug\net10.0\BDAplication.Domain.deps.json
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\bin\Debug\net10.0\BDAplication.Domain.dll
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\bin\Debug\net10.0\BDAplication.Domain.pdb
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\obj\Debug\net10.0\BDAplication.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\obj\Debug\net10.0\BDAplication.Domain.AssemblyInfoInputs.cache
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\obj\Debug\net10.0\BDAplication.Domain.AssemblyInfo.cs
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\obj\Debug\net10.0\BDAplication.Domain.csproj.CoreCompileInputs.cache
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\obj\Debug\net10.0\BDAplication.Domain.sourcelink.json
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\obj\Debug\net10.0\BDAplication.Domain.dll
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\obj\Debug\net10.0\refint\BDAplication.Domain.dll
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\obj\Debug\net10.0\BDAplication.Domain.pdb
+D:\ProjectsIA\System-Application\Backend\src\BDAplication.Domain\obj\Debug\net10.0\ref\BDAplication.Domain.dll

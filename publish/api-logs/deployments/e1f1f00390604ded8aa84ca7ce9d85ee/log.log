@@ -1,0 +1,70 @@
+2026-05-31T01:22:15.2332952Z,Updating submodules.,e23d8e7f-5518-47d6-8ce3-64b95dba8c75,0
+2026-05-31T01:22:15.2801562Z,Preparing deployment for commit id 'e1f1f00390'.,58b21569-2b60-47ca-891a-c5b627841388,0
+2026-05-31T01:22:15.4051575Z,Running build. Project type: OneDeploy,6e70f47e-ca58-4f33-a8ed-c0937025ba09,0
+2026-05-31T01:22:15.4364100Z,Copying the manifest,76509645-0ec8-4a8b-a730-e6b054d9c117,0
+2026-05-31T01:22:15.4832810Z,Clean deploying to C:\home\site\wwwroot,553d242c-9ebe-40b3-af41-ee9af7c27015,0
+2026-05-31T01:22:15.5301575Z,Generating deployment script.,bac10878-8e38-4449-81cd-556d90ae3e2b,0
+	2026-05-31T01:22:15.5614132Z,Using the following command to generate deployment script: 'azure site deploymentscript -y --no-dot-deployment -r "C:\local\Temp\zipdeploy\extracted" -o "C:\home\site\deployments\tools" --basic --sitePath "C:\local\Temp\zipdeploy\extracted"'.,,0
+	2026-05-31T01:22:15.7801759Z,Generating deployment script for Web Site,,0
+	2026-05-31T01:22:15.7957997Z,Generated deployment script files,,0
+2026-05-31T01:22:15.8582857Z,Running deployment command...,bba275e9-90cf-4aa1-86ea-54f5be854e9d,0
+	2026-05-31T01:22:15.8739054Z,Command: "C:\home\site\deployments\tools\deploy.cmd",,0
+	2026-05-31T01:22:16.0145342Z,Handling Basic Web Site deployment.,,0
+	2026-05-31T01:22:16.1707815Z,Creating app_offline.htm,,0
+	2026-05-31T01:22:16.2332778Z,KuduSync.NET from: 'C:\local\Temp\zipdeploy\extracted' to: 'C:\home\site\wwwroot',,0
+	2026-05-31T01:22:16.2489041Z,Deleting file: 'cs\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.2645290Z,Deleting directory: 'cs',,0
+	2026-05-31T01:22:16.2801559Z,Deleting file: 'de\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.2957790Z,Deleting directory: 'de',,0
+	2026-05-31T01:22:16.3114060Z,Deleting file: 'es\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.3270327Z,Deleting directory: 'es',,0
+	2026-05-31T01:22:16.3426589Z,Deleting file: 'fr\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.3582812Z,Deleting directory: 'fr',,0
+	2026-05-31T01:22:16.3739054Z,Deleting file: 'it\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.3895290Z,Deleting directory: 'it',,0
+	2026-05-31T01:22:16.4051550Z,Deleting file: 'ja\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.4207791Z,Deleting directory: 'ja',,0
+	2026-05-31T01:22:16.4364038Z,Deleting file: 'ko\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.4520293Z,Deleting directory: 'ko',,0
+	2026-05-31T01:22:16.4676533Z,Deleting file: 'pl\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.4832812Z,Deleting directory: 'pl',,0
+	2026-05-31T01:22:16.4989089Z,Deleting file: 'pt-BR\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.5145308Z,Deleting directory: 'pt-BR',,0
+	2026-05-31T01:22:16.5301577Z,Deleting file: 'ru\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.5457785Z,Deleting directory: 'ru',,0
+	2026-05-31T01:22:16.5457785Z,Deleting file: 'tr\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.5614038Z,Deleting directory: 'tr',,0
+	2026-05-31T01:22:16.5770283Z,Deleting file: 'zh-Hans\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.6082796Z,Deleting directory: 'zh-Hans',,0
+	2026-05-31T01:22:16.6239046Z,Deleting file: 'zh-Hant\Microsoft.Data.SqlClient.resources.dll',,0
+	2026-05-31T01:22:16.6395297Z,Deleting directory: 'zh-Hant',,0
+	2026-05-31T01:22:16.6551550Z,Deleting file: 'AutoMapper.dll',,0
+	2026-05-31T01:22:16.6707819Z,Deleting file: 'Dapper.dll',,0
+	2026-05-31T01:22:16.6864044Z,Deleting file: 'hostingstart.html',,0
+	2026-05-31T01:22:16.7020285Z,Deleting file: 'TaskPlanner.Api.deps.json',,0
+	2026-05-31T01:22:16.7176531Z,Deleting file: 'TaskPlanner.Api.dll',,0
+	2026-05-31T01:22:16.7332776Z,Deleting file: 'TaskPlanner.Api.exe',,0
+	2026-05-31T01:22:16.7489027Z,Deleting file: 'TaskPlanner.Api.pdb',,0
+	2026-05-31T01:22:16.7645288Z,Deleting file: 'TaskPlanner.Api.runtimeconfig.json',,0
+	2026-05-31T01:22:16.7801546Z,Deleting file: 'TaskPlanner.Api.staticwebassets.endpoints.json',,0
+	2026-05-31T01:22:16.7957770Z,Deleting file: 'TaskPlanner.Api.xml',,0
+	2026-05-31T01:22:16.8114026Z,Deleting file: 'TaskPlanner.Application.DTO.dll',,0
+	2026-05-31T01:22:16.8270292Z,Deleting file: 'TaskPlanner.Application.DTO.pdb',,0
+	2026-05-31T01:22:16.8426561Z,Deleting file: 'TaskPlanner.Application.Interface.dll',,0
+	2026-05-31T01:22:16.8582859Z,Deleting file: 'TaskPlanner.Application.Interface.pdb',,0
+	2026-05-31T01:22:16.8739028Z,Deleting file: 'TaskPlanner.Application.Main.dll',,0
+	2026-05-31T01:22:16.8895309Z,Deleting file: 'TaskPlanner.Application.Main.pdb',,0
+	2026-05-31T01:22:16.9051517Z,Deleting file: 'TaskPlanner.Application.Validator.dll',,0
+	2026-05-31T01:22:16.9207782Z,Deleting file: 'TaskPlanner.Application.Validator.pdb',,0
+	2026-05-31T01:22:16.9364074Z,Deleting file: 'TaskPlanner.Cross.Common.dll',,0
+	2026-05-31T01:22:16.9520281Z,Deleting file: 'TaskPlanner.Cross.Common.pdb',,0
+	2026-05-31T01:22:16.9676520Z,Deleting file: 'TaskPlanner.Cross.Logging.dll',,0
+	2026-05-31T01:22:16.9832932Z,Deleting file: 'TaskPlanner.Cross.Logging.pdb',,0
+	2026-05-31T01:22:16.9989031Z,Omitting next output lines...,,0
+	2026-05-31T01:22:17.1395291Z,Finished successfully.,,0
+2026-05-31T01:22:17.1864022Z,Build completed succesfully.,b2731021-ce25-4388-9022-299a038aa8ec,0
+2026-05-31T01:22:17.2176517Z,Running post deployment command(s)...,ba26ed4e-9715-4b73-aa7e-03f05f85f579,0
+2026-05-31T01:22:17.2645307Z,Requesting site restart,b2e42483-db51-4bea-88df-e02298b2c847,0
+2026-05-31T01:22:17.3270268Z,Requesting site restart. Attempt #1,0a1fd57a-87b7-44a6-abaf-e060a9ff58cf,0
+2026-05-31T01:22:17.6864035Z,Successfully requested a restart. Attempt #1,076ee290-98f6-42da-86f6-1074d9896a78,0
+2026-05-31T01:22:17.7332755Z,Deployment successful.,132d9c21-5b92-4c24-9be0-09e032ef4c1d,0

@@ -1,0 +1,10 @@
+wwwroot\app.css
+wwwroot\taskplanner.js
+Components\Layout\ReconnectModal.razor.js
+C:\Users\ta_jo\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\build\..\_framework\blazor.web.js
+C:\Users\ta_jo\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\build\..\_framework\blazor.server.js
+D:\ProjectsIA\System-Application\Frontend\src\BDAplication.Web\wwwroot\app.css
+D:\ProjectsIA\System-Application\Frontend\src\BDAplication.Web\wwwroot\taskplanner.js
+D:\ProjectsIA\System-Application\Frontend\src\BDAplication.Web\Components\Layout\ReconnectModal.razor.js
+C:\Users\ta_jo\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.web.js
+C:\Users\ta_jo\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.server.js

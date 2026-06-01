@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\JTorres\\IA\\project01\\Frontend\\src\\BDAplication.Web\\BDAplication.Web.csproj": {}
+    "D:\\ProjectsIA\\System-Application\\Frontend\\src\\BDAplication.Web\\BDAplication.Web.csproj": {}
   },
   "projects": {
-    "C:\\JTorres\\IA\\project01\\Frontend\\src\\BDAplication.Web\\BDAplication.Web.csproj": {
+    "D:\\ProjectsIA\\System-Application\\Frontend\\src\\BDAplication.Web\\BDAplication.Web.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\JTorres\\IA\\project01\\Frontend\\src\\BDAplication.Web\\BDAplication.Web.csproj",
+        "projectUniqueName": "D:\\ProjectsIA\\System-Application\\Frontend\\src\\BDAplication.Web\\BDAplication.Web.csproj",
         "projectName": "BDAplication.Web",
-        "projectPath": "C:\\JTorres\\IA\\project01\\Frontend\\src\\BDAplication.Web\\BDAplication.Web.csproj",
-        "packagesPath": "C:\\Users\\Jorge\\.nuget\\packages\\",
-        "outputPath": "C:\\JTorres\\IA\\project01\\Frontend\\src\\BDAplication.Web\\obj\\",
+        "projectPath": "D:\\ProjectsIA\\System-Application\\Frontend\\src\\BDAplication.Web\\BDAplication.Web.csproj",
+        "packagesPath": "C:\\Users\\ta_jo\\.nuget\\packages\\",
+        "outputPath": "D:\\ProjectsIA\\System-Application\\Frontend\\src\\BDAplication.Web\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Jorge\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\ta_jo\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -30,6 +30,7 @@
         },
         "frameworks": {
           "net10.0": {
+            "framework": "net10.0",
             "targetAlias": "net10.0",
             "projectReferences": {}
           }
@@ -44,16 +45,17 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.300"
       },
       "frameworks": {
         "net10.0": {
+          "framework": "net10.0",
           "targetAlias": "net10.0",
           "dependencies": {
             "Microsoft.AspNetCore.App.Internal.Assets": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[10.0.0, )",
+              "version": "[10.0.8, )",
               "autoReferenced": true
             },
             "MudBlazor": {
@@ -80,7 +82,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

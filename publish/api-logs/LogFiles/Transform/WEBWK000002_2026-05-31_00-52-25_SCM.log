@@ -1,0 +1,6 @@
+2026-05-31T00:52:25 sandboxproc.exe D:\DWASFiles\Sites\#1TaskPlannerApi\Temp\applicationhost.config False True
+2026-05-31T00:52:25 env XPROC_TYPENAME=Microsoft.Web.Hosting.Transformers.ApplicationHost.SiteExtensionHelper, Microsoft.Web.Hosting, Version=7.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+2026-05-31T00:52:25 env XPROC_METHODNAME=Transform
+2026-05-31T00:52:25 Start 'Microsoft.AspNetCore.AzureAppServices.SiteExtension' site extension transform
+2026-05-31T00:52:25 Successful 'C:\home\SiteExtensions\Microsoft.AspNetCore.AzureAppServices.SiteExtension\scmApplicationHost.xdt' site extension transform
+2026-05-31T00:52:25 sandboxproc.exe complete successfully. Elapsed = 90.00 ms

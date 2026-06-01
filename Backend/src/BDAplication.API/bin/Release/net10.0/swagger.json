@@ -1,0 +1,1340 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "BDAplication API",
+    "description": "API de administración de usuarios y roles",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/finance/account/list": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/account/get": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/account/create": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateAccountRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/account/update": {
+      "put": {
+        "tags": [
+          "Account"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateAccountRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/account/delete": {
+      "delete": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/master/authentication": {
+      "post": {
+        "tags": [
+          "Master"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/LoginRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/master/getuser": {
+      "get": {
+        "tags": [
+          "Master"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/master/createuser": {
+      "post": {
+        "tags": [
+          "Master"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/master/updateuser": {
+      "put": {
+        "tags": [
+          "Master"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/master/deleteuser": {
+      "delete": {
+        "tags": [
+          "Master"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/master/getrol": {
+      "get": {
+        "tags": [
+          "Master"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/master/createrol": {
+      "post": {
+        "tags": [
+          "Master"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateRoleRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/master/updaterol": {
+      "put": {
+        "tags": [
+          "Master"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateRoleRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/master/deleterol": {
+      "delete": {
+        "tags": [
+          "Master"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/movement/listbyaccount": {
+      "get": {
+        "tags": [
+          "Movement"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "accountId",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/movement/get": {
+      "get": {
+        "tags": [
+          "Movement"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/movement/create": {
+      "post": {
+        "tags": [
+          "Movement"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateMovementRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/movement/update": {
+      "put": {
+        "tags": [
+          "Movement"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateMovementRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/movement/delete": {
+      "delete": {
+        "tags": [
+          "Movement"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/movement/transfer": {
+      "post": {
+        "tags": [
+          "Movement"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateTransferRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/backlog/BacklogRegister": {
+      "post": {
+        "tags": [
+          "Process"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/BacklogRegisterRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/backlog/BacklogList": {
+      "get": {
+        "tags": [
+          "Process"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "priority"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "type": "integer",
+            "format": "int32",
+            "default": 1
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "type": "integer",
+            "format": "int32",
+            "default": 50
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/planner/PlannerRegister": {
+      "post": {
+        "tags": [
+          "Process"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/PlannerRegisterRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/planner/PlannerInactive": {
+      "put": {
+        "tags": [
+          "Process"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/PlannerInactiveRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/planner/PlannerList": {
+      "patch": {
+        "tags": [
+          "Process"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/PlannerListRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/planner/MovePlanner": {
+      "patch": {
+        "tags": [
+          "Process"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/MovePlannerRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/taskboard/CreateTask": {
+      "post": {
+        "tags": [
+          "TaskBoard"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateTaskBoardRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/taskboard/GetTasks": {
+      "get": {
+        "tags": [
+          "TaskBoard"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status"
+          },
+          {
+            "in": "query",
+            "name": "priority"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/taskboard/GetTaskById": {
+      "get": {
+        "tags": [
+          "TaskBoard"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/taskboard/UpdateTask": {
+      "put": {
+        "tags": [
+          "TaskBoard"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateTaskBoardRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/taskboard/MoveTask": {
+      "patch": {
+        "tags": [
+          "TaskBoard"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/MoveTaskBoardRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/taskboard/DeleteTask": {
+      "delete": {
+        "tags": [
+          "TaskBoard"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/taskboard/subtask/Create": {
+      "post": {
+        "tags": [
+          "TaskBoard"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateSubTaskRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/taskboard/subtask/Toggle": {
+      "patch": {
+        "tags": [
+          "TaskBoard"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ToggleSubTaskRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/process/taskboard/subtask/Delete": {
+      "delete": {
+        "tags": [
+          "TaskBoard"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/typeconcept/list": {
+      "get": {
+        "tags": [
+          "TypeConcept"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/typeconcept/get": {
+      "get": {
+        "tags": [
+          "TypeConcept"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/typeconcept/create": {
+      "post": {
+        "tags": [
+          "TypeConcept"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateTypeConceptRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/typeconcept/update": {
+      "put": {
+        "tags": [
+          "TypeConcept"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/UpdateTypeConceptRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/finance/typeconcept/delete": {
+      "delete": {
+        "tags": [
+          "TypeConcept"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "BacklogRegisterRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "priority": {
+          "$ref": "#/definitions/Priority"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateAccountRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateMovementRequest": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "concept": {
+          "type": "string"
+        },
+        "typeConceptId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "date": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "amount": {
+          "format": "double",
+          "type": "number"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateRoleRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateSubTaskRequest": {
+      "type": "object",
+      "properties": {
+        "boardTaskId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateTaskBoardRequest": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "priority": {
+          "$ref": "#/definitions/Priority"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateTransferRequest": {
+      "type": "object",
+      "properties": {
+        "sourceAccountId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "destinyAccountId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "date": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "amount": {
+          "format": "double",
+          "type": "number"
+        },
+        "concept": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateTypeConceptRequest": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateUserRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "roleId": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LoginRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MovePlannerRequest": {
+      "type": "object",
+      "properties": {
+        "plannerId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "newDay": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "newMonth": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "newYear": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MoveTaskBoardRequest": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "status": {
+          "$ref": "#/definitions/TaskBoardStatus"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PlannerInactiveRequest": {
+      "type": "object",
+      "properties": {
+        "plannerId": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PlannerListRequest": {
+      "type": "object",
+      "properties": {
+        "month": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "year": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PlannerRegisterRequest": {
+      "type": "object",
+      "properties": {
+        "backlogId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "day": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "month": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "year": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Priority": {
+      "format": "int32",
+      "enum": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "type": "integer"
+    },
+    "TaskBoardStatus": {
+      "format": "int32",
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "type": "integer"
+    },
+    "ToggleSubTaskRequest": {
+      "type": "object",
+      "properties": {
+        "subTaskId": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UpdateAccountRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UpdateMovementRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "concept": {
+          "type": "string"
+        },
+        "typeConceptId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "date": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "amount": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UpdateRoleRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UpdateTaskBoardRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "priority": {
+          "$ref": "#/definitions/Priority"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UpdateTypeConceptRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UpdateUserRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "roleId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "isActive": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": { }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
+}
