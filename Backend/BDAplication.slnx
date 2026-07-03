@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BDAplication.API/BDAplication.API.csproj" />
+    <Project Path="src/BDAplication.Application/BDAplication.Application.csproj" />
+    <Project Path="src/BDAplication.Domain/BDAplication.Domain.csproj" />
+    <Project Path="src/BDAplication.Infrastructure/BDAplication.Infrastructure.csproj" />
+    <Project Path="src/BDAplication.Persistence/BDAplication.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BDAplication.Tests/BDAplication.Tests.csproj" />
+  </Folder>
+</Solution>

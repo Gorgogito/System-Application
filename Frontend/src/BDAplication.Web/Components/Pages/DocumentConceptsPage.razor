@@ -1,0 +1,143 @@
+@page "/documentconcepts"
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@using BDAplication.Web.Components.Shared.Attachments
+@using MudBlazor
+@inject DocumentConceptApiService ConceptApi
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IUserTimeZoneService _tz
+
+<MudStack Spacing="3">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Label" Style="font-size:2rem" Color="Color.Primary"/>
+            <div>
+                <MudText Typo="Typo.h5" Style="font-weight:700;line-height:1.2">Conceptos de Documento</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Categorías para clasificar los archivos adjuntos</MudText>
+            </div>
+        </MudStack>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenCreate" Disabled="_loading">
+            Nuevo Concepto
+        </MudButton>
+    </div>
+
+    <MudTable T="DocumentConceptModel" Items="@_items" Dense="true" Hover="true" Striped="true"
+              Elevation="2" Loading="_loading" LoadingProgressColor="Color.Primary">
+        <HeaderContent>
+            <MudTh>Código</MudTh>
+            <MudTh>Nombre</MudTh>
+            <MudTh>Descripción</MudTh>
+            <MudTh>Creado por</MudTh>
+            <MudTh>Fecha</MudTh>
+            <MudTh Style="text-align:center">Acciones</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Código">
+                <MudText Typo="Typo.body2" Style="font-family:monospace">@context.Code</MudText>
+            </MudTd>
+            <MudTd DataLabel="Nombre"><b>@context.Name</b></MudTd>
+            <MudTd DataLabel="Descripción">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description</MudText>
+            </MudTd>
+            <MudTd DataLabel="Creado por">@context.CreatedBy</MudTd>
+            <MudTd DataLabel="Fecha">@_tz.ToUserTime(context.CreatedDate).ToString("dd/MM/yyyy")</MudTd>
+            <MudTd Style="text-align:center">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                               OnClick="@(() => OpenEdit(context))"/>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                               OnClick="@(() => ConfirmDelete(context))"/>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudStack AlignItems="AlignItems.Center" Spacing="2" Class="pa-8">
+                <MudIcon Icon="@Icons.Material.Outlined.Label" Style="font-size:48px;opacity:.4"/>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    No hay conceptos registrados — presione Nuevo Concepto para agregar el primero
+                </MudText>
+            </MudStack>
+        </NoRecordsContent>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[]{10, 25, 50}" RowsPerPageString="Filas por página:"/>
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+@code {
+    private bool _loading = true;
+    private List<DocumentConceptModel> _items = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        if (auth.User.Identity?.IsAuthenticated != true)
+        { Nav.NavigateTo("/login", forceLoad: true); return; }
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true; StateHasChanged();
+        try { var resp = await ConceptApi.GetAllAsync(); _items = resp?.Data ?? new(); }
+        finally { _loading = false; StateHasChanged(); }
+    }
+
+    private async Task OpenCreate()
+    {
+        var dlg = await DialogService.ShowAsync<DocumentConceptFormDialog>("Nuevo Concepto",
+            new DialogParameters<DocumentConceptFormDialog> { { x => x.IsEdit, false } },
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true });
+        var result = await dlg.Result;
+        if (result?.Canceled == true) return;
+        if (result?.Data is CreateDocumentConceptRequest req)
+        {
+            var resp = await ConceptApi.CreateAsync(req);
+            if (resp?.Success == true && resp.Data != null)
+            { _items.Add(resp.Data); Snackbar.Add("Concepto creado", Severity.Success); StateHasChanged(); }
+            else Snackbar.Add(resp?.Message ?? "Error al crear", Severity.Error);
+        }
+    }
+
+    private async Task OpenEdit(DocumentConceptModel item)
+    {
+        var p = new DialogParameters<DocumentConceptFormDialog>
+        {
+            { x => x.IsEdit, true },
+            { x => x.Item, item }
+        };
+        var dlg = await DialogService.ShowAsync<DocumentConceptFormDialog>("Editar Concepto", p,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true });
+        var result = await dlg.Result;
+        if (result?.Canceled == true) return;
+        if (result?.Data is UpdateDocumentConceptRequest req)
+        {
+            var resp = await ConceptApi.UpdateAsync(item.Id, req);
+            if (resp?.Success == true && resp.Data != null)
+            {
+                var idx = _items.FindIndex(i => i.Id == resp.Data.Id);
+                if (idx >= 0) _items[idx] = resp.Data;
+                Snackbar.Add("Concepto actualizado", Severity.Success);
+                StateHasChanged();
+            }
+            else Snackbar.Add(resp?.Message ?? "Error al actualizar", Severity.Error);
+        }
+    }
+
+    private async Task ConfirmDelete(DocumentConceptModel item)
+    {
+        var ok = await DialogService.ShowMessageBox("Eliminar concepto",
+            $"¿Eliminar «{item.Name}»? Si hay adjuntos asociados no se podrá eliminar.",
+            yesText: "Eliminar", cancelText: "Cancelar");
+        if (ok != true) return;
+        var resp = await ConceptApi.DeleteAsync(item.Id);
+        if (resp?.Success == true)
+        { _items.Remove(item); Snackbar.Add("Concepto eliminado", Severity.Success); StateHasChanged(); }
+        else Snackbar.Add(resp?.Message ?? "No se puede eliminar", Severity.Error);
+    }
+}

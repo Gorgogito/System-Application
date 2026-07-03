@@ -1,0 +1,71 @@
+@page "/dashboard"
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Models
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+
+<PageTitle>Dashboard - BDAplication</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-6">Dashboard</MudText>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="3" Class="pa-6" Style="border-radius:12px">
+                <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" Size="Size.Large" />
+                    <MudText Typo="Typo.h6">Usuarios</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Gestiona los usuarios del sistema</MudText>
+                    <MudButton Href="/users" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">
+                        Ir a Usuarios
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="3" Class="pa-6" Style="border-radius:12px">
+                <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Secondary" Size="Size.Large" />
+                    <MudText Typo="Typo.h6">Roles</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Administra los roles de acceso</MudText>
+                    <MudButton Href="/roles" Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small">
+                        Ir a Roles
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="3" Class="pa-6" Style="border-radius:12px">
+                <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Tertiary" Size="Size.Large" />
+                    <MudText Typo="Typo.h6">Mi Perfil</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@_user?.FullName</MudText>
+                    <MudChip T="string" Color="Color.Tertiary" Size="Size.Small">@_role?.Name</MudChip>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private UserModel? _user;
+    private RoleModel? _role;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var state = await AuthProvider.GetAuthenticationStateAsync();
+            if (!state.User.Identity?.IsAuthenticated ?? true)
+            {
+                Nav.NavigateTo("/login");
+                return;
+            }
+            _user = await AuthProvider.GetCurrentUserAsync();
+            _role = await AuthProvider.GetCurrentRoleAsync();
+            StateHasChanged();
+        }
+    }
+}

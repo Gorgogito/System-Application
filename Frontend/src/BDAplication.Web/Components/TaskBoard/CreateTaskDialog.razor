@@ -1,0 +1,186 @@
+@using BDAplication.Web.Models
+@using MudBlazor
+
+<MudDialog Style="min-width:500px">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.AddTask" Class="mr-2" />
+            Nueva Tarea
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_request.Title"
+                              Label="Título"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              RequiredError="El título es obligatorio"
+                              MaxLength="200"
+                              Counter="200"
+                              Immediate="true" />
+
+                <MudTextField @bind-Value="_request.Description"
+                              Label="Descripción"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              MaxLength="1000"
+                              Counter="1000" />
+
+                <MudSelect @bind-Value="_request.Priority"
+                           Label="Prioridad"
+                           Variant="Variant.Outlined"
+                           T="Priority">
+                    <MudSelectItem Value="Priority.Low">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#4caf50;font-size:12px" />
+                            <span>Baja</span>
+                        </MudStack>
+                    </MudSelectItem>
+                    <MudSelectItem Value="Priority.Medium">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#ff9800;font-size:12px" />
+                            <span>Media</span>
+                        </MudStack>
+                    </MudSelectItem>
+                    <MudSelectItem Value="Priority.High">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#f44336;font-size:12px" />
+                            <span>Alta</span>
+                        </MudStack>
+                    </MudSelectItem>
+                    <MudSelectItem Value="Priority.Critical">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#9c27b0;font-size:12px" />
+                            <span>Crítica</span>
+                        </MudStack>
+                    </MudSelectItem>
+                </MudSelect>
+
+                <MudDivider />
+                <MudText Typo="Typo.subtitle2" Style="font-weight:600">
+                    <MudIcon Icon="@Icons.Material.Filled.Schedule"
+                             Style="font-size:16px;vertical-align:middle;margin-right:4px" />
+                    Planificación (opcional)
+                </MudText>
+
+                <!-- Fecha inicio -->
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Inicio</MudText>
+                <MudGrid Spacing="2">
+                    <MudItem xs="7">
+                        <MudDatePicker @bind-Date="_startDate" Label="Fecha"
+                                       Variant="Variant.Outlined" DateFormat="dd/MM/yyyy"
+                                       Clearable="true" Margin="Margin.Dense" />
+                    </MudItem>
+                    <MudItem xs="5">
+                        <MudTimePicker @bind-Time="_startTime" Label="Hora"
+                                       Variant="Variant.Outlined" AmPm="false"
+                                       Clearable="true" Margin="Margin.Dense" />
+                    </MudItem>
+                </MudGrid>
+
+                <!-- Fecha finalización -->
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Finalización</MudText>
+                <MudGrid Spacing="2">
+                    <MudItem xs="7">
+                        <MudDatePicker @bind-Date="_dueDate" Label="Fecha"
+                                       Variant="Variant.Outlined" DateFormat="dd/MM/yyyy"
+                                       Clearable="true" Margin="Margin.Dense" />
+                    </MudItem>
+                    <MudItem xs="5">
+                        <MudTimePicker @bind-Time="_dueTime" Label="Hora"
+                                       Variant="Variant.Outlined" AmPm="false"
+                                       Clearable="true" Margin="Margin.Dense" />
+                    </MudItem>
+                </MudGrid>
+
+                @if (_dateError != null)
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true">@_dateError</MudAlert>
+                }
+
+                <!-- Alerta -->
+                <MudGrid Spacing="2">
+                    <MudItem xs="7">
+                        <MudSelect T="int?" @bind-Value="_alertHours"
+                                   Label="Alertar N horas antes"
+                                   Variant="Variant.Outlined"
+                                   Clearable="true"
+                                   Placeholder="Sin alerta"
+                                   Disabled="@(_dueDate is null)"
+                                   Margin="Margin.Dense">
+                            @foreach (var h in _alertOptions)
+                            {
+                                <MudSelectItem T="int?" Value="@h">@h hora(s)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="5">
+                        <MudNumericField T="int?" @bind-Value="_customAlertHours"
+                                         Label="Horas personalizadas"
+                                         Variant="Variant.Outlined"
+                                         Placeholder="Ej: 36"
+                                         Min="1" Max="9999"
+                                         Disabled="@(_dueDate is null)"
+                                         Margin="Margin.Dense"
+                                         Immediate="true" />
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="!_valid">Guardar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private MudForm _form = default!;
+    private bool _valid;
+    private CreateTaskBoardRequest _request = new();
+
+    private DateTime? _startDate;
+    private TimeSpan? _startTime;
+    private DateTime? _dueDate;
+    private TimeSpan? _dueTime;
+    private int? _alertHours;
+    private int? _customAlertHours;
+    private string? _dateError;
+
+    private static readonly int[] _alertOptions = [1, 2, 6, 12, 24, 48, 72];
+
+    private DateTime? StartDateUtc => _startDate.HasValue
+        ? DateTime.SpecifyKind(_startDate.Value.Date + (_startTime ?? TimeSpan.Zero), DateTimeKind.Local).ToUniversalTime()
+        : null;
+
+    private DateTime? DueDateUtc => _dueDate.HasValue
+        ? DateTime.SpecifyKind(_dueDate.Value.Date + (_dueTime ?? new TimeSpan(23, 59, 0)), DateTimeKind.Local).ToUniversalTime()
+        : null;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_valid) return;
+
+        var start = StartDateUtc;
+        var due   = DueDateUtc;
+
+        if (start.HasValue && due.HasValue && due.Value <= start.Value)
+        {
+            _dateError = "La fecha de finalización debe ser posterior a la fecha de inicio.";
+            return;
+        }
+
+        _request.StartDate           = start;
+        _request.DueDate             = due;
+        _request.AlertHoursBeforeDue = _customAlertHours ?? _alertHours;
+
+        MudDialog.Close(DialogResult.Ok(_request));
+    }
+}

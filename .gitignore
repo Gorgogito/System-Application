@@ -1,0 +1,14 @@
+# Compilación .NET
+**/bin/
+**/obj/
+
+# Publicación
+/publish/
+
+# IDE
+.vs/
+*.user
+
+# Secretos
+**/appsettings.Production.json
+**/appsettings.Local.json

@@ -1,0 +1,65 @@
+@using BDAplication.Web.Models
+
+<MudDialog Style="min-width:420px">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@(IsEdit ? Icons.Material.Filled.Edit : Icons.Material.Filled.Label)" Class="mr-2"/>
+            @(IsEdit ? "Editar Concepto" : "Nuevo Concepto de Documento")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+            <MudStack Spacing="3">
+                @if (IsEdit && Item != null)
+                {
+                    <MudTextField Value="@Item.Code" Label="Código" Variant="Variant.Outlined"
+                                  ReadOnly="true" Disabled="true"/>
+                }
+                <MudTextField @bind-Value="_name" Label="Nombre del Concepto" Variant="Variant.Outlined"
+                              Required="true" RequiredError="El nombre es obligatorio"
+                              MaxLength="100" Immediate="true"
+                              Placeholder="Ej: Pago hipoteca, Pensión familiar..."/>
+                <MudTextField @bind-Value="_description" Label="Descripción (opcional)"
+                              Variant="Variant.Outlined" MaxLength="300"
+                              Lines="2" Immediate="true"/>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="!_valid">Guardar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public DocumentConceptModel? Item { get; set; }
+    [Parameter] public bool IsEdit { get; set; }
+
+    private MudForm _form = default!;
+    private bool _valid;
+    private string _name = string.Empty;
+    private string _description = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        if (IsEdit && Item != null)
+        {
+            _name = Item.Name;
+            _description = Item.Description;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_valid) return;
+        if (IsEdit)
+            MudDialog.Close(DialogResult.Ok(new UpdateDocumentConceptRequest { Name = _name, Description = _description }));
+        else
+            MudDialog.Close(DialogResult.Ok(new CreateDocumentConceptRequest { Name = _name, Description = _description }));
+    }
+}

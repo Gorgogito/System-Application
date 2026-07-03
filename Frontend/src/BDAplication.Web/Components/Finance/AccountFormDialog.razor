@@ -1,0 +1,59 @@
+@using BDAplication.Web.Models.Finance
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@(IsEdit ? Icons.Material.Filled.Edit : Icons.Material.Filled.AccountBalance)" Class="mr-2"/>
+            @(IsEdit ? "Editar Cuenta" : "Nueva Cuenta")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+            <MudStack Spacing="3">
+                @if (IsEdit)
+                {
+                    <MudTextField Value="@Account!.Code" Label="Código" Variant="Variant.Outlined"
+                                  ReadOnly="true" Disabled="true"/>
+                }
+                <MudTextField @bind-Value="_name" Label="Nombre" Variant="Variant.Outlined"
+                              Required="true" RequiredError="El nombre es obligatorio"
+                              MaxLength="100" Immediate="true"/>
+                <MudTextField @bind-Value="_description" Label="Descripción" Variant="Variant.Outlined"
+                              Lines="2" MaxLength="300"/>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="!_valid">Guardar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public AccountModel? Account { get; set; }
+    [Parameter] public bool IsEdit { get; set; }
+
+    private MudForm _form = default!;
+    private bool _valid;
+    private string _name = string.Empty;
+    private string _description = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        if (IsEdit && Account != null) { _name = Account.Name; _description = Account.Description; }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_valid) return;
+        if (IsEdit)
+            MudDialog.Close(DialogResult.Ok(new UpdateAccountRequest { Id = Account!.Id, Name = _name, Description = _description }));
+        else
+            MudDialog.Close(DialogResult.Ok(new CreateAccountRequest { Name = _name, Description = _description }));
+    }
+}

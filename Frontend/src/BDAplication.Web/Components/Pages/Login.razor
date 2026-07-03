@@ -1,0 +1,132 @@
+@page "/login"
+@page "/"
+@layout LoginLayout
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@inject AuthApiService AuthApi
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<PageTitle>Login - BDAplication</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height:100vh">
+    <MudPaper Elevation="8" Class="pa-8" Style="width:100%;max-width:420px;border-radius:16px">
+        <MudStack Spacing="4">
+            <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                <MudIcon Icon="@Icons.Material.Filled.Security" Color="Color.Primary" Size="Size.Large" />
+                <MudText Typo="Typo.h5" Align="Align.Center" Class="font-weight-bold">
+                    BDAplication
+                </MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">
+                    Sistema de Administración
+                </MudText>
+            </MudStack>
+
+            <MudDivider />
+
+            @if (_errorMsg != string.Empty)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" ShowCloseIcon="true"
+                          CloseIconClicked="() => _errorMsg = string.Empty">
+                    @_errorMsg
+                </MudAlert>
+            }
+
+            <MudTextField @bind-Value="_model.Username"
+                          Label="Usuario"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Person"
+                          Disabled="_loading"
+                          Immediate="true" />
+
+            <MudTextField @bind-Value="_model.Password"
+                          Label="Contraseña"
+                          Variant="Variant.Outlined"
+                          InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@(_showPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                          OnAdornmentClick="() => _showPassword = !_showPassword"
+                          Disabled="_loading"
+                          Immediate="true" />
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Size="Size.Large"
+                       StartIcon="@Icons.Material.Filled.Login"
+                       OnClick="LoginAsync"
+                       Disabled="_loading">
+                @if (_loading)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    <span>Ingresando...</span>
+                }
+                else
+                {
+                    <span>Ingresar</span>
+                }
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private LoginRequest _model = new();
+    private bool _loading;
+    private bool _showPassword;
+    private string _errorMsg = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var state = await AuthProvider.GetAuthenticationStateAsync();
+                if (state.User.Identity?.IsAuthenticated == true)
+                    Nav.NavigateTo("/dashboard", forceLoad: false);
+            }
+            catch { /* sesión vacía, continuar en login */ }
+        }
+    }
+
+    private async Task LoginAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_model.Username) || string.IsNullOrWhiteSpace(_model.Password))
+        {
+            _errorMsg = "Ingresa usuario y contraseña.";
+            return;
+        }
+
+        _errorMsg = string.Empty;
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await AuthApi.LoginAsync(_model);
+
+            if (result?.Success == true && result.Data is not null)
+            {
+                await AuthProvider.LoginAsync(result.Data);
+                Nav.NavigateTo("/dashboard", forceLoad: false);
+            }
+            else
+            {
+                _errorMsg = result?.Message ?? "Usuario o contraseña incorrectos.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMsg = $"Error de conexión: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+}

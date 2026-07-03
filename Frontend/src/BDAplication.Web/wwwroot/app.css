@@ -1,0 +1,16 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: Roboto, sans-serif;
+}
+
+#blazor-error-ui {
+    display: none;
+}
+
+.mud-nav-link.active {
+    background-color: rgba(255,255,255,0.12) !important;
+    border-radius: 8px;
+}

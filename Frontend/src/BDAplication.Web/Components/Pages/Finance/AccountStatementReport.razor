@@ -1,0 +1,209 @@
+@page "/finance/account-statement"
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Models.Finance
+@using BDAplication.Web.Services.Finance
+@using MudBlazor
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@inject AccountApiService AccountApi
+@inject AccountStatementApiService StatementApi
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+@inject IUserTimeZoneService _tz
+
+<style>
+    .rep-card  { max-width: 680px; margin: 0 auto; }
+    .rep-title { display:flex; align-items:center; gap:10px; }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="pa-4">
+
+    <div class="rep-title mb-4">
+        <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Color="Color.Primary" Style="font-size:2rem"/>
+        <div>
+            <MudText Typo="Typo.h5" Style="font-weight:700">Estado de Cuenta</MudText>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                Genere el reporte en Excel o PDF por cuenta y rango de fechas
+            </MudText>
+        </div>
+    </div>
+
+    <MudPaper Elevation="3" Class="pa-6 rep-card">
+
+        <!-- Selector de cuenta -->
+        <MudSelect T="AccountModel?"
+                   Label="Cuenta"
+                   @bind-Value="_selectedAccount"
+                   Variant="Variant.Outlined"
+                   AnchorOrigin="Origin.BottomLeft"
+                   Class="mb-4"
+                   Required="true"
+                   Error="@(_submitted && _selectedAccount == null)"
+                   ErrorText="Seleccione una cuenta"
+                   AdornmentIcon="@Icons.Material.Filled.AccountBalanceWallet"
+                   Adornment="Adornment.Start">
+            @foreach (var acc in _accounts)
+            {
+                <MudSelectItem T="AccountModel?" Value="@acc">
+                    <span style="font-family:monospace">@acc.Code</span>
+                    &nbsp;—&nbsp; @acc.Name
+                    <span class="mud-text-secondary ml-2" style="font-size:.8rem">
+                        (Saldo: $@acc.Balance.ToString("N2"))
+                    </span>
+                </MudSelectItem>
+            }
+        </MudSelect>
+
+        <!-- Rango de fechas -->
+        <MudGrid Spacing="3">
+            <MudItem xs="12" sm="6">
+                <MudDatePicker Label="Fecha Inicio"
+                               @bind-Date="_startDate"
+                               Variant="Variant.Outlined"
+                               DateFormat="dd/MM/yyyy"
+                               MaxDate="@(_endDate ?? _tz.UserToday)"
+                               Required="true"
+                               Error="@(_submitted && _startDate == null)"
+                               ErrorText="Requerido"
+                               AdornmentIcon="@Icons.Material.Filled.CalendarToday"
+                               Adornment="Adornment.Start" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker Label="Fecha Fin"
+                               @bind-Date="_endDate"
+                               Variant="Variant.Outlined"
+                               DateFormat="dd/MM/yyyy"
+                               MinDate="@(_startDate ?? DateTime.MinValue)"
+                               MaxDate="@_tz.UserToday"
+                               Required="true"
+                               Error="@(_submitted && _endDate == null)"
+                               ErrorText="Requerido"
+                               AdornmentIcon="@Icons.Material.Filled.CalendarToday"
+                               Adornment="Adornment.Start" />
+            </MudItem>
+        </MudGrid>
+
+        @if (_submitted && _startDate.HasValue && _endDate.HasValue && _endDate < _startDate)
+        {
+            <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-2">
+                La fecha final no puede ser anterior a la fecha inicial.
+            </MudAlert>
+        }
+
+        <MudDivider Class="my-5"/>
+
+        <!-- Botones de generación -->
+        <MudStack Row="true" Spacing="3" Justify="Justify.Center">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Success"
+                       Size="Size.Large"
+                       StartIcon="@Icons.Material.Filled.TableChart"
+                       OnClick="@(() => GenerateReportAsync("excel"))"
+                       Disabled="@_loading"
+                       Style="min-width:180px">
+                @if (_loading && _loadingType == "excel")
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2"/>
+                }
+                Generar Excel
+            </MudButton>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Error"
+                       Size="Size.Large"
+                       StartIcon="@Icons.Material.Filled.PictureAsPdf"
+                       OnClick="@(() => GenerateReportAsync("pdf"))"
+                       Disabled="@_loading"
+                       Style="min-width:180px">
+                @if (_loading && _loadingType == "pdf")
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2"/>
+                }
+                Generar PDF
+            </MudButton>
+        </MudStack>
+
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<AccountModel> _accounts = new();
+    private AccountModel?     _selectedAccount;
+    private DateTime?         _startDate;
+    private DateTime?         _endDate;
+    private bool              _loading;
+    private string            _loadingType = string.Empty;
+    private bool              _submitted;
+
+    protected override void OnInitialized()
+    {
+        var today = _tz.UserToday;
+        _startDate = new DateTime(today.Year, today.Month, 1);
+        _endDate   = today;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        if (auth.User.Identity?.IsAuthenticated != true)
+        { Nav.NavigateTo("/login", forceLoad: true); return; }
+
+        var resp = await AccountApi.ListAsync();
+        _accounts = resp?.Data ?? new();
+        StateHasChanged();
+    }
+
+    private async Task GenerateReportAsync(string type)
+    {
+        _submitted = true;
+
+        if (_selectedAccount == null || !_startDate.HasValue || !_endDate.HasValue)
+            return;
+
+        if (_endDate < _startDate)
+            return;
+
+        _loading     = true;
+        _loadingType = type;
+        StateHasChanged();
+
+        try
+        {
+            byte[]? bytes;
+            string  fileName;
+            string  contentType;
+
+            if (type == "excel")
+            {
+                bytes       = await StatementApi.GetExcelAsync(_selectedAccount.Id, _startDate.Value, _endDate.Value);
+                fileName    = $"EstadoCuenta_{_selectedAccount.Code}_{_startDate.Value:yyyyMMdd}_{_endDate.Value:yyyyMMdd}.xlsx";
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            }
+            else
+            {
+                bytes       = await StatementApi.GetPdfAsync(_selectedAccount.Id, _startDate.Value, _endDate.Value);
+                fileName    = $"EstadoCuenta_{_selectedAccount.Code}_{_startDate.Value:yyyyMMdd}_{_endDate.Value:yyyyMMdd}.pdf";
+                contentType = "application/pdf";
+            }
+
+            if (bytes is null || bytes.Length == 0)
+            {
+                Snackbar.Add("No se pudo generar el reporte. Verifique el rango de fechas.", Severity.Warning);
+                return;
+            }
+
+            await JS.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, bytes);
+            Snackbar.Add($"Reporte {type.ToUpper()} generado correctamente", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al generar reporte: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+}

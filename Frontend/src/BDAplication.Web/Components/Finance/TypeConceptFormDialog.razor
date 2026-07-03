@@ -1,0 +1,56 @@
+@using BDAplication.Web.Models.Finance
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@(IsEdit ? Icons.Material.Filled.Edit : Icons.Material.Filled.Category)" Class="mr-2"/>
+            @(IsEdit ? "Editar Tipo de Concepto" : "Nuevo Tipo de Concepto")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+            <MudStack Spacing="3">
+                @if (IsEdit)
+                {
+                    <MudTextField Value="@Item!.Code" Label="Código" Variant="Variant.Outlined"
+                                  ReadOnly="true" Disabled="true"/>
+                }
+                <MudTextField @bind-Value="_description" Label="Descripción" Variant="Variant.Outlined"
+                              Required="true" RequiredError="La descripción es obligatoria"
+                              MaxLength="100" Immediate="true"/>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="!_valid">Guardar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public TypeConceptModel? Item { get; set; }
+    [Parameter] public bool IsEdit { get; set; }
+
+    private MudForm _form = default!;
+    private bool _valid;
+    private string _description = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        if (IsEdit && Item != null) _description = Item.Description;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_valid) return;
+        if (IsEdit)
+            MudDialog.Close(DialogResult.Ok(new UpdateTypeConceptRequest { Id = Item!.Id, Description = _description }));
+        else
+            MudDialog.Close(DialogResult.Ok(new CreateTypeConceptRequest { Description = _description }));
+    }
+}

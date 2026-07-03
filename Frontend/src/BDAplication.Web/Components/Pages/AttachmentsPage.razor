@@ -1,0 +1,499 @@
+@page "/attachments"
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@using BDAplication.Web.Components.Shared.Attachments
+@using MudBlazor
+@inject AttachmentApiService AttachmentApi
+@inject DocumentConceptApiService ConceptApi
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IJSRuntime JS
+@inject IUserTimeZoneService _tz
+
+<style>
+    .att-type-image { color:#2e7d32; }
+    .att-type-pdf   { color:#c62828; }
+    .att-type-other { color:#616161; }
+    .att-group-header { display:flex; align-items:center; gap:12px; }
+    .att-group-badge  { background:rgba(25,118,210,.12); color:#1976d2; border-radius:12px;
+                        padding:2px 10px; font-size:.78rem; font-weight:600; }
+    .att-no-date .att-group-badge { background:rgba(120,120,120,.12); color:#757575; }
+</style>
+
+<!-- Encabezado -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <MudIcon Icon="@Icons.Material.Filled.AttachFile" Style="font-size:2rem" Color="Color.Primary"/>
+        <div>
+            <MudText Typo="Typo.h5" Style="font-weight:700;line-height:1.2">Archivos Adjuntos</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Gestión centralizada de documentos y comprobantes</MudText>
+        </div>
+    </MudStack>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Upload"
+               OnClick="OpenUploadDialog">
+        Subir Archivo
+    </MudButton>
+</div>
+
+<!-- Barra de búsqueda -->
+<MudPaper Elevation="2" Class="pa-3 mb-4 rounded-lg">
+    <MudGrid Spacing="2" AlignItems="Center">
+        <MudItem xs="12" sm="8" md="9">
+            <MudTextField @bind-Value="_search" Label="Buscar por nombre, descripción, comentario o usuario"
+                          Variant="Variant.Outlined" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Clearable="true" Immediate="false"
+                          OnKeyDown="OnSearchKeyDown"
+                          OnClearButtonClick="ClearSearch"
+                          Margin="Margin.Dense"/>
+        </MudItem>
+        <MudItem xs="12" sm="4" md="3">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.FilterList"
+                       OnClick="SearchAsync" FullWidth="true">
+                Filtrar
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+<!-- Grupos por Mes/Año -->
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-2"/>
+}
+else if (!_groups.Any())
+{
+    <MudPaper Elevation="2" Class="pa-8 rounded-lg">
+        <MudStack AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.FolderOpen" Style="font-size:56px;opacity:.4"/>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">
+                @(_search != null ? "No se encontraron archivos con ese criterio" : "No hay archivos adjuntos — presione Subir Archivo para comenzar")
+            </MudText>
+        </MudStack>
+    </MudPaper>
+}
+else
+{
+    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">
+        @_attachments.Count archivo(s) · @_groups.Count grupo(s)
+    </MudText>
+
+    <MudExpansionPanels MultiExpansion="true" Elevation="2" Class="rounded-lg">
+        @foreach (var g in _groups)
+        {
+            <MudExpansionPanel @bind-IsExpanded="g.IsExpanded"
+                               Class="@(g.IsDateless ? "att-no-date" : "")">
+                <TitleContent>
+                    <div class="att-group-header">
+                        <MudIcon Icon="@(g.IsDateless ? Icons.Material.Outlined.HelpOutline : Icons.Material.Filled.CalendarMonth)"
+                                 Color="@(g.IsDateless ? Color.Default : Color.Primary)"
+                                 Size="Size.Small"/>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:600">@g.Label</MudText>
+                        <span class="att-group-badge">@g.Items.Count documento(s)</span>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    <MudTable T="AttachmentModel" Items="@g.Items" Dense="true" Hover="true"
+                              Elevation="0" Class="mb-0">
+                        <HeaderContent>
+                            <MudTh>Nombre</MudTh>
+                            <MudTh>Descripción</MudTh>
+                            <MudTh>Concepto</MudTh>
+                            <MudTh>Fecha Doc.</MudTh>
+                            <MudTh>Tipo</MudTh>
+                            <MudTh>Tamaño</MudTh>
+                            <MudTh>Fecha Sistema</MudTh>
+                            <MudTh>Usuario</MudTh>
+                            <MudTh Style="text-align:center">Acciones</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Nombre">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                    <MudIcon Icon="@GetIcon(context)" Size="Size.Small" Class="@GetIconClass(context)"/>
+                                    <MudText Typo="Typo.body2" Style="word-break:break-all">@context.OriginalName</MudText>
+                                </MudStack>
+                            </MudTd>
+                            <MudTd DataLabel="Descripción">
+                                <MudText Typo="Typo.body2">@context.Description</MudText>
+                                @if (!string.IsNullOrEmpty(context.Comment))
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Comment</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Concepto">
+                                @if (!string.IsNullOrEmpty(context.DocumentConceptName))
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary"
+                                             Style="height:22px;font-size:.72rem">
+                                        @context.DocumentConceptName
+                                    </MudChip>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Tertiary">—</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Fecha Doc.">
+                                @if (!g.IsDateless)
+                                {
+                                    <MudText Typo="Typo.body2" Style="white-space:nowrap">
+                                        @context.DocumentDate.ToString("dd/MM/yyyy")
+                                    </MudText>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Tertiary">—</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Tipo">
+                                <MudChip T="string" Size="Size.Small"
+                                         Color="@(context.IsImage ? Color.Success : context.IsPdf ? Color.Error : Color.Default)"
+                                         Style="height:22px;font-size:.72rem">
+                                    @(context.IsImage ? "Imagen" : context.IsPdf ? "PDF" : context.Extension.TrimStart('.').ToUpper())
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Tamaño">
+                                <MudText Typo="Typo.body2" Style="white-space:nowrap">@context.FileSizeDisplay</MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Fecha Sistema">
+                                <MudText Typo="Typo.body2" Style="white-space:nowrap">
+                                    @_tz.ToUserTime(context.DateCreated).ToString("dd/MM/yyyy HH:mm")
+                                </MudText>
+                                @if (context.DateModified.HasValue)
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        Mod. @_tz.ToUserTime(context.DateModified.Value).ToString("dd/MM/yyyy HH:mm")
+                                    </MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Usuario">
+                                <MudText Typo="Typo.body2">@context.UserCreated</MudText>
+                            </MudTd>
+                            <MudTd Style="text-align:center;white-space:nowrap">
+                                <MudTooltip Text="Ver / Abrir">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                                   Size="Size.Small" Color="Color.Info"
+                                                   OnClick="() => OpenPreviewAsync(context)"/>
+                                </MudTooltip>
+                                <MudTooltip Text="Editar">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Size="Size.Small" Color="Color.Warning"
+                                                   OnClick="() => EditAsync(context)"/>
+                                </MudTooltip>
+                                <MudTooltip Text="Eliminar">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Size="Size.Small" Color="Color.Error"
+                                                   OnClick="() => DeleteAsync(context)"/>
+                                </MudTooltip>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </ChildContent>
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+}
+
+<!-- Diálogo de subida -->
+<MudDialog @bind-Visible="_showUpload"
+           Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Class="mr-2"/>
+            Subir Archivo
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <InputFile id="fileInput" OnChange="OnFileSelected"
+                       accept=".jpg,.jpeg,.png,.gif,.webp,.pdf" style="display:none"/>
+            <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.FolderOpen"
+                       for="fileInput" FullWidth="true">
+                @(_selectedFile == null ? "Seleccionar archivo..." : _selectedFile.Name)
+            </MudButton>
+            @if (_selectedFile != null)
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    @FormatSize(_selectedFile.Size) · @_selectedFile.ContentType
+                </MudText>
+            }
+
+            <MudSelect T="int?" @bind-Value="_uploadConceptId" Label="Concepto de Documento"
+                       Variant="Variant.Outlined" Clearable="true" Placeholder="— Sin concepto —">
+                @foreach (var c in _concepts)
+                {
+                    <MudSelectItem T="int?" Value="@((int?)c.Id)">@c.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <div>
+                <MudDatePicker @bind-Date="_uploadDocumentDate" Label="Fecha del Documento *"
+                               Variant="Variant.Outlined" DateFormat="dd/MM/yyyy"
+                               Required="true"
+                               @onchange="@(() => _uploadDateError = false)"/>
+                @if (_uploadDateError)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Error">La Fecha del Documento es obligatoria</MudText>
+                }
+            </div>
+
+            <MudTextField @bind-Value="_uploadDescription" Label="Descripción"
+                          Variant="Variant.Outlined" MaxLength="200" Immediate="true"/>
+            <MudTextField @bind-Value="_uploadComment" Label="Comentario"
+                          Variant="Variant.Outlined" Lines="3" MaxLength="500" Immediate="true"/>
+
+            @if (_uploadError != null)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true">@_uploadError</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseUploadDialog" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton OnClick="SubmitUpload"
+                   Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="@(_selectedFile == null || _uploading)"
+                   StartIcon="@(_uploading ? Icons.Material.Filled.HourglassEmpty : Icons.Material.Filled.Upload)">
+            @(_uploading ? "Subiendo..." : "Subir")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    // ── State ──────────────────────────────────────────────────────
+    private List<AttachmentModel> _attachments = new();
+    private List<AttachmentGroup> _groups = new();
+    private List<DocumentConceptModel> _concepts = new();
+    private bool _loading = true;
+    private string? _search;
+
+    // Upload
+    private bool _showUpload;
+    private IBrowserFile? _selectedFile;
+    private string _uploadDescription = string.Empty;
+    private string _uploadComment = string.Empty;
+    private DateTime? _uploadDocumentDate;
+    private bool _uploadDateError;
+    private int? _uploadConceptId;
+    private string? _uploadError;
+    private bool _uploading;
+
+    // ── Lifecycle ─────────────────────────────────────────────────
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        if (auth.User.Identity?.IsAuthenticated != true)
+        { Nav.NavigateTo("/login", forceLoad: true); return; }
+        var conceptsTask = ConceptApi.GetAllAsync();
+        var attachTask  = AttachmentApi.GetAllAsync(_search);
+        await Task.WhenAll(conceptsTask, attachTask);
+        _concepts    = (await conceptsTask)?.Data ?? new();
+        _attachments = (await attachTask)?.Data  ?? new();
+        BuildGroups();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true; StateHasChanged();
+        var resp = await AttachmentApi.GetAllAsync(_search);
+        _attachments = resp?.Data ?? new();
+        BuildGroups();
+        _loading = false; StateHasChanged();
+    }
+
+    // ── Grouping ──────────────────────────────────────────────────
+    private void BuildGroups()
+    {
+        var result = new List<AttachmentGroup>();
+
+        // Documentos con fecha: agrupar por año+mes descendente
+        var withDate = _attachments
+            .Where(a => a.DocumentDate != default)
+            .OrderByDescending(a => a.DocumentDate)
+            .ThenByDescending(a => a.DateCreated);
+
+        foreach (var grp in withDate.GroupBy(a => (a.DocumentDate.Year, a.DocumentDate.Month))
+                                    .OrderByDescending(g => g.Key.Year).ThenByDescending(g => g.Key.Month))
+        {
+            result.Add(new AttachmentGroup
+            {
+                Label = $"{MesEspanol(grp.Key.Month)} {grp.Key.Year}",
+                Items = grp.ToList(),
+                IsDateless = false,
+                IsExpanded = result.Count == 0  // primer grupo abierto por defecto
+            });
+        }
+
+        // Documentos sin fecha (históricos migrados con fecha mínima o sin asignar)
+        var dateless = _attachments
+            .Where(a => a.DocumentDate == default)
+            .OrderByDescending(a => a.DateCreated)
+            .ToList();
+        if (dateless.Any())
+            result.Add(new AttachmentGroup
+            {
+                Label = "Sin fecha de documento",
+                Items = dateless,
+                IsDateless = true,
+                IsExpanded = !result.Any()  // solo si no hay grupos con fecha
+            });
+
+        _groups = result;
+    }
+
+    private static string MesEspanol(int mes) => mes switch
+    {
+        1  => "Enero",   2 => "Febrero",  3 => "Marzo",     4 => "Abril",
+        5  => "Mayo",    6 => "Junio",    7 => "Julio",      8 => "Agosto",
+        9  => "Septiembre", 10 => "Octubre", 11 => "Noviembre", 12 => "Diciembre",
+        _  => mes.ToString()
+    };
+
+    private class AttachmentGroup
+    {
+        public string Label { get; set; } = string.Empty;
+        public List<AttachmentModel> Items { get; set; } = new();
+        public bool IsDateless { get; set; }
+        public bool IsExpanded { get; set; }
+    }
+
+    // ── Search ────────────────────────────────────────────────────
+    private async Task SearchAsync() => await LoadAsync();
+    private async Task ClearSearch() { _search = null; await LoadAsync(); }
+    private async Task OnSearchKeyDown(KeyboardEventArgs e) { if (e.Key == "Enter") await LoadAsync(); }
+
+    // ── Upload ────────────────────────────────────────────────────
+    private void OpenUploadDialog()
+    {
+        _selectedFile = null;
+        _uploadDescription = string.Empty;
+        _uploadComment = string.Empty;
+        _uploadDocumentDate = null;
+        _uploadDateError = false;
+        _uploadConceptId = null;
+        _uploadError = null;
+        _uploading = false;
+        _showUpload = true;
+    }
+
+    private void CloseUploadDialog() => _showUpload = false;
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        _selectedFile = e.File;
+        _uploadError = null;
+        StateHasChanged();
+    }
+
+    private async Task SubmitUpload()
+    {
+        if (_selectedFile == null) return;
+
+        if (!_uploadDocumentDate.HasValue) { _uploadDateError = true; return; }
+
+        const long maxBytes = 10_485_760;
+        if (_selectedFile.Size > maxBytes)
+        { _uploadError = "El archivo supera el tamaño máximo de 10 MB."; return; }
+
+        var allowed = new[] { "image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf" };
+        if (!allowed.Contains(_selectedFile.ContentType, StringComparer.OrdinalIgnoreCase))
+        { _uploadError = "Tipo no permitido. Use JPG, PNG, GIF, WEBP o PDF."; return; }
+
+        _uploading = true; _uploadError = null; StateHasChanged();
+        try
+        {
+            await using var stream = _selectedFile.OpenReadStream(maxBytes);
+            var resp = await AttachmentApi.UploadAsync(
+                "General", 0,
+                stream, _selectedFile.Name, _selectedFile.ContentType, _selectedFile.Size,
+                _uploadDescription, _uploadComment, _uploadDocumentDate.Value, _uploadConceptId);
+
+            if (resp?.Success == true)
+            {
+                Snackbar.Add("Archivo subido correctamente", Severity.Success);
+                _showUpload = false;
+                await LoadAsync();
+            }
+            else
+                _uploadError = resp?.Message ?? "Error al subir el archivo";
+        }
+        catch (Exception ex)
+        {
+            _uploadError = $"Error: {ex.Message}";
+        }
+        finally { _uploading = false; StateHasChanged(); }
+    }
+
+    // ── Preview ───────────────────────────────────────────────────
+    private async Task OpenPreviewAsync(AttachmentModel a)
+    {
+        var resp = await AttachmentApi.GetUrlAsync(a.Id);
+        if (resp?.Success == true && resp.Data != null)
+            await JS.InvokeVoidAsync("open", resp.Data, "_blank");
+        else
+            Snackbar.Add("No se pudo obtener la URL del archivo", Severity.Error);
+    }
+
+    // ── Edit ──────────────────────────────────────────────────────
+    private async Task EditAsync(AttachmentModel a)
+    {
+        var parameters = new DialogParameters<AttachmentEditDialog>
+        {
+            { x => x.Attachment, a },
+            { x => x.Concepts, _concepts }
+        };
+        var dlg = await DialogService.ShowAsync<AttachmentEditDialog>("Editar Adjunto", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dlg.Result;
+        if (result is { Canceled: false, Data: UpdateAttachmentRequest req })
+        {
+            var resp = await AttachmentApi.UpdateAsync(a.Id, req);
+            if (resp?.Success == true)
+            { Snackbar.Add("Adjunto actualizado", Severity.Success); await LoadAsync(); }
+            else
+                Snackbar.Add(resp?.Message ?? "Error al actualizar", Severity.Error);
+        }
+    }
+
+    // ── Delete ────────────────────────────────────────────────────
+    private async Task DeleteAsync(AttachmentModel a)
+    {
+        var confirm = await DialogService.ShowMessageBox(
+            "Confirmar eliminación",
+            $"¿Eliminar el archivo \"{a.OriginalName}\"? Esta acción no se puede deshacer.",
+            yesText: "Eliminar", cancelText: "Cancelar");
+        if (confirm != true) return;
+        var resp = await AttachmentApi.DeleteAsync(a.Id);
+        if (resp?.Success == true)
+        { Snackbar.Add("Archivo eliminado", Severity.Success); await LoadAsync(); }
+        else
+            Snackbar.Add(resp?.Message ?? "Error al eliminar", Severity.Error);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────
+    private static string GetIcon(AttachmentModel a) => a.IsImage
+        ? Icons.Material.Filled.Image
+        : a.IsPdf ? Icons.Material.Filled.PictureAsPdf
+        : Icons.Material.Filled.InsertDriveFile;
+
+    private static string GetIconClass(AttachmentModel a) => a.IsImage
+        ? "att-type-image"
+        : a.IsPdf ? "att-type-pdf"
+        : "att-type-other";
+
+    private static string FormatSize(long bytes) => bytes switch
+    {
+        < 1024 => $"{bytes} B",
+        < 1_048_576 => $"{bytes / 1024.0:N1} KB",
+        _ => $"{bytes / 1_048_576.0:N1} MB"
+    };
+}

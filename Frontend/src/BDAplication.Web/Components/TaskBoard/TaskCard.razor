@@ -1,0 +1,120 @@
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@inject IUserTimeZoneService _tz
+
+<div class="tb-card @(IsDragging ? "tb-card-dragging" : "") @DueClass"
+     style="border-left: 4px solid @PriorityColor"
+     draggable="true"
+     @ondragstart="HandleDragStart"
+     @ondragend="HandleDragEnd">
+
+    @* Banner de alerta *@
+    @if (CurrentStatus is DueStatus.DueSoon or DueStatus.Overdue)
+    {
+        <div class="tb-due-banner @(CurrentStatus == DueStatus.Overdue ? "tb-due-overdue" : "tb-due-soon")">
+            @Task.TimeRemainingText
+        </div>
+    }
+
+    <div class="tb-card-header">
+        <MudText Typo="Typo.subtitle2" Class="tb-card-title">@Task.Title</MudText>
+        <div class="tb-card-actions">
+            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                           Size="Size.Small" Color="Color.Default"
+                           OnClick="() => OnEdit.InvokeAsync(Task)" />
+            <MudIconButton Icon="@Icons.Material.Filled.DeleteOutline"
+                           Size="Size.Small" Color="Color.Error"
+                           OnClick="() => OnDelete.InvokeAsync(Task.Id)" />
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Task.Description))
+    {
+        <MudText Typo="Typo.body2" Class="tb-card-desc mud-text-secondary">
+            @Truncate(Task.Description, 80)
+        </MudText>
+    }
+
+    @if (Task.SubTasks.Count > 0)
+    {
+        var completed = Task.SubTasks.Count(s => s.IsCompleted);
+        var total = Task.SubTasks.Count;
+        var pct = (double)completed / total * 100;
+        <div class="tb-subtask-bar">
+            <div class="tb-subtask-track">
+                <div class="tb-subtask-fill"
+                     style="width:@pct.ToString("F0")%;background:@(pct == 100 ? "#4caf50" : PriorityColor)"></div>
+            </div>
+            <span class="tb-subtask-label">@completed/@total</span>
+        </div>
+    }
+
+    @* Fechas de planificación *@
+    @if (Task.StartDate.HasValue || Task.DueDate.HasValue)
+    {
+        <div class="tb-dates-row">
+            @if (Task.StartDate.HasValue)
+            {
+                <span class="tb-date-item">
+                    <span class="tb-date-icon">▶</span>
+                    @_tz.ToUserTime(Task.StartDate.Value).ToString("dd/MM HH:mm")
+                </span>
+            }
+            @if (Task.DueDate.HasValue)
+            {
+                <span class="tb-date-item @(CurrentStatus == DueStatus.Overdue ? "tb-date-overdue" : CurrentStatus == DueStatus.DueSoon ? "tb-date-soon" : "")">
+                    <span class="tb-date-icon">⏹</span>
+                    @_tz.ToUserTime(Task.DueDate.Value).ToString("dd/MM HH:mm")
+                </span>
+            }
+        </div>
+        @if (Task.DueDate.HasValue && CurrentStatus is not DueStatus.Done and not DueStatus.NotScheduled)
+        {
+            <div class="tb-remaining @(CurrentStatus == DueStatus.Overdue ? "tb-remaining-overdue" : CurrentStatus == DueStatus.DueSoon ? "tb-remaining-soon" : "tb-remaining-normal")">
+                @Task.TimeRemainingText
+            </div>
+        }
+    }
+
+    <div class="tb-card-footer">
+        <span class="tb-priority-chip" style="background:@PriorityColor">
+            @Task.PriorityLabel
+        </span>
+        <MudText Typo="Typo.caption" Class="mud-text-secondary">
+            @_tz.ToUserTime(Task.DateCreated).ToString("dd/MM/yy")
+        </MudText>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public TaskBoardModel Task { get; set; } = default!;
+    [Parameter] public EventCallback<int> OnDragStart { get; set; }
+    [Parameter] public EventCallback OnDragEnd { get; set; }
+    [Parameter] public EventCallback<TaskBoardModel> OnEdit { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+    [Parameter] public bool IsDragging { get; set; }
+
+    private DueStatus CurrentStatus => Task.CurrentDueStatus;
+
+    private string DueClass => CurrentStatus switch
+    {
+        DueStatus.Overdue => "tb-card-overdue",
+        DueStatus.DueSoon => "tb-card-due-soon",
+        _                 => string.Empty
+    };
+
+    private string PriorityColor => Task.Priority switch
+    {
+        Priority.Low      => "#4caf50",
+        Priority.Medium   => "#ff9800",
+        Priority.High     => "#f44336",
+        Priority.Critical => "#9c27b0",
+        _                 => "#9e9e9e"
+    };
+
+    private async Task HandleDragStart() => await OnDragStart.InvokeAsync(Task.Id);
+    private async Task HandleDragEnd()   => await OnDragEnd.InvokeAsync();
+
+    private static string Truncate(string s, int max) =>
+        s.Length <= max ? s : s[..max] + "…";
+}

@@ -1,0 +1,292 @@
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@inject AttachmentApiService AttachmentApi
+@inject IDialogService Dialog
+@inject ISnackbar Snackbar
+@inject IJSRuntime JS
+@inject IUserTimeZoneService _tz
+
+<MudPaper Elevation="0" Class="pa-4 rounded-lg" Style="border: 1px solid var(--mud-palette-lines-default)">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+        <MudIcon Icon="@Icons.Material.Filled.AttachFile" Color="Color.Primary"/>
+        <MudText Typo="Typo.subtitle1" Class="flex-grow-1"><b>Archivos Adjuntos</b></MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Upload" Color="Color.Primary"
+                       Title="Subir archivo" OnClick="OpenUploadDialog" Size="Size.Small"/>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (!_attachments.Any())
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center py-2">
+            Sin archivos adjuntos
+        </MudText>
+    }
+    else
+    {
+        <MudList T="AttachmentModel" Dense="true" DisablePadding="true">
+            @foreach (var a in _attachments)
+            {
+                <MudListItem T="AttachmentModel" Class="px-0">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@GetIcon(a)" Color="@GetIconColor(a)" Size="Size.Small"/>
+                        <MudStack Spacing="0" Class="flex-grow-1" Style="min-width:0">
+                            <MudText Typo="Typo.body2" Style="word-break:break-all">
+                                <b>@a.OriginalName</b>
+                            </MudText>
+                            @if (!string.IsNullOrEmpty(a.Description))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@a.Description</MudText>
+                            }
+                            <MudText Typo="Typo.caption" Color="Color.Tertiary">
+                                @a.FileSizeDisplay · @_tz.ToUserTime(a.DateCreated).ToString("dd/MM/yyyy HH:mm") · @a.UserCreated
+                            </MudText>
+                        </MudStack>
+                        <MudTooltip Text="Ver / Abrir">
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                           Size="Size.Small" Color="Color.Info"
+                                           OnClick="() => OpenPreviewAsync(a)"/>
+                        </MudTooltip>
+                        <MudTooltip Text="Editar">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                           Size="Size.Small" Color="Color.Warning"
+                                           OnClick="() => EditAsync(a)"/>
+                        </MudTooltip>
+                        <MudTooltip Text="Eliminar">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                           Size="Size.Small" Color="Color.Error"
+                                           OnClick="() => DeleteAsync(a)"/>
+                        </MudTooltip>
+                    </MudStack>
+                </MudListItem>
+                <MudDivider/>
+            }
+        </MudList>
+    }
+</MudPaper>
+
+<!-- Diálogo de subida embebido -->
+<MudDialog @bind-Visible="_showUpload" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Class="mr-2"/>
+            Subir Archivo
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <InputFile id="attachInput" OnChange="OnFileSelected" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf" style="display:none"/>
+            <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.FolderOpen" for="attachInput" FullWidth="true">
+                @(_selectedFile == null ? "Seleccionar archivo" : _selectedFile.Name)
+            </MudButton>
+            @if (_selectedFile != null)
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    @FormatSize(_selectedFile.Size) · @_selectedFile.ContentType
+                </MudText>
+            }
+            <div>
+                <MudDatePicker @bind-Date="_uploadDocumentDate" Label="Fecha del Documento *"
+                               Variant="Variant.Outlined" DateFormat="dd/MM/yyyy"
+                               Required="true"
+                               @onchange="@(() => _uploadDateError = false)"/>
+                @if (_uploadDateError)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Error">La Fecha del Documento es obligatoria</MudText>
+                }
+            </div>
+            <MudTextField @bind-Value="_uploadDescription" Label="Descripción" Variant="Variant.Outlined"
+                          MaxLength="200" Immediate="true"/>
+            <MudTextField @bind-Value="_uploadComment" Label="Comentario" Variant="Variant.Outlined"
+                          Lines="2" MaxLength="500" Immediate="true"/>
+            @if (_uploadError != null)
+            {
+                <MudAlert Severity="Severity.Error">@_uploadError</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseUploadDialog" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton OnClick="SubmitUpload" Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="@(_selectedFile == null || _uploading)"
+                   StartIcon="@Icons.Material.Filled.Upload">
+            @(_uploading ? "Subiendo..." : "Subir")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter, EditorRequired] public string EntityType { get; set; } = default!;
+    [Parameter, EditorRequired] public int EntityId { get; set; }
+
+    private List<AttachmentModel> _attachments = new();
+    private bool _loading;
+
+    // Upload state
+    private bool _showUpload;
+    private IBrowserFile? _selectedFile;
+    private string _uploadDescription = string.Empty;
+    private string _uploadComment = string.Empty;
+    private DateTime? _uploadDocumentDate;
+    private bool _uploadDateError;
+    private string? _uploadError;
+    private bool _uploading;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (EntityId > 0)
+            await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var resp = await AttachmentApi.GetByEntityAsync(EntityType, EntityId);
+        _attachments = resp?.Data ?? new();
+        _loading = false;
+    }
+
+    private void OpenUploadDialog()
+    {
+        _selectedFile = null;
+        _uploadDescription = string.Empty;
+        _uploadComment = string.Empty;
+        _uploadDocumentDate = null;
+        _uploadDateError = false;
+        _uploadError = null;
+        _uploading = false;
+        _showUpload = true;
+    }
+
+    private void CloseUploadDialog() => _showUpload = false;
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        _selectedFile = e.File;
+        _uploadError = null;
+        StateHasChanged();
+    }
+
+    private async Task SubmitUpload()
+    {
+        if (_selectedFile == null) return;
+        if (!_uploadDocumentDate.HasValue) { _uploadDateError = true; return; }
+
+        const long maxBytes = 10_485_760;
+        if (_selectedFile.Size > maxBytes)
+        {
+            _uploadError = "El archivo supera el tamaño máximo de 10 MB.";
+            return;
+        }
+
+        var allowed = new[] { "image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf" };
+        if (!allowed.Contains(_selectedFile.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            _uploadError = "Tipo de archivo no permitido. Use JPG, PNG, GIF, WEBP o PDF.";
+            return;
+        }
+
+        _uploading = true;
+        _uploadError = null;
+
+        try
+        {
+            await using var stream = _selectedFile.OpenReadStream(maxBytes);
+            var resp = await AttachmentApi.UploadAsync(
+                EntityType, EntityId,
+                stream, _selectedFile.Name, _selectedFile.ContentType, _selectedFile.Size,
+                _uploadDescription, _uploadComment, _uploadDocumentDate.Value);
+
+            if (resp?.Success == true)
+            {
+                Snackbar.Add("Archivo subido correctamente", Severity.Success);
+                _showUpload = false;
+                await LoadAsync();
+            }
+            else
+            {
+                _uploadError = resp?.Message ?? "Error al subir el archivo";
+            }
+        }
+        catch (Exception ex)
+        {
+            _uploadError = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _uploading = false;
+        }
+    }
+
+    private async Task OpenPreviewAsync(AttachmentModel a)
+    {
+        var resp = await AttachmentApi.GetUrlAsync(a.Id);
+        if (resp?.Success == true && resp.Data != null)
+            await JS.InvokeVoidAsync("open", resp.Data, "_blank");
+        else
+            Snackbar.Add("No se pudo obtener la URL del archivo", Severity.Error);
+    }
+
+    private async Task EditAsync(AttachmentModel a)
+    {
+        var parameters = new DialogParameters<AttachmentEditDialog>
+        {
+            { x => x.Attachment, a }
+        };
+        var dlg = await Dialog.ShowAsync<AttachmentEditDialog>("Editar Adjunto", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dlg.Result;
+        if (result is { Canceled: false, Data: UpdateAttachmentRequest req })
+        {
+            var resp = await AttachmentApi.UpdateAsync(a.Id, req);
+            if (resp?.Success == true)
+            {
+                Snackbar.Add("Adjunto actualizado", Severity.Success);
+                await LoadAsync();
+            }
+            else
+                Snackbar.Add(resp?.Message ?? "Error al actualizar", Severity.Error);
+        }
+    }
+
+    private async Task DeleteAsync(AttachmentModel a)
+    {
+        var confirm = await Dialog.ShowMessageBox(
+            "Confirmar eliminación",
+            $"¿Eliminar el archivo \"{a.OriginalName}\"? Esta acción no se puede deshacer.",
+            yesText: "Eliminar", cancelText: "Cancelar");
+
+        if (confirm != true) return;
+
+        var resp = await AttachmentApi.DeleteAsync(a.Id);
+        if (resp?.Success == true)
+        {
+            Snackbar.Add("Archivo eliminado", Severity.Success);
+            await LoadAsync();
+        }
+        else
+            Snackbar.Add(resp?.Message ?? "Error al eliminar", Severity.Error);
+    }
+
+    private static string GetIcon(AttachmentModel a) => a.IsImage
+        ? Icons.Material.Filled.Image
+        : a.IsPdf
+            ? Icons.Material.Filled.PictureAsPdf
+            : Icons.Material.Filled.InsertDriveFile;
+
+    private static Color GetIconColor(AttachmentModel a) => a.IsImage
+        ? Color.Success
+        : a.IsPdf
+            ? Color.Error
+            : Color.Default;
+
+    private static string FormatSize(long bytes) => bytes switch
+    {
+        < 1024 => $"{bytes} B",
+        < 1_048_576 => $"{bytes / 1024.0:N1} KB",
+        _ => $"{bytes / 1_048_576.0:N1} MB"
+    };
+}
