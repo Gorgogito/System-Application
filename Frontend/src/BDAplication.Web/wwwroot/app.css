@@ -14,3 +14,60 @@ html, body {
     background-color: rgba(255,255,255,0.12) !important;
     border-radius: 8px;
 }
+
+/* ─── CSS Variables ──────────────────────────────────────────── */
+:root {
+    --app-padding:       24px;
+    --app-appbar-height: 64px;
+}
+
+@media (max-width: 960px) {
+    :root { --app-padding: 16px; }
+}
+
+@media (max-width: 600px) {
+    :root { --app-padding: 12px; }
+}
+
+/* ─── Wrapper del contenido principal ──────────────────────── */
+.app-main-content {
+    padding: var(--app-padding);
+    height: calc(100vh - var(--app-appbar-height));
+    overflow-y: auto;
+    animation: appFadeIn 0.18s ease both;
+}
+
+@keyframes appFadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Scrollbars globales ────────────────────────────────────── */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,.18) transparent;
+}
+
+*::-webkit-scrollbar       { width: 5px; height: 5px; }
+*::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 4px; }
+*::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,.28); }
+
+/* ─── Columnas de tabla responsive ──────────────────────────── */
+/* Uso: Class="d-none d-sm-table-cell"  → oculta en xs, visible en sm+ */
+/* Uso: Class="d-none d-md-table-cell"  → oculta en xs+sm, visible en md+ */
+@media (min-width: 600px) {
+    .d-sm-table-cell { display: table-cell !important; }
+    .d-sm-none       { display: none !important; }
+}
+
+@media (min-width: 960px) {
+    .d-md-table-cell { display: table-cell !important; }
+}
+
+/* ─── Touch targets mínimos ──────────────────────────────────── */
+@media (max-width: 600px) {
+    .mud-icon-button {
+        min-width: 40px !important;
+        min-height: 40px !important;
+    }
+}

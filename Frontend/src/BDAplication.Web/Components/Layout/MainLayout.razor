@@ -3,6 +3,9 @@
 @using BDAplication.Web.Models
 @inject JwtAuthStateProvider AuthProvider
 @inject NavigationManager Nav
+@inject IBrowserViewportService BrowserViewportService
+@implements IBrowserViewportObserver
+@implements IAsyncDisposable
 
 <MudThemeProvider @bind-IsDarkMode="_isDark" />
 <MudPopoverProvider />
@@ -31,22 +34,22 @@
         </MudTooltip>
     </MudAppBar>
 
-    <!-- Sidebar izquierdo -->
+    <!-- Sidebar -->
     <MudDrawer @bind-Open="_drawerOpen"
-               ClipMode="DrawerClipMode.Always"
-               Elevation="3"
-               Variant="DrawerVariant.Persistent"
+               ClipMode="@(_isMobile ? DrawerClipMode.Never : DrawerClipMode.Always)"
+               Elevation="@(_isMobile ? 16 : 3)"
+               Variant="@(_isMobile ? DrawerVariant.Temporary : DrawerVariant.Persistent)"
                Color="Color.Dark">
 
         <!-- Perfil del usuario -->
-        <div style="padding: 24px 16px 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.12);">
+        <div style="padding: 20px 16px 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.12);">
             <MudStack AlignItems="AlignItems.Center" Spacing="1">
                 <MudAvatar Color="Color.Primary"
-                           Style="width:64px;height:64px;font-size:1.6rem;font-weight:bold;">
+                           Style="width:52px;height:52px;font-size:1.4rem;font-weight:bold;">
                     @_inicial
                 </MudAvatar>
-                <MudText Typo="Typo.subtitle1"
-                         Style="color:white;font-weight:600;text-align:center;margin-top:8px;">
+                <MudText Typo="Typo.subtitle2"
+                         Style="color:white;font-weight:600;text-align:center;margin-top:6px;">
                     @(_currentUser?.FullName ?? "Cargando...")
                 </MudText>
                 <MudChip T="string"
@@ -63,28 +66,33 @@
             <MudNavLink Href="/dashboard"
                         Icon="@Icons.Material.Filled.Dashboard"
                         Match="NavLinkMatch.All"
-                        Style="color:rgba(255,255,255,0.85);">
+                        Style="color:rgba(255,255,255,0.85);"
+                        OnClick="CloseDrawerOnMobile">
                 Dashboard
             </MudNavLink>
             <MudNavLink Href="/users"
                         Icon="@Icons.Material.Filled.People"
-                        Style="color:rgba(255,255,255,0.85);">
+                        Style="color:rgba(255,255,255,0.85);"
+                        OnClick="CloseDrawerOnMobile">
                 Usuarios
             </MudNavLink>
             <MudNavLink Href="/roles"
                         Icon="@Icons.Material.Filled.AdminPanelSettings"
-                        Style="color:rgba(255,255,255,0.85);">
+                        Style="color:rgba(255,255,255,0.85);"
+                        OnClick="CloseDrawerOnMobile">
                 Roles
             </MudNavLink>
             <MudDivider Class="my-1" Style="border-color:rgba(255,255,255,0.15)" />
             <MudNavLink Href="/taskplanner"
                         Icon="@Icons.Material.Filled.CalendarMonth"
-                        Style="color:rgba(255,255,255,0.85);">
+                        Style="color:rgba(255,255,255,0.85);"
+                        OnClick="CloseDrawerOnMobile">
                 Task Planner
             </MudNavLink>
             <MudNavLink Href="/taskboard"
                         Icon="@Icons.Material.Filled.ViewKanban"
-                        Style="color:rgba(255,255,255,0.85);">
+                        Style="color:rgba(255,255,255,0.85);"
+                        OnClick="CloseDrawerOnMobile">
                 Task Board
             </MudNavLink>
             <MudDivider Class="my-1" Style="border-color:rgba(255,255,255,0.15)" />
@@ -95,12 +103,14 @@
                          Expanded="false">
                 <MudNavLink Href="/attachments"
                             Icon="@Icons.Material.Filled.AttachFile"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px">
+                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            OnClick="CloseDrawerOnMobile">
                     Archivos Adjuntos
                 </MudNavLink>
                 <MudNavLink Href="/documentconcepts"
                             Icon="@Icons.Material.Filled.Label"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px">
+                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            OnClick="CloseDrawerOnMobile">
                     Conceptos de Documento
                 </MudNavLink>
             </MudNavGroup>
@@ -112,17 +122,20 @@
                          Expanded="false">
                 <MudNavLink Href="/finance/statement"
                             Icon="@Icons.Material.Filled.AccountBalanceWallet"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px">
+                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            OnClick="CloseDrawerOnMobile">
                     Cuentas y Movimientos
                 </MudNavLink>
                 <MudNavLink Href="/finance/account-statement"
                             Icon="@Icons.Material.Filled.ReceiptLong"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px">
+                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            OnClick="CloseDrawerOnMobile">
                     Estado de Cuenta
                 </MudNavLink>
                 <MudNavLink Href="/finance/typeconcept"
                             Icon="@Icons.Material.Filled.Category"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px">
+                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            OnClick="CloseDrawerOnMobile">
                     Tipos de Concepto
                 </MudNavLink>
             </MudNavGroup>
@@ -132,7 +145,7 @@
 
     <!-- Contenido principal -->
     <MudMainContent>
-        <div style="padding: 24px; height: calc(100vh - 64px); overflow-y: auto;">
+        <div class="app-main-content">
             @Body
         </div>
     </MudMainContent>
@@ -141,14 +154,30 @@
 
 @code {
     private bool _drawerOpen = true;
-    private bool _isDark = false;
+    private bool _isMobile   = false;
+    private bool _isDark     = false;
     private UserModel? _currentUser;
     private RoleModel? _currentRole;
     private string _inicial = "U";
 
+    private readonly Guid _observerId = Guid.NewGuid();
+    private readonly MudBlazor.Services.ResizeOptions _resizeOptions =
+        new() { ReportRate = 250, NotifyOnBreakpointOnly = true };
+
+    Guid IBrowserViewportObserver.Id => _observerId;
+    MudBlazor.Services.ResizeOptions? IBrowserViewportObserver.ResizeOptions => _resizeOptions;
+
+    async Task IBrowserViewportObserver.NotifyBrowserViewportChangeAsync(BrowserViewportEventArgs notification)
+    {
+        _isMobile   = notification.Breakpoint is Breakpoint.Xs or Breakpoint.Sm;
+        _drawerOpen = !_isMobile;
+        await InvokeAsync(StateHasChanged);
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+        await BrowserViewportService.SubscribeAsync(this, fireImmediately: true);
         _currentUser = await AuthProvider.GetCurrentUserAsync();
         _currentRole = await AuthProvider.GetCurrentRoleAsync();
         _inicial = (_currentUser?.FullName ?? "U").FirstOrDefault().ToString().ToUpper();
@@ -156,7 +185,17 @@
     }
 
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
-    private void ToggleTheme() => _isDark = !_isDark;
+    private void ToggleTheme()  => _isDark = !_isDark;
+
+    private void CloseDrawerOnMobile()
+    {
+        if (_isMobile) _drawerOpen = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await BrowserViewportService.UnsubscribeAsync(this);
+    }
 
     private async Task LogoutAsync()
     {

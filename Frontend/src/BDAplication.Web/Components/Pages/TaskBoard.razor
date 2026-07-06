@@ -198,6 +198,30 @@
         white-space: nowrap;
     }
 
+    /* ── Responsive ─────────────────────────────────────────── */
+    @@media (max-width: 960px) {
+        .tb-page { height: calc(100vh - 96px); }
+        .tb-column { flex: 0 0 252px; }
+    }
+
+    @@media (max-width: 600px) {
+        .tb-page { height: calc(100vh - 88px); }
+        .tb-column { flex: 0 0 230px; }
+        .tb-topbar { flex-wrap: wrap; gap: 8px; }
+        .tb-topbar > div:last-child { width: 100%; display: flex; justify-content: flex-end; }
+    }
+
+    /* ── Botón mover: sólo en touch/tablets ─────────────────── */
+    .tb-move-btn { display: none !important; }
+
+    @@media (hover: none) and (pointer: coarse) {
+        .tb-move-btn { display: inline-flex !important; }
+    }
+
+    @@media (max-width: 960px) {
+        .tb-move-btn { display: inline-flex !important; }
+    }
+
     /* ── Due status ──────────────────────────────────────────── */
     .tb-due-banner {
         font-size: .75rem;
@@ -279,7 +303,8 @@
                         OnDragEnd="@OnCardDragEnd"
                         OnDrop="@OnColumnDrop"
                         OnEdit="@OpenEditDialog"
-                        OnDelete="@ConfirmDelete" />
+                        OnDelete="@ConfirmDelete"
+                        OnMove="@((args) => OnCardMove(args.Item1, args.Item2))" />
         }
     </div>
 </div>
@@ -367,13 +392,8 @@
     private void OnCardDragStart(int taskId) => _draggingTaskId = taskId;
     private void OnCardDragEnd() => _draggingTaskId = 0;
 
-    private async Task OnColumnDrop(TaskBoardStatus targetStatus)
+    private async Task MoveTaskAsync(int taskId, TaskBoardStatus targetStatus)
     {
-        if (_draggingTaskId == 0) return;
-
-        var taskId = _draggingTaskId;
-        _draggingTaskId = 0;
-
         var task = _tasks.FirstOrDefault(t => t.Id == taskId);
         if (task is null || task.Status == targetStatus) return;
 
@@ -388,9 +408,7 @@
         });
 
         if (resp?.Success == true)
-        {
             Snackbar.Add($"Tarea movida a «{StatusLabel(targetStatus)}»", Severity.Success);
-        }
         else
         {
             task.Status = prevStatus;
@@ -398,6 +416,17 @@
             StateHasChanged();
         }
     }
+
+    private async Task OnColumnDrop(TaskBoardStatus targetStatus)
+    {
+        if (_draggingTaskId == 0) return;
+        var taskId = _draggingTaskId;
+        _draggingTaskId = 0;
+        await MoveTaskAsync(taskId, targetStatus);
+    }
+
+    private async Task OnCardMove(int taskId, TaskBoardStatus targetStatus)
+        => await MoveTaskAsync(taskId, targetStatus);
 
     // ── Crear ────────────────────────────────────────────────
     private async Task OpenCreateDialog()

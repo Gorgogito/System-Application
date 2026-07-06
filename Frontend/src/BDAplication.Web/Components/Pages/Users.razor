@@ -12,7 +12,7 @@
 <PageTitle>Usuarios - BDAplication</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Style="flex-wrap:wrap;gap:8px">
         <MudText Typo="Typo.h5">Gestión de Usuarios</MudText>
         <MudSpacer />
         <MudButton Variant="Variant.Filled" Color="Color.Primary"
@@ -39,27 +39,30 @@
                                   IconSize="Size.Medium" Class="mt-0" />
                 </ToolBarContent>
                 <HeaderContent>
-                    <MudTh>ID</MudTh>
+                    <MudTh Class="d-none d-sm-table-cell">ID</MudTh>
                     <MudTh>Usuario</MudTh>
-                    <MudTh>Nombre Completo</MudTh>
-                    <MudTh>Email</MudTh>
+                    <MudTh Class="d-none d-md-table-cell">Nombre Completo</MudTh>
+                    <MudTh Class="d-none d-sm-table-cell">Email</MudTh>
                     <MudTh>Rol</MudTh>
                     <MudTh>Estado</MudTh>
-                    <MudTh>Creado</MudTh>
+                    <MudTh Class="d-none d-sm-table-cell">Creado</MudTh>
                     <MudTh>Acciones</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd>@context.Id</MudTd>
+                    <MudTd Class="d-none d-sm-table-cell">@context.Id</MudTd>
                     <MudTd>
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                             <MudAvatar Size="Size.Small" Color="Color.Primary">
                                 @context.FullName.FirstOrDefault()
                             </MudAvatar>
-                            <MudText>@context.Username</MudText>
+                            <div>
+                                <MudText Typo="Typo.body2">@context.Username</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-md-none">@context.FullName</MudText>
+                            </div>
                         </MudStack>
                     </MudTd>
-                    <MudTd>@context.FullName</MudTd>
-                    <MudTd>@context.Email</MudTd>
+                    <MudTd Class="d-none d-md-table-cell">@context.FullName</MudTd>
+                    <MudTd Class="d-none d-sm-table-cell">@context.Email</MudTd>
                     <MudTd>
                         <MudChip T="string" Color="Color.Secondary" Size="Size.Small">
                             @context.RoleName
@@ -70,7 +73,7 @@
                             @(context.IsActive ? "Activo" : "Inactivo")
                         </MudChip>
                     </MudTd>
-                    <MudTd>@_tz.ToUserTime(context.CreatedAt).ToString("dd/MM/yyyy")</MudTd>
+                    <MudTd Class="d-none d-sm-table-cell">@_tz.ToUserTime(context.CreatedAt).ToString("dd/MM/yyyy")</MudTd>
                     <MudTd>
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
                                        Color="Color.Warning" OnClick="() => OpenEditDialog(context)" />

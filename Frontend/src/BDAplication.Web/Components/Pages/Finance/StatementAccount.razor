@@ -40,6 +40,28 @@
         padding:1px 5px; border-radius:8px; margin-left:4px;
     }
     .selected-row td { background:rgba(25,118,210,.08) !important; }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @@media (max-width: 960px) {
+        .fin-page {
+            height: auto !important;
+            overflow: visible !important;
+            min-height: 0 !important;
+        }
+        .fin-top  { max-height: none !important; flex: none !important; }
+        .fin-bottom { overflow: visible !important; }
+        .fin-grid-scroll { overflow: visible !important; }
+    }
+
+    @@media (max-width: 600px) {
+        .fin-account-header {
+            flex-direction: column !important;
+            gap: 6px !important;
+            align-items: flex-start !important;
+        }
+        .fin-account-stat { text-align: left !important; }
+        .fin-account-stat-value { font-size: 0.95rem !important; }
+    }
 </style>
 
 <div class="fin-page">
@@ -63,23 +85,23 @@
                           SelectedItemChanged="OnAccountSelected"
                           RowClassFunc="AccountRowClass">
                     <HeaderContent>
-                        <MudTh>Código</MudTh>
+                        <MudTh Class="d-none d-sm-table-cell">Código</MudTh>
                         <MudTh>Nombre</MudTh>
-                        <MudTh>Descripción</MudTh>
+                        <MudTh Class="d-none d-sm-table-cell">Descripción</MudTh>
                         <MudTh Style="text-align:right">Saldo</MudTh>
-                        <MudTh>Creado</MudTh>
+                        <MudTh Class="d-none d-md-table-cell">Creado</MudTh>
                         <MudTh Style="text-align:center">Acciones</MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="Código"><MudText Typo="Typo.body2" Style="font-family:monospace">@context.Code</MudText></MudTd>
+                        <MudTd DataLabel="Código" Class="d-none d-sm-table-cell"><MudText Typo="Typo.body2" Style="font-family:monospace">@context.Code</MudText></MudTd>
                         <MudTd DataLabel="Nombre">@context.Name</MudTd>
-                        <MudTd DataLabel="Descripción">@context.Description</MudTd>
+                        <MudTd DataLabel="Descripción" Class="d-none d-sm-table-cell">@context.Description</MudTd>
                         <MudTd DataLabel="Saldo" Style="text-align:right">
                             <span class="@(context.Balance >= 0 ? "mov-income" : "mov-outcome")">
                                 $@context.Balance.ToString("N2")
                             </span>
                         </MudTd>
-                        <MudTd DataLabel="Creado">@_tz.ToUserTime(context.CreatedDate).ToString("dd/MM/yyyy")</MudTd>
+                        <MudTd DataLabel="Creado" Class="d-none d-md-table-cell">@_tz.ToUserTime(context.CreatedDate).ToString("dd/MM/yyyy")</MudTd>
                         <MudTd Style="text-align:center">
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
                                            OnClick="@(() => OpenEditAccount(context))"/>
@@ -168,16 +190,16 @@
                               SelectedItemChanged="@(m => _selectedMovement = m)"
                               RowClassFunc="MovementRowClass">
                         <HeaderContent>
-                            <MudTh>Código</MudTh>
+                            <MudTh Class="d-none d-sm-table-cell">Código</MudTh>
                             <MudTh>Fecha</MudTh>
                             <MudTh>Concepto</MudTh>
-                            <MudTh>Tipo Concepto</MudTh>
+                            <MudTh Class="d-none d-md-table-cell">Tipo Concepto</MudTh>
                             <MudTh Style="text-align:center">Tipo</MudTh>
                             <MudTh Style="text-align:right">Importe</MudTh>
                             <MudTh Style="text-align:right">Saldo</MudTh>
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd DataLabel="Código">
+                            <MudTd DataLabel="Código" Class="d-none d-sm-table-cell">
                                 <MudText Typo="Typo.body2" Style="font-family:monospace">@context.Code</MudText>
                                 @if (context.IsTransfer)
                                 {
@@ -186,9 +208,17 @@
                                     </span>
                                 }
                             </MudTd>
-                            <MudTd DataLabel="Fecha">@context.Date.ToString("dd/MM/yyyy HH:mm")</MudTd>
+                            <MudTd DataLabel="Fecha">
+                                @context.Date.ToString("dd/MM/yy HH:mm")
+                                @if (context.IsTransfer)
+                                {
+                                    <span class="mov-transfer-badge d-sm-none">
+                                        @(context.TransferSourceDestiny == "O" ? "⬆" : "⬇")
+                                    </span>
+                                }
+                            </MudTd>
                             <MudTd DataLabel="Concepto">@context.Concept</MudTd>
-                            <MudTd DataLabel="Tipo Concepto">@context.TypeConceptDescription</MudTd>
+                            <MudTd DataLabel="Tipo Concepto" Class="d-none d-md-table-cell">@context.TypeConceptDescription</MudTd>
                             <MudTd DataLabel="Tipo" Style="text-align:center">
                                 @if (context.Type == "I")
                                 {

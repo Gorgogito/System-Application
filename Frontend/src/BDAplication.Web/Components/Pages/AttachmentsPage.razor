@@ -24,7 +24,7 @@
 </style>
 
 <!-- Encabezado -->
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
         <MudIcon Icon="@Icons.Material.Filled.AttachFile" Style="font-size:2rem" Color="Color.Primary"/>
         <div>
@@ -102,23 +102,31 @@ else
                               Elevation="0" Class="mb-0">
                         <HeaderContent>
                             <MudTh>Nombre</MudTh>
-                            <MudTh>Descripción</MudTh>
+                            <MudTh Class="d-none d-md-table-cell">Descripción</MudTh>
                             <MudTh>Concepto</MudTh>
-                            <MudTh>Fecha Doc.</MudTh>
+                            <MudTh Class="d-none d-sm-table-cell">Fecha Doc.</MudTh>
                             <MudTh>Tipo</MudTh>
-                            <MudTh>Tamaño</MudTh>
-                            <MudTh>Fecha Sistema</MudTh>
-                            <MudTh>Usuario</MudTh>
+                            <MudTh Class="d-none d-md-table-cell">Tamaño</MudTh>
+                            <MudTh Class="d-none d-md-table-cell">Fecha Sistema</MudTh>
+                            <MudTh Class="d-none d-md-table-cell">Usuario</MudTh>
                             <MudTh Style="text-align:center">Acciones</MudTh>
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd DataLabel="Nombre">
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                                     <MudIcon Icon="@GetIcon(context)" Size="Size.Small" Class="@GetIconClass(context)"/>
-                                    <MudText Typo="Typo.body2" Style="word-break:break-all">@context.OriginalName</MudText>
+                                    <div>
+                                        <MudText Typo="Typo.body2" Style="word-break:break-all">@context.OriginalName</MudText>
+                                        @if (!g.IsDateless)
+                                        {
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-sm-none">
+                                                @context.DocumentDate.ToString("dd/MM/yyyy")
+                                            </MudText>
+                                        }
+                                    </div>
                                 </MudStack>
                             </MudTd>
-                            <MudTd DataLabel="Descripción">
+                            <MudTd DataLabel="Descripción" Class="d-none d-md-table-cell">
                                 <MudText Typo="Typo.body2">@context.Description</MudText>
                                 @if (!string.IsNullOrEmpty(context.Comment))
                                 {
@@ -138,7 +146,7 @@ else
                                     <MudText Typo="Typo.caption" Color="Color.Tertiary">—</MudText>
                                 }
                             </MudTd>
-                            <MudTd DataLabel="Fecha Doc.">
+                            <MudTd DataLabel="Fecha Doc." Class="d-none d-sm-table-cell">
                                 @if (!g.IsDateless)
                                 {
                                     <MudText Typo="Typo.body2" Style="white-space:nowrap">
@@ -157,10 +165,10 @@ else
                                     @(context.IsImage ? "Imagen" : context.IsPdf ? "PDF" : context.Extension.TrimStart('.').ToUpper())
                                 </MudChip>
                             </MudTd>
-                            <MudTd DataLabel="Tamaño">
+                            <MudTd DataLabel="Tamaño" Class="d-none d-md-table-cell">
                                 <MudText Typo="Typo.body2" Style="white-space:nowrap">@context.FileSizeDisplay</MudText>
                             </MudTd>
-                            <MudTd DataLabel="Fecha Sistema">
+                            <MudTd DataLabel="Fecha Sistema" Class="d-none d-md-table-cell">
                                 <MudText Typo="Typo.body2" Style="white-space:nowrap">
                                     @_tz.ToUserTime(context.DateCreated).ToString("dd/MM/yyyy HH:mm")
                                 </MudText>
@@ -171,7 +179,7 @@ else
                                     </MudText>
                                 }
                             </MudTd>
-                            <MudTd DataLabel="Usuario">
+                            <MudTd DataLabel="Usuario" Class="d-none d-md-table-cell">
                                 <MudText Typo="Typo.body2">@context.UserCreated</MudText>
                             </MudTd>
                             <MudTd Style="text-align:center;white-space:nowrap">

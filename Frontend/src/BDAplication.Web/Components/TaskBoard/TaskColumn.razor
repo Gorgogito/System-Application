@@ -35,22 +35,24 @@
                           OnDragStart="OnDragStart"
                           OnDragEnd="OnDragEnd"
                           OnEdit="OnEdit"
-                          OnDelete="OnDelete" />
+                          OnDelete="OnDelete"
+                          OnMove="OnMove" />
             }
         }
     </div>
 </div>
 
 @code {
-    [Parameter, EditorRequired] public TaskBoardStatus Status { get; set; }
-    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public TaskBoardStatus Status    { get; set; }
+    [Parameter, EditorRequired] public string Label              { get; set; } = string.Empty;
     [Parameter, EditorRequired] public List<TaskBoardModel> Tasks { get; set; } = new();
-    [Parameter] public int DraggingTaskId { get; set; }
-    [Parameter] public EventCallback<int> OnDragStart { get; set; }
-    [Parameter] public EventCallback OnDragEnd { get; set; }
-    [Parameter] public EventCallback<TaskBoardStatus> OnDrop { get; set; }
-    [Parameter] public EventCallback<TaskBoardModel> OnEdit { get; set; }
-    [Parameter] public EventCallback<int> OnDelete { get; set; }
+    [Parameter] public int DraggingTaskId                        { get; set; }
+    [Parameter] public EventCallback<int>                            OnDragStart { get; set; }
+    [Parameter] public EventCallback                                 OnDragEnd   { get; set; }
+    [Parameter] public EventCallback<TaskBoardStatus>                OnDrop      { get; set; }
+    [Parameter] public EventCallback<TaskBoardModel>                 OnEdit      { get; set; }
+    [Parameter] public EventCallback<int>                            OnDelete    { get; set; }
+    [Parameter] public EventCallback<(int, TaskBoardStatus)>         OnMove      { get; set; }
 
     private bool _dragOver;
 

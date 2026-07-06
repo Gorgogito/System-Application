@@ -58,6 +58,34 @@
     .planner-panel  { height: calc(100vh - 112px); overflow-y:auto; }
     .backlog-list::-webkit-scrollbar { width:4px; }
     .backlog-list::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.18); border-radius:4px; }
+
+    /* ── Responsive: tablet ──────────────────────────────────── */
+    @@media (max-width: 960px) {
+        .backlog-panel { height: calc(100vh - 96px); }
+        .planner-panel { height: calc(100vh - 96px); }
+        .day-cell { min-height: 72px; }
+        .calendar-header { font-size: 0.7rem; }
+    }
+
+    /* ── Responsive: móvil ───────────────────────────────────── */
+    @@media (max-width: 600px) {
+        .backlog-panel {
+            height: auto !important;
+            max-height: 300px;
+            min-height: 0;
+        }
+        .backlog-list { max-height: 200px !important; }
+        .planner-panel {
+            height: auto !important;
+            min-height: 480px;
+            overflow-y: visible;
+        }
+        .day-cell { min-height: 56px !important; }
+        .calendar-header { font-size: 0.62rem !important; padding: 2px 0 !important; }
+        .day-number { font-size: 0.68rem !important; }
+        .planner-task { font-size: 0.62rem !important; }
+        .calendar-grid { gap: 3px !important; }
+    }
 </style>
 
 <MudGrid Spacing="2" Style="height:100%">

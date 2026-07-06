@@ -11,7 +11,7 @@
 <PageTitle>Roles - BDAplication</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Style="flex-wrap:wrap;gap:8px">
         <MudText Typo="Typo.h5">Gestión de Roles</MudText>
         <MudSpacer />
         <MudButton Variant="Variant.Filled" Color="Color.Primary"
@@ -38,27 +38,35 @@
                                   IconSize="Size.Medium" Class="mt-0" />
                 </ToolBarContent>
                 <HeaderContent>
-                    <MudTh>ID</MudTh>
+                    <MudTh Class="d-none d-sm-table-cell">ID</MudTh>
                     <MudTh>Nombre</MudTh>
-                    <MudTh>Descripción</MudTh>
+                    <MudTh Class="d-none d-sm-table-cell">Descripción</MudTh>
                     <MudTh>Estado</MudTh>
-                    <MudTh>Creado</MudTh>
+                    <MudTh Class="d-none d-sm-table-cell">Creado</MudTh>
                     <MudTh>Acciones</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd>@context.Id</MudTd>
+                    <MudTd Class="d-none d-sm-table-cell">@context.Id</MudTd>
                     <MudTd>
-                        <MudChip T="string" Color="Color.Primary" Size="Size.Small">
-                            @context.Name
-                        </MudChip>
+                        <div>
+                            <MudChip T="string" Color="Color.Primary" Size="Size.Small">
+                                @context.Name
+                            </MudChip>
+                            @if (!string.IsNullOrWhiteSpace(context.Description))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-sm-none">
+                                    @(context.Description.Length > 50 ? context.Description[..50] + "…" : context.Description)
+                                </MudText>
+                            }
+                        </div>
                     </MudTd>
-                    <MudTd>@context.Description</MudTd>
+                    <MudTd Class="d-none d-sm-table-cell">@context.Description</MudTd>
                     <MudTd>
                         <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Error)" Size="Size.Small">
                             @(context.IsActive ? "Activo" : "Inactivo")
                         </MudChip>
                     </MudTd>
-                    <MudTd>@_tz.ToUserTime(context.CreatedAt).ToString("dd/MM/yyyy")</MudTd>
+                    <MudTd Class="d-none d-sm-table-cell">@_tz.ToUserTime(context.CreatedAt).ToString("dd/MM/yyyy")</MudTd>
                     <MudTd>
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
                                        Color="Color.Warning" OnClick="() => OpenEditDialog(context)" />
