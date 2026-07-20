@@ -76,3 +76,54 @@ public class CreateTransferRequest
     public decimal Amount { get; set; }
     public string Concept { get; set; } = "Transferencia";
 }
+
+// ── Reproceso de Saldos ──────────────────────────────────────────────
+public class ReprocesarRequest
+{
+    public List<int>? AccountIds { get; set; }
+    public bool IsSimulation { get; set; } = true;
+}
+
+public class MovementDiffModel
+{
+    public int MovementId { get; set; }
+    public string MovementCode { get; set; } = string.Empty;
+    public DateTime Date { get; set; }
+    public string Concept { get; set; } = string.Empty;
+    public decimal CurrentBalance { get; set; }
+    public decimal ExpectedBalance { get; set; }
+    public decimal Difference { get; set; }
+}
+
+public class AccountReprocesarResultModel
+{
+    public int AccountId { get; set; }
+    public string AccountCode { get; set; } = string.Empty;
+    public string AccountName { get; set; } = string.Empty;
+    public bool HasInconsistency { get; set; }
+    public int MovementsChecked { get; set; }
+    public int DiffsCount { get; set; }
+    public List<MovementDiffModel> Diffs { get; set; } = new();
+}
+
+public class ReprocesarResultModel
+{
+    public int LogId { get; set; }
+    public int AccountsProcessed { get; set; }
+    public int InconsistenciesFound { get; set; }
+    public int MovementsRecalculated { get; set; }
+    public bool IsSimulation { get; set; }
+    public DateTime ExecutedAt { get; set; }
+    public List<AccountReprocesarResultModel> AccountResults { get; set; } = new();
+}
+
+public class ReprocesarLogModel
+{
+    public int Id { get; set; }
+    public string ExecutedBy { get; set; } = string.Empty;
+    public DateTime ExecutedAt { get; set; }
+    public bool IsSimulation { get; set; }
+    public int AccountsProcessed { get; set; }
+    public int MovementsRecalculated { get; set; }
+    public int InconsistenciesFound { get; set; }
+}

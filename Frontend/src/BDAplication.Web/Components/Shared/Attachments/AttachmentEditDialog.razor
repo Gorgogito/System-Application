@@ -27,6 +27,11 @@
             {
                 <MudText Typo="Typo.caption" Color="Color.Error">La Fecha del Documento es obligatoria</MudText>
             }
+            <MudNumericField T="decimal?" @bind-Value="_req.Amount" Label="Importe"
+                             Variant="Variant.Outlined" Format="N2" Min="0"
+                             Adornment="Adornment.Start" AdornmentText="S/"
+                             HideSpinButtons="true" Style="text-align:right"
+                             Placeholder="0.00"/>
             <MudTextField @bind-Value="_req.Description" Label="Descripción" Variant="Variant.Outlined"
                           MaxLength="200" Immediate="true"/>
             <MudTextField @bind-Value="_req.Comment" Label="Comentario" Variant="Variant.Outlined"
@@ -53,6 +58,7 @@
     {
         _req.Description = Attachment.Description;
         _req.Comment = Attachment.Comment;
+        _req.Amount = Attachment.Amount;
         _docDate = Attachment.DocumentDate;
         _conceptId = Attachment.DocumentConceptId;
     }

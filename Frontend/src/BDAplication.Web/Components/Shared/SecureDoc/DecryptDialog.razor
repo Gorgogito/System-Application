@@ -1,0 +1,95 @@
+@using BDAplication.Web.Models
+@inject MudBlazor.ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@TitleIcon" Color="@TitleIconColor" />
+            <MudText Typo="Typo.h6">@DialogTitle</MudText>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Class="mb-4" Style="color:var(--ds-text-2)">
+            @DialogMessage
+        </MudText>
+
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="_username"
+                          Label="Usuario"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Person"
+                          Disabled="_loading" />
+
+            <MudTextField @bind-Value="_password"
+                          Label="Contraseña"
+                          Variant="Variant.Outlined"
+                          InputType="@(_showPass ? InputType.Text : InputType.Password)"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@(_showPass ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                          OnAdornmentClick="() => _showPass = !_showPass"
+                          Disabled="_loading"
+                          OnKeyDown="OnKeyDown" />
+
+            @if (!string.IsNullOrEmpty(_errorMsg))
+            {
+                <MudAlert Severity="Severity.Error" Dense="true">@_errorMsg</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="_loading">Cancelar</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="@ConfirmButtonColor"
+                   StartIcon="@ConfirmButtonIcon"
+                   OnClick="Confirm"
+                   Disabled="_loading || string.IsNullOrWhiteSpace(_username) || string.IsNullOrWhiteSpace(_password)">
+            @if (_loading) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+            @ConfirmButtonText
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int DocumentId { get; set; }
+    [Parameter] public int? VersionId { get; set; }
+
+    [Parameter] public string DialogTitle { get; set; } = "Autenticación requerida";
+    [Parameter] public string DialogMessage { get; set; } =
+        "Ingresa tus credenciales para descifrar el documento. El contenido nunca se almacena en texto plano.";
+    [Parameter] public string ConfirmButtonText { get; set; } = "Descifrar";
+    [Parameter] public Color ConfirmButtonColor { get; set; } = Color.Warning;
+    [Parameter] public string ConfirmButtonIcon { get; set; } = Icons.Material.Filled.LockOpen;
+    [Parameter] public string TitleIcon { get; set; } = Icons.Material.Filled.LockOpen;
+    [Parameter] public Color TitleIconColor { get; set; } = Color.Warning;
+
+    private string _username = string.Empty;
+    private string _password = string.Empty;
+    private bool _showPass;
+    private bool _loading;
+    private string _errorMsg = string.Empty;
+
+    private async Task Confirm()
+    {
+        _loading = true;
+        _errorMsg = string.Empty;
+        StateHasChanged();
+
+        await Task.Yield();
+
+        MudDialog.Close(DialogResult.Ok(new DecryptRequest
+        {
+            Username = _username,
+            Password = _password,
+            VersionId = VersionId
+        }));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Confirm();
+    }
+}

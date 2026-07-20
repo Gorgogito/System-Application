@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @using BDAplication.Web.Authentication
+@using BDAplication.Web.Helpers
 @using BDAplication.Web.Models
 @inject JwtAuthStateProvider AuthProvider
 @inject NavigationManager Nav
@@ -7,7 +8,7 @@
 @implements IBrowserViewportObserver
 @implements IAsyncDisposable
 
-<MudThemeProvider @bind-IsDarkMode="_isDark" />
+<MudThemeProvider Theme="AppTheme.Current" @bind-IsDarkMode="_isDark" />
 <MudPopoverProvider />
 <MudDialogProvider FullWidth="true" />
 <MudSnackbarProvider />
@@ -101,6 +102,12 @@
                          Style="color:rgba(255,255,255,0.85);"
                          IconColor="Color.Inherit"
                          Expanded="false">
+                <MudNavLink Href="/secure-docs"
+                            Icon="@Icons.Material.Filled.Shield"
+                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            OnClick="CloseDrawerOnMobile">
+                    Documentos Seguros
+                </MudNavLink>
                 <MudNavLink Href="/attachments"
                             Icon="@Icons.Material.Filled.AttachFile"
                             Style="color:rgba(255,255,255,0.75);padding-left:16px"
@@ -137,6 +144,12 @@
                             Style="color:rgba(255,255,255,0.75);padding-left:16px"
                             OnClick="CloseDrawerOnMobile">
                     Tipos de Concepto
+                </MudNavLink>
+                <MudNavLink Href="/finance/reprocess"
+                            Icon="@Icons.Material.Filled.Sync"
+                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            OnClick="CloseDrawerOnMobile">
+                    Reproceso de Saldos
                 </MudNavLink>
             </MudNavGroup>
         </MudNavMenu>

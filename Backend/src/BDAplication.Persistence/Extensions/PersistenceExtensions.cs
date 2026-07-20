@@ -1,16 +1,20 @@
 using BDAplication.Application.Interfaces;
 using BDAplication.Application.Interfaces.Finance;
+using BDAplication.Application.Interfaces.SecureDoc;
 using BDAplication.Application.Interfaces.TaskBoard;
 using BDAplication.Application.Interfaces.TaskPlanner;
 using BDAplication.Application.Services;
 using BDAplication.Application.Services.Finance;
+using BDAplication.Application.Services.SecureDoc;
 using BDAplication.Application.Services.TaskBoard;
 using BDAplication.Application.Services.TaskPlanner;
 using BDAplication.Domain.Interfaces;
 using BDAplication.Domain.Interfaces.Finance;
+using BDAplication.Domain.Interfaces.SecureDoc;
 using BDAplication.Persistence.Context;
 using BDAplication.Persistence.Repositories;
 using BDAplication.Persistence.Repositories.Finance;
+using BDAplication.Persistence.Repositories.SecureDoc;
 using BDAplication.Persistence.Repositories.TaskBoard;
 using BDAplication.Persistence.Repositories.TaskPlanner;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +60,10 @@ public static class PersistenceExtensions
         services.AddScoped<IAccountStatementRepository, AccountStatementRepository>();
         services.AddScoped<IAccountStatementService, AccountStatementService>();
 
+        // Finance — Reproceso de Saldos
+        services.AddScoped<IReprocessLogRepository, ReprocessLogRepository>();
+        services.AddScoped<IReprocesarSaldosService, ReprocesarSaldosService>();
+
         // Attachments
         services.AddScoped<IAttachmentRepository, AttachmentRepository>();
         services.AddScoped<IAttachmentService, AttachmentService>();
@@ -63,6 +71,10 @@ public static class PersistenceExtensions
         // Document Concepts
         services.AddScoped<IDocumentConceptRepository, DocumentConceptRepository>();
         services.AddScoped<IDocumentConceptService, DocumentConceptService>();
+
+        // Documentos Seguros
+        services.AddScoped<ISecureDocumentRepository, SecureDocumentRepository>();
+        services.AddScoped<ISecureDocumentService, SecureDocumentService>();
 
         return services;
     }

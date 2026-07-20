@@ -52,11 +52,15 @@ builder.Services.AddScoped<TaskBoardApiService>();
 builder.Services.AddScoped<AttachmentApiService>();
 builder.Services.AddScoped<DocumentConceptApiService>();
 
+// Documentos Seguros
+builder.Services.AddScoped<BDAplication.Web.Services.SecureDocumentApiService>();
+
 // Finance
 builder.Services.AddScoped<BDAplication.Web.Services.Finance.AccountApiService>();
 builder.Services.AddScoped<BDAplication.Web.Services.Finance.TypeConceptApiService>();
 builder.Services.AddScoped<BDAplication.Web.Services.Finance.MovementApiService>();
 builder.Services.AddScoped<BDAplication.Web.Services.Finance.AccountStatementApiService>();
+builder.Services.AddScoped<BDAplication.Web.Services.Finance.ReprocesarApiService>();
 
 var app = builder.Build();
 

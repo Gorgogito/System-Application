@@ -7,4 +7,5 @@ public class UpdateAttachmentRequest
     public string Comment { get; set; } = string.Empty;
     public DateTime DocumentDate { get; set; }
     public int? DocumentConceptId { get; set; }
+    public decimal? Amount { get; set; }
 }

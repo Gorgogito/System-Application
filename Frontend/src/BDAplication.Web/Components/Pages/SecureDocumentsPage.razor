@@ -1,0 +1,158 @@
+@page "/secure-docs"
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@using BDAplication.Web.Components.Shared.SecureDoc
+@inject SecureDocumentApiService Api
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IUserTimeZoneService _tz
+
+<PageTitle>Documentos Seguros</PageTitle>
+
+<!-- Header -->
+<div class="app-page-header">
+    <div class="app-page-header-left">
+        <MudIcon Icon="@Icons.Material.Filled.Shield" Color="Color.Primary" Class="app-page-icon" />
+        <div>
+            <MudText Typo="Typo.h5" Class="app-page-title">Documentos Seguros</MudText>
+            <MudText Typo="Typo.caption" Class="app-page-sub">
+                Documentos cifrados con AES-256 — el contenido solo es legible tras autenticación
+            </MudText>
+        </div>
+    </div>
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="CreateNew">
+        Nuevo documento
+    </MudButton>
+</div>
+
+<!-- Tabla de documentos -->
+<MudCard Elevation="1">
+    <MudCardContent Class="pa-0">
+        @if (_loading)
+        {
+            <div class="d-flex justify-center pa-8">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            </div>
+        }
+        else if (!_documents.Any())
+        {
+            <div class="d-flex flex-column align-center pa-8" style="color:var(--ds-text-2)">
+                <MudIcon Icon="@Icons.Material.Filled.ShieldMoon" Style="font-size:3rem;opacity:.35;margin-bottom:12px" />
+                <MudText Typo="Typo.body1">No hay documentos seguros aún</MudText>
+                <MudText Typo="Typo.caption">Crea tu primer documento cifrado con el botón de arriba</MudText>
+            </div>
+        }
+        else
+        {
+            <MudTable Items="_documents" Hover="true" Dense="true" Breakpoint="Breakpoint.Sm"
+                      RowClass="cursor-pointer"
+                      OnRowClick="OnRowClick"
+                      T="SecureDocumentListItemModel">
+                <HeaderContent>
+                    <MudTh>Título</MudTh>
+                    <MudTh>Versiones</MudTh>
+                    <MudTh>Última modificación</MudTh>
+                    <MudTh>Creado por</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Lock"
+                                     Style="font-size:1rem;color:var(--ds-warn)" />
+                            <MudText Typo="Typo.body2" Style="font-weight:600">@context.Title</MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>
+                        <span class="app-badge app-badge-primary">v@context.VersionCount</span>
+                    </MudTd>
+                    <MudTd>
+                        <MudText Typo="Typo.caption" Class="app-mono">
+                            @_tz.ToUserTime(context.LastModified).ToString("dd/MM/yyyy HH:mm")
+                        </MudText>
+                    </MudTd>
+                    <MudTd>
+                        <MudText Typo="Typo.caption" Style="color:var(--ds-text-2)">@context.CreatedBy</MudText>
+                    </MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       Title="Eliminar"
+                                       OnClick="@(() => ConfirmDelete(context))"
+                                       OnClickStopPropagation="true" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private List<SecureDocumentListItemModel> _documents = new();
+    private bool _loading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var state = await AuthProvider.GetAuthenticationStateAsync();
+        if (!state.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+        await LoadDocuments();
+        StateHasChanged();
+    }
+
+    private async Task LoadDocuments()
+    {
+        _loading = true;
+        var resp = await Api.GetAllAsync();
+        _documents = resp?.Data?.ToList() ?? new();
+        _loading = false;
+    }
+
+    private void CreateNew() => Nav.NavigateTo("/secure-docs/new");
+
+    private void OnRowClick(TableRowClickEventArgs<SecureDocumentListItemModel> args) =>
+        Nav.NavigateTo($"/secure-docs/{args.Item.Id}");
+
+    private async Task ConfirmDelete(SecureDocumentListItemModel doc)
+    {
+        var parameters = new DialogParameters<DecryptDialog>
+        {
+            { x => x.DocumentId,         doc.Id },
+            { x => x.DialogTitle,        "Eliminar documento seguro" },
+            { x => x.DialogMessage,      $"Para eliminar \"{doc.Title}\" confirma tu identidad con usuario y contraseña. Esta acción no se puede deshacer." },
+            { x => x.ConfirmButtonText,  "Eliminar" },
+            { x => x.ConfirmButtonColor, Color.Error },
+            { x => x.ConfirmButtonIcon,  Icons.Material.Filled.Delete },
+            { x => x.TitleIcon,          Icons.Material.Filled.DeleteForever },
+            { x => x.TitleIconColor,     Color.Error }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+
+        var dialog = await DialogService.ShowAsync<DecryptDialog>("Eliminar documento seguro", parameters, options);
+        var result = await dialog.Result;
+        if (result?.Canceled == true || result?.Data is not DecryptRequest creds) return;
+
+        var resp = await Api.DeleteAsync(doc.Id, creds);
+        if (resp?.Success == true)
+        {
+            Snackbar.Add("Documento eliminado", Severity.Success);
+            await LoadDocuments();
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add(resp?.Message ?? "Credenciales incorrectas o documento no encontrado", Severity.Error);
+        }
+    }
+}

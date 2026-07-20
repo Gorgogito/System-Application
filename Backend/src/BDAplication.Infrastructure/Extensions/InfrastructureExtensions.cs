@@ -1,6 +1,7 @@
 using System.Text;
 using BDAplication.Application.Interfaces;
 using BDAplication.Infrastructure.Authentication;
+using BDAplication.Infrastructure.Encryption;
 using BDAplication.Infrastructure.Security;
 using BDAplication.Infrastructure.Services;
 using BDAplication.Infrastructure.Storage;
@@ -20,6 +21,7 @@ public static class InfrastructureExtensions
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<IBlobStorageService, BlobStorageService>();
+        services.AddSingleton<IEncryptionService, EncryptionService>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

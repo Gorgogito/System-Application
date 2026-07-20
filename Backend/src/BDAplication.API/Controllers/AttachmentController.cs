@@ -46,6 +46,7 @@ public class AttachmentController : ControllerBase
         [FromForm] string comment,
         [FromForm] string documentDate,
         [FromForm] int? documentConceptId,
+        [FromForm] decimal? amount,
         IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -58,11 +59,14 @@ public class AttachmentController : ControllerBase
         if (string.IsNullOrEmpty(documentDate) || !DateTime.TryParse(documentDate, out var parsedDocDate))
             return BadRequest(ApiResponse<string>.Fail("La Fecha del Documento es obligatoria"));
 
+        if (amount.HasValue && amount.Value < 0)
+            return BadRequest(ApiResponse<string>.Fail("El importe no puede ser negativo"));
+
         await using var stream = file.OpenReadStream();
         var result = await _service.UploadAsync(
             entityType, entityId, stream,
             file.FileName, file.ContentType, file.Length,
-            description, comment, parsedDocDate, documentConceptId, CurrentUser);
+            description, comment, parsedDocDate, documentConceptId, amount, CurrentUser);
 
         return Ok(ApiResponse<AttachmentDto>.Ok(result, "Archivo subido correctamente"));
     }

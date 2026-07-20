@@ -3,6 +3,7 @@
 @using BDAplication.Web.Models
 @using BDAplication.Web.Services
 @using BDAplication.Web.Components.Shared.Attachments
+@using BDAplication.Web.Helpers
 @using MudBlazor
 @inject AttachmentApiService AttachmentApi
 @inject DocumentConceptApiService ConceptApi
@@ -95,6 +96,12 @@ else
                                  Size="Size.Small"/>
                         <MudText Typo="Typo.subtitle1" Style="font-weight:600">@g.Label</MudText>
                         <span class="att-group-badge">@g.Items.Count documento(s)</span>
+                        @if (g.TotalAmount > 0)
+                        {
+                            <span class="att-group-badge" style="background:rgba(46,125,50,.12);color:#2e7d32">
+                                S/ @g.TotalAmount.ToString("N2")
+                            </span>
+                        }
                     </div>
                 </TitleContent>
                 <ChildContent>
@@ -105,6 +112,7 @@ else
                             <MudTh Class="d-none d-md-table-cell">Descripción</MudTh>
                             <MudTh>Concepto</MudTh>
                             <MudTh Class="d-none d-sm-table-cell">Fecha Doc.</MudTh>
+                            <MudTh Style="text-align:right">Importe</MudTh>
                             <MudTh>Tipo</MudTh>
                             <MudTh Class="d-none d-md-table-cell">Tamaño</MudTh>
                             <MudTh Class="d-none d-md-table-cell">Fecha Sistema</MudTh>
@@ -152,6 +160,16 @@ else
                                     <MudText Typo="Typo.body2" Style="white-space:nowrap">
                                         @context.DocumentDate.ToString("dd/MM/yyyy")
                                     </MudText>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Tertiary">—</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Importe" Style="text-align:right;white-space:nowrap">
+                                @if (context.HasAmount)
+                                {
+                                    <MudText Typo="Typo.body2" Style="font-weight:500">@context.AmountDisplay</MudText>
                                 }
                                 else
                                 {
@@ -251,6 +269,10 @@ else
                 }
             </div>
 
+            <MudNumericField T="decimal?" @bind-Value="_uploadAmount" Label="Importe"
+                             Variant="Variant.Outlined" Format="N2" Min="0"
+                             Adornment="Adornment.Start" AdornmentText="S/"
+                             HideSpinButtons="true" Placeholder="0.00"/>
             <MudTextField @bind-Value="_uploadDescription" Label="Descripción"
                           Variant="Variant.Outlined" MaxLength="200" Immediate="true"/>
             <MudTextField @bind-Value="_uploadComment" Label="Comentario"
@@ -289,6 +311,7 @@ else
     private DateTime? _uploadDocumentDate;
     private bool _uploadDateError;
     private int? _uploadConceptId;
+    private decimal? _uploadAmount;
     private string? _uploadError;
     private bool _uploading;
 
@@ -334,7 +357,7 @@ else
         {
             result.Add(new AttachmentGroup
             {
-                Label = $"{MesEspanol(grp.Key.Month)} {grp.Key.Year}",
+                Label = DateGroupHelper.FormatPeriod(grp.Key.Year, grp.Key.Month),
                 Items = grp.ToList(),
                 IsDateless = false,
                 IsExpanded = result.Count == 0  // primer grupo abierto por defecto
@@ -358,13 +381,6 @@ else
         _groups = result;
     }
 
-    private static string MesEspanol(int mes) => mes switch
-    {
-        1  => "Enero",   2 => "Febrero",  3 => "Marzo",     4 => "Abril",
-        5  => "Mayo",    6 => "Junio",    7 => "Julio",      8 => "Agosto",
-        9  => "Septiembre", 10 => "Octubre", 11 => "Noviembre", 12 => "Diciembre",
-        _  => mes.ToString()
-    };
 
     private class AttachmentGroup
     {
@@ -372,6 +388,7 @@ else
         public List<AttachmentModel> Items { get; set; } = new();
         public bool IsDateless { get; set; }
         public bool IsExpanded { get; set; }
+        public decimal TotalAmount => Items.Where(i => i.Amount.HasValue).Sum(i => i.Amount!.Value);
     }
 
     // ── Search ────────────────────────────────────────────────────
@@ -388,6 +405,7 @@ else
         _uploadDocumentDate = null;
         _uploadDateError = false;
         _uploadConceptId = null;
+        _uploadAmount = null;
         _uploadError = null;
         _uploading = false;
         _showUpload = true;
@@ -423,7 +441,8 @@ else
             var resp = await AttachmentApi.UploadAsync(
                 "General", 0,
                 stream, _selectedFile.Name, _selectedFile.ContentType, _selectedFile.Size,
-                _uploadDescription, _uploadComment, _uploadDocumentDate.Value, _uploadConceptId);
+                _uploadDescription, _uploadComment, _uploadDocumentDate.Value, _uploadConceptId,
+                _uploadAmount);
 
             if (resp?.Success == true)
             {

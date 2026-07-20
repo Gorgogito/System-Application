@@ -1,5 +1,6 @@
 using BDAplication.Domain.Entities;
 using BDAplication.Domain.Entities.Finance;
+using BDAplication.Domain.Entities.SecureDoc;
 using BDAplication.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,11 +20,16 @@ public class ApplicationDbContext : DbContext
     public DbSet<SubTask>       SubTasks       => Set<SubTask>();
     public DbSet<ResetMonthLog> ResetMonthLogs => Set<ResetMonthLog>();
 
+    // Documentos Seguros
+    public DbSet<SecureDocument> SecureDocuments => Set<SecureDocument>();
+    public DbSet<SecureDocumentVersion> SecureDocumentVersions => Set<SecureDocumentVersion>();
+
     // Finance
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<TypeConcept> TypeConcepts => Set<TypeConcept>();
     public DbSet<Movement> Movements => Set<Movement>();
     public DbSet<Transfer> Transfers => Set<Transfer>();
+    public DbSet<ReprocessLog> ReprocessLogs => Set<ReprocessLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -165,6 +171,42 @@ public class ApplicationDbContext : DbContext
             e.HasOne(x => x.DestinyMovement).WithMany().HasForeignKey(x => x.DestinyMovementId).OnDelete(DeleteBehavior.Restrict);
         });
 
+        // ── SecureDocuments ───────────────────────────────────────
+        modelBuilder.Entity<SecureDocument>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.ToTable("SecureDocuments");
+            e.Property(x => x.Title).IsRequired().HasMaxLength(200);
+            e.Property(x => x.CreatedBy).IsRequired().HasMaxLength(50);
+            e.Property(x => x.ModifiedBy).HasMaxLength(50);
+            e.HasIndex(x => x.CreatedBy);
+            e.HasIndex(x => x.IsActive);
+        });
+
+        modelBuilder.Entity<SecureDocumentVersion>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.ToTable("SecureDocumentVersions");
+            e.Property(x => x.EncryptedContent).IsRequired().HasColumnType("nvarchar(max)");
+            e.Property(x => x.Observation).IsRequired().HasColumnType("nvarchar(max)");
+            e.Property(x => x.CreatedBy).IsRequired().HasMaxLength(50);
+            e.HasIndex(x => new { x.SecureDocumentId, x.VersionNumber }).IsUnique();
+            e.HasOne(x => x.Document)
+             .WithMany(d => d.Versions)
+             .HasForeignKey(x => x.SecureDocumentId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── ReprocessLog ──────────────────────────────────────────
+        modelBuilder.Entity<ReprocessLog>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.ToTable("ReprocessLog");
+            e.Property(x => x.ExecutedBy).IsRequired().HasMaxLength(50);
+            e.Property(x => x.AccountIdsJson).IsRequired().HasMaxLength(2000);
+            e.Property(x => x.LogDetailsJson).IsRequired().HasColumnType("nvarchar(max)");
+        });
+
         // ── DocumentConcepts ──────────────────────────────────────
         modelBuilder.Entity<DocumentConcept>(e =>
         {
@@ -190,6 +232,7 @@ public class ApplicationDbContext : DbContext
             e.Property(x => x.Extension).IsRequired().HasMaxLength(10);
             e.Property(x => x.Description).HasMaxLength(200);
             e.Property(x => x.Comment).HasMaxLength(500);
+            e.Property(x => x.Amount).HasColumnType("decimal(18,2)").IsRequired(false);
             e.Property(x => x.UserCreated).IsRequired().HasMaxLength(50);
             e.Property(x => x.UserModified).HasMaxLength(50);
             e.HasIndex(x => new { x.EntityType, x.EntityId });

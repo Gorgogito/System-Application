@@ -1,0 +1,469 @@
+@page "/finance/reprocess"
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Helpers
+@using BDAplication.Web.Models.Finance
+@using BDAplication.Web.Services.Finance
+@inject ReprocesarApiService ReprocesarApi
+@inject AccountApiService AccountApi
+@inject JwtAuthStateProvider AuthProvider
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject IUserTimeZoneService _tz
+
+<PageTitle>Reproceso de Saldos</PageTitle>
+
+<style>
+    .reprocess-chip { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:8px; border:1px solid; }
+    .diff-pos { color:#2e7d32; font-weight:600; }
+    .diff-neg { color:#c62828; font-weight:600; }
+    .hist-sim  { background:#f5f5f5; color:#546e7a; font-size:11px; padding:2px 8px; border-radius:12px; }
+    .hist-real { background:#e8f5e9; color:#2e7d32; font-size:11px; padding:2px 8px; border-radius:12px; }
+</style>
+
+@if (_loadingInit)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (!_isAdmin)
+{
+    <MudAlert Severity="Severity.Error" Class="ma-4">
+        Acceso restringido — solo administradores pueden acceder a esta herramienta.
+    </MudAlert>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="pa-4">
+
+        <!-- Encabezado -->
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4" Wrap="Wrap.Wrap">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.Sync" Color="Color.Primary" Style="font-size:2rem;" />
+                <div>
+                    <MudText Typo="Typo.h5" Style="font-weight:700;">Reproceso de Saldos</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        Reconstruye los saldos acumulados a partir del historial cronológico de movimientos
+                    </MudText>
+                </div>
+            </MudStack>
+            <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Warning">
+                Operación Crítica
+            </MudChip>
+        </MudStack>
+
+        <!-- Config -->
+        <MudCard Class="mb-4" Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.subtitle1" Style="font-weight:700;">
+                        <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small" Class="mr-1" />
+                        Opciones de ejecución
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2" Style="font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Alcance</MudText>
+                        <MudRadioGroup T="string" @bind-Value="_alcance">
+                            <MudRadio T="string" Value="@("todas")" Color="Color.Primary">Todas las cuentas</MudRadio>
+                            <MudRadio T="string" Value="@("seleccionar")" Color="Color.Primary">Seleccionar cuentas</MudRadio>
+                        </MudRadioGroup>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2" Style="font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Modo</MudText>
+                        <MudSwitch T="bool" @bind-Value="_isSimulation" Color="Color.Primary" Label="Solo simulación (analiza sin modificar datos)" />
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+
+        <!-- Cuentas (solo cuando alcance = seleccionar) -->
+        @if (_alcance == "seleccionar")
+        {
+            <MudCard Class="mb-4" Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:700;">
+                                <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Size="Size.Small" Class="mr-1" />
+                                Cuentas disponibles
+                            </MudText>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
+                                       OnClick="ToggleSelectAll">
+                                @(_selectedAccountIds.Count == _accounts.Count ? "Deseleccionar todas" : "Seleccionar todas")
+                            </MudButton>
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent Class="pa-0">
+                    @foreach (var acc in _accounts)
+                    {
+                        bool sel = _selectedAccountIds.Contains(acc.Id);
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(0,0,0,.07);cursor:pointer;"
+                             @onclick="() => ToggleAccount(acc.Id)">
+                            <MudCheckBox T="bool" Value="@sel" Color="Color.Primary" />
+                            <MudText Style="font-family:monospace;font-size:12px;color:#546e7a;width:100px;">@acc.Code</MudText>
+                            <MudText Style="flex:1;font-weight:600;">@acc.Name</MudText>
+                            <MudText Style="font-family:monospace;color:#2e7d32;min-width:110px;text-align:right;">
+                                S/ @acc.Balance.ToString("N2")
+                            </MudText>
+                        </div>
+                    }
+                </MudCardContent>
+            </MudCard>
+        }
+
+        <!-- Botones de acción -->
+        <MudStack Row="true" Spacing="2" Class="mb-4" Wrap="Wrap.Wrap">
+            <MudButton Variant="Variant.Filled"
+                       Color="@(_isSimulation ? Color.Primary : Color.Warning)"
+                       StartIcon="@(_isSimulation ? Icons.Material.Filled.Search : Icons.Material.Filled.Sync)"
+                       OnClick="ExecuteAsync"
+                       Disabled="@(_executing || (_alcance == "seleccionar" && _selectedAccountIds.Count == 0))"
+                       Size="Size.Medium">
+                @if (_executing)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                }
+                @(_isSimulation ? "Simular" : "Reprocesar")
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Default"
+                       StartIcon="@Icons.Material.Filled.Refresh"
+                       OnClick="ResetAsync"
+                       Disabled="@_executing">
+                Limpiar
+            </MudButton>
+            @if (_result != null)
+            {
+                <MudSpacer />
+                <MudButton Variant="Variant.Outlined" Color="Color.Default"
+                           StartIcon="@Icons.Material.Filled.Download"
+                           OnClick="ExportCsv">
+                    Exportar CSV
+                </MudButton>
+            }
+        </MudStack>
+
+        <!-- Resultados -->
+        @if (_result != null)
+        {
+            <MudCard Class="mb-4" Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Wrap="Wrap.Wrap">
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:700;">
+                                <MudIcon Icon="@Icons.Material.Filled.BarChart" Size="Size.Small" Class="mr-1" />
+                                Resultados — @(_result.IsSimulation ? "Simulación" : "Reproceso") · @_tz.ToUserTime(_result.ExecutedAt).ToString("dd/MM/yyyy HH:mm")
+                            </MudText>
+                            @if (_result.InconsistenciesFound > 0)
+                            {
+                                <MudChip T="string" Color="Color.Warning" Size="Size.Small">
+                                    @_result.InconsistenciesFound inconsistencia(s)
+                                </MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.CheckCircle">
+                                    Sin inconsistencias
+                                </MudChip>
+                            }
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <!-- Chips resumen -->
+                    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="3" Class="mb-4">
+                        <MudPaper Class="reprocess-chip" Style="border-color:var(--mud-palette-primary);color:var(--mud-palette-primary);" Elevation="0">
+                            <MudText Typo="Typo.h5" Style="font-weight:800;">@_result.AccountsProcessed</MudText>
+                            <MudText Typo="Typo.caption">Cuentas analizadas</MudText>
+                        </MudPaper>
+                        <MudPaper Class="reprocess-chip" Style="@GetInconsistencyChipStyle()" Elevation="0">
+                            <MudText Typo="Typo.h5" Style="font-weight:800;">@_result.InconsistenciesFound</MudText>
+                            <MudText Typo="Typo.caption">Con inconsistencias</MudText>
+                        </MudPaper>
+                        <MudPaper Class="reprocess-chip" Style="border-color:var(--mud-palette-primary);color:var(--mud-palette-primary);" Elevation="0">
+                            <MudText Typo="Typo.h5" Style="font-weight:800;">@_result.AccountResults.Sum(r => r.MovementsChecked)</MudText>
+                            <MudText Typo="Typo.caption">Movimientos totales</MudText>
+                        </MudPaper>
+                        @if (!_result.IsSimulation)
+                        {
+                            <MudPaper Class="reprocess-chip" Style="border-color:#2e7d32;color:#2e7d32;" Elevation="0">
+                                <MudText Typo="Typo.h5" Style="font-weight:800;">@_result.MovementsRecalculated</MudText>
+                                <MudText Typo="Typo.caption">Recalculados</MudText>
+                            </MudPaper>
+                        }
+                    </MudStack>
+
+                    <!-- Acordeón por cuenta -->
+                    <MudExpansionPanels MultiExpansion="true">
+                        @foreach (var accResult in _result.AccountResults)
+                        {
+                            <MudExpansionPanel>
+                                <TitleContent>
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Wrap="Wrap.Wrap">
+                                        @if (accResult.HasInconsistency)
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Size="Size.Small" />
+                                        }
+                                        else
+                                        {
+                                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" />
+                                        }
+                                        <MudText Style="font-family:monospace;font-size:12px;color:#546e7a;">@accResult.AccountCode</MudText>
+                                        <MudText Style="font-weight:600;">@accResult.AccountName</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @accResult.MovementsChecked movimientos
+                                        </MudText>
+                                        @if (accResult.HasInconsistency)
+                                        {
+                                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">
+                                                @accResult.DiffsCount diferencia(s)
+                                            </MudChip>
+                                        }
+                                        else
+                                        {
+                                            <MudChip T="string" Color="Color.Success" Size="Size.Small">Correcto</MudChip>
+                                        }
+                                    </MudStack>
+                                </TitleContent>
+                                <ChildContent>
+                                    @if (!accResult.HasInconsistency)
+                                    {
+                                        <MudText Color="Color.Success" Class="pa-2">
+                                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Class="mr-1" />
+                                            Todos los saldos son correctos.
+                                        </MudText>
+                                    }
+                                    else
+                                    {
+                                        <div style="overflow-x:auto;">
+                                            <MudTable T="MovementDiffModel" Items="@accResult.Diffs" Dense="true" Hover="true" Striped="true" Elevation="0">
+                                                <HeaderContent>
+                                                    <MudTh>Código</MudTh>
+                                                    <MudTh>Fecha</MudTh>
+                                                    <MudTh>Concepto</MudTh>
+                                                    <MudTh Style="text-align:right">Saldo Actual</MudTh>
+                                                    <MudTh Style="text-align:right">Saldo Correcto</MudTh>
+                                                    <MudTh Style="text-align:right">Diferencia</MudTh>
+                                                </HeaderContent>
+                                                <RowTemplate>
+                                                    <MudTd Style="font-family:monospace;font-size:12px;">@context.MovementCode</MudTd>
+                                                    <MudTd Style="font-family:monospace;font-size:12px;">@_tz.ToUserTime(context.Date).ToString("dd/MM/yyyy HH:mm")</MudTd>
+                                                    <MudTd>@context.Concept</MudTd>
+                                                    <MudTd Style="text-align:right;font-family:monospace;">S/ @context.CurrentBalance.ToString("N2")</MudTd>
+                                                    <MudTd Style="text-align:right;font-family:monospace;">S/ @context.ExpectedBalance.ToString("N2")</MudTd>
+                                                    <MudTd Style="text-align:right;font-family:monospace;">
+                                                        <span class="@(context.Difference >= 0 ? "diff-pos" : "diff-neg")">
+                                                            @(context.Difference >= 0 ? "+" : "")S/ @context.Difference.ToString("N2")
+                                                        </span>
+                                                    </MudTd>
+                                                </RowTemplate>
+                                            </MudTable>
+                                        </div>
+                                    }
+                                </ChildContent>
+                            </MudExpansionPanel>
+                        }
+                    </MudExpansionPanels>
+
+                    @if (_result.InconsistenciesFound > 0 && _result.IsSimulation)
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mt-3">
+                            Se detectaron @_result.InconsistenciesFound cuenta(s) con inconsistencias.
+                            Desactive "Solo simulación" y ejecute nuevamente para aplicar las correcciones.
+                        </MudAlert>
+                    }
+                    @if (!_result.IsSimulation && _result.MovementsRecalculated > 0)
+                    {
+                        <MudAlert Severity="Severity.Success" Class="mt-3">
+                            Reproceso completado. @_result.MovementsRecalculated movimiento(s) recalculados en @_result.InconsistenciesFound cuenta(s).
+                        </MudAlert>
+                    }
+                </MudCardContent>
+            </MudCard>
+        }
+
+        <!-- Historial -->
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.subtitle1" Style="font-weight:700;">
+                        <MudIcon Icon="@Icons.Material.Filled.History" Size="Size.Small" Class="mr-1" />
+                        Historial de ejecuciones
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent Class="pa-0">
+                @if (_loadingHistory)
+                {
+                    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+                }
+                else if (_history.Count == 0)
+                {
+                    <MudText Class="pa-4" Color="Color.Secondary">Sin ejecuciones registradas.</MudText>
+                }
+                else
+                {
+                    <MudTable T="ReprocesarLogModel" Items="@_history" Dense="true" Hover="true" Elevation="0">
+                        <HeaderContent>
+                            <MudTh>Fecha / Hora</MudTh>
+                            <MudTh>Usuario</MudTh>
+                            <MudTh Style="text-align:center">Tipo</MudTh>
+                            <MudTh Style="text-align:right">Cuentas</MudTh>
+                            <MudTh Style="text-align:right">Inconsistencias</MudTh>
+                            <MudTh Style="text-align:right">Recalculados</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd Style="font-family:monospace;font-size:12px;">@_tz.ToUserTime(context.ExecutedAt).ToString("dd/MM/yyyy HH:mm")</MudTd>
+                            <MudTd>@context.ExecutedBy</MudTd>
+                            <MudTd Style="text-align:center;">
+                                <span class="@(context.IsSimulation ? "hist-sim" : "hist-real")">
+                                    @(context.IsSimulation ? "Simulación" : "Reproceso")
+                                </span>
+                            </MudTd>
+                            <MudTd Style="text-align:right;">@context.AccountsProcessed</MudTd>
+                            <MudTd Style="text-align:right;">
+                                @if (context.InconsistenciesFound > 0)
+                                {
+                                    <span style="color:#e65100;font-weight:600;">@context.InconsistenciesFound</span>
+                                }
+                                else
+                                {
+                                    <span style="color:#2e7d32;">0</span>
+                                }
+                            </MudTd>
+                            <MudTd Style="text-align:right;">@context.MovementsRecalculated</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudCardContent>
+        </MudCard>
+
+    </MudContainer>
+}
+
+@code {
+    bool _loadingInit    = true;
+    bool _loadingHistory = true;
+    bool _executing      = false;
+    bool _isAdmin        = false;
+    bool _isSimulation   = true;
+    string _alcance      = "todas";
+
+    List<AccountModel> _accounts            = new();
+    HashSet<int>       _selectedAccountIds  = new();
+    ReprocesarResultModel? _result          = null;
+    List<ReprocesarLogModel> _history       = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var role = await AuthProvider.GetCurrentRoleAsync();
+        _isAdmin = role?.Name?.Equals("Admin", StringComparison.OrdinalIgnoreCase) == true;
+        _loadingInit = false;
+
+        if (_isAdmin)
+        {
+            await Task.WhenAll(LoadAccountsAsync(), LoadHistoryAsync());
+        }
+    }
+
+    async Task LoadAccountsAsync()
+    {
+        var resp = await AccountApi.ListAsync();
+        _accounts = resp?.Data ?? new();
+        _selectedAccountIds = _accounts.Select(a => a.Id).ToHashSet();
+    }
+
+    async Task LoadHistoryAsync()
+    {
+        _loadingHistory = true;
+        var resp = await ReprocesarApi.GetHistoryAsync(20);
+        _history = resp?.Data ?? new();
+        _loadingHistory = false;
+    }
+
+    void ToggleAccount(int id)
+    {
+        if (_selectedAccountIds.Contains(id)) _selectedAccountIds.Remove(id);
+        else _selectedAccountIds.Add(id);
+    }
+
+    void ToggleSelectAll()
+    {
+        if (_selectedAccountIds.Count == _accounts.Count)
+            _selectedAccountIds.Clear();
+        else
+            _selectedAccountIds = _accounts.Select(a => a.Id).ToHashSet();
+    }
+
+    async Task ExecuteAsync()
+    {
+        _executing = true;
+        _result = null;
+        try
+        {
+            var req = new ReprocesarRequest
+            {
+                AccountIds = _alcance == "seleccionar" ? _selectedAccountIds.ToList() : null,
+                IsSimulation = _isSimulation
+            };
+
+            var resp = await ReprocesarApi.ExecuteAsync(req);
+            if (resp?.Success == true)
+            {
+                _result = resp.Data;
+                await LoadHistoryAsync();
+
+                var msg = _isSimulation
+                    ? $"Simulación completada — {_result!.InconsistenciesFound} inconsistencia(s) detectada(s)."
+                    : $"Reproceso completado — {_result!.MovementsRecalculated} movimiento(s) recalculados.";
+                Snackbar.Add(msg, _result.InconsistenciesFound > 0 ? Severity.Warning : Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(resp?.Message ?? "Error al ejecutar", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _executing = false;
+        }
+    }
+
+    async Task ResetAsync()
+    {
+        _result = null;
+        _alcance = "todas";
+        _isSimulation = true;
+        _selectedAccountIds = _accounts.Select(a => a.Id).ToHashSet();
+        await Task.CompletedTask;
+    }
+
+    string GetInconsistencyChipStyle()
+    {
+        var color = _result?.InconsistenciesFound > 0 ? "#e65100" : "#2e7d32";
+        return $"border-color:{color};color:{color};";
+    }
+
+    void ExportCsv()
+    {
+        if (_result == null) return;
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("Cuenta Código,Cuenta Nombre,Tiene Inconsistencia,Movimientos Revisados,Diferencias");
+        foreach (var r in _result.AccountResults)
+        {
+            sb.AppendLine($"{r.AccountCode},{r.AccountName},{(r.HasInconsistency ? "Sí" : "No")},{r.MovementsChecked},{r.DiffsCount}");
+            if (r.Diffs.Any())
+            {
+                sb.AppendLine(",Código Movimiento,Fecha,Concepto,Saldo Actual,Saldo Correcto,Diferencia");
+                foreach (var d in r.Diffs)
+                    sb.AppendLine($",{d.MovementCode},{_tz.ToUserTime(d.Date):dd/MM/yyyy HH:mm},{d.Concept},{d.CurrentBalance:N2},{d.ExpectedBalance:N2},{d.Difference:N2}");
+            }
+        }
+        Snackbar.Add("Exportación CSV lista (descarga no disponible en Blazor Server — copie del resultado)", Severity.Info);
+    }
+}

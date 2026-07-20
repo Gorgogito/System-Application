@@ -1,0 +1,938 @@
+@page "/secure-docs/new"
+@page "/secure-docs/{DocumentId:int}"
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@using BDAplication.Web.Components.Shared.SecureDoc
+@inject SecureDocumentApiService Api
+@inject JwtAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject IUserTimeZoneService _tz
+@implements IAsyncDisposable
+
+<PageTitle>@(_doc?.Title ?? "Nuevo documento") — Documentos Seguros</PageTitle>
+
+<style>
+    .sdoc-layout {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 16px;
+        align-items: start;
+    }
+    .sdoc-paper-wrap {
+        background: var(--ds-bg);
+        border-radius: var(--ds-radius);
+        min-height: 500px;
+    }
+    /* Toolbar siempre con fondo claro independientemente del tema (como MS Word) */
+    .sdoc-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px;
+        padding: 6px 10px;
+        border-radius: var(--ds-radius) var(--ds-radius) 0 0;
+        border: 1px solid #d1d5db;
+        border-bottom: 2px solid var(--ds-primary);
+        background: #f4f6f9;
+    }
+    .sdoc-toolbar-sep {
+        width: 1px;
+        background: #c8cdd6;
+        margin: 2px 6px;
+        align-self: stretch;
+    }
+    .sdoc-toolbar-label {
+        font-size: .65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #6b7280;
+        align-self: center;
+        padding: 0 4px;
+        white-space: nowrap;
+    }
+    .sdoc-toolbar select {
+        border: 1px solid #c8cdd6;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: .8rem;
+        background: white;
+        color: #374151;
+        height: 28px;
+        cursor: pointer;
+    }
+    .sdoc-toolbar select:hover { border-color: #9ca3af; }
+    .sdoc-toolbar input[type=color] {
+        width: 28px; height: 28px;
+        border: 2px solid #c8cdd6;
+        border-radius: 4px;
+        padding: 1px;
+        cursor: pointer;
+        background: white;
+    }
+    .sdoc-toolbar input[type=color]:hover { border-color: #6b7280; }
+    /* Iconos siempre oscuros dentro de la toolbar */
+    .sdoc-toolbar .mud-icon-button {
+        color: #374151 !important;
+        border-radius: 4px !important;
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        padding: 4px !important;
+    }
+    .sdoc-toolbar .mud-icon-button:hover {
+        background: rgba(55,65,81,.13) !important;
+        color: #111827 !important;
+    }
+    .sdoc-toolbar .mud-icon-button:active {
+        background: rgba(55,65,81,.25) !important;
+    }
+    .sdoc-toolbar .mud-icon-button.sdoc-btn-active {
+        background: rgba(21,101,192,.15) !important;
+        color: #1565c0 !important;
+    }
+    .sdoc-editor {
+        min-height: 500px;
+        padding: 48px 64px;
+        border: 1px solid var(--ds-border);
+        border-top: none;
+        border-radius: 0 0 var(--ds-radius) var(--ds-radius);
+        background: white;
+        color: #1a1a1a;
+        font-family: 'Calibri', 'Georgia', serif;
+        font-size: 11pt;
+        line-height: 1.6;
+        outline: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .sdoc-editor:focus { outline: none; }
+    .sdoc-editor table { border-collapse: collapse; width: 100%; }
+    .sdoc-editor td, .sdoc-editor th { border: 1px solid #bbb; padding: 6px 10px; min-width: 80px; }
+    .sdoc-encrypted-view {
+        padding: 32px;
+        border: 1px solid var(--ds-border);
+        border-radius: var(--ds-radius);
+        background: var(--ds-surface);
+        text-align: center;
+    }
+    .sdoc-cipher-text {
+        font-family: 'Courier New', monospace;
+        font-size: .75rem;
+        color: var(--ds-text-2);
+        word-break: break-all;
+        background: var(--ds-bg);
+        padding: 12px 16px;
+        border-radius: 6px;
+        border: 1px solid var(--ds-border);
+        margin: 16px 0;
+        text-align: left;
+    }
+    .sdoc-history-panel {
+        border-radius: var(--ds-radius);
+        border: 1px solid var(--ds-border);
+        background: var(--ds-surface);
+        overflow: hidden;
+    }
+    .sdoc-history-header {
+        padding: 12px 16px;
+        border-bottom: 2px solid var(--ds-primary);
+        background: var(--ds-primary);
+    }
+    .sdoc-version-card {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--ds-border);
+        transition: background .1s;
+    }
+    .sdoc-version-card:hover { background: var(--ds-bg); }
+    .sdoc-version-card.active {
+        border-left: 3px solid var(--ds-primary);
+        background: rgba(21,101,192,.07);
+    }
+    .sdoc-version-number {
+        font-size: .68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--ds-primary);
+        margin-bottom: 3px;
+    }
+    .sdoc-version-date {
+        font-size: .72rem;
+        font-weight: 700;
+        color: var(--ds-text);
+        margin-bottom: 4px;
+    }
+    .sdoc-version-obs {
+        font-size: .78rem;
+        color: var(--ds-text-2);
+        line-height: 1.4;
+    }
+    .sdoc-version-author {
+        font-size: .68rem;
+        color: var(--ds-text-2);
+        margin-top: 4px;
+        opacity: .75;
+    }
+    .sdoc-version-actions { display: flex; gap: 4px; margin-top: 6px; }
+    .sdoc-readonly-doc {
+        min-height: 400px;
+        padding: 48px 64px;
+        background: white;
+        color: #1a1a1a;
+        font-family: 'Calibri','Georgia',serif;
+        font-size: 11pt;
+        line-height: 1.6;
+        border-radius: var(--ds-radius);
+        border: 1px solid var(--ds-border);
+    }
+</style>
+
+<!-- Header de la página -->
+<div class="app-page-header" style="margin-bottom:16px">
+    <div class="app-page-header-left">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                       Size="Size.Small"
+                       OnClick="GoBack" />
+        <MudIcon Icon="@Icons.Material.Filled.Shield" Color="Color.Primary" Class="app-page-icon" />
+        <div>
+            @if (_isNew)
+            {
+                <MudText Typo="Typo.h5" Class="app-page-title">Nuevo documento seguro</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.h5" Class="app-page-title">@(_doc?.Title ?? "Cargando...")</MudText>
+                <MudText Typo="Typo.caption" Class="app-page-sub">
+                    @(_doc?.Versions.Count ?? 0) versión(es) · Creado por @(_doc?.CreatedBy ?? "—")
+                </MudText>
+            }
+        </div>
+    </div>
+    <MudStack Row Spacing="2">
+        @if (!_isNew && _doc is not null && !_isEditing)
+        {
+            <MudMenu StartIcon="@Icons.Material.Filled.Print"
+                     Label="Imprimir"
+                     Variant="Variant.Outlined"
+                     Color="Color.Default"
+                     EndIcon="@Icons.Material.Filled.ArrowDropDown"
+                     AnchorOrigin="Origin.BottomLeft"
+                     TransformOrigin="Origin.TopLeft">
+                <MudMenuItem Icon="@Icons.Material.Filled.Lock"
+                             IconColor="Color.Warning"
+                             OnClick="PrintEncrypted">
+                    Versión cifrada
+                </MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.LockOpen"
+                             IconColor="Color.Success"
+                             OnClick="PrintDecrypted">
+                    Versión descifrada
+                </MudMenuItem>
+            </MudMenu>
+        }
+        @if (!_isNew && !_isEditing && _decryptedContent is null)
+        {
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Warning"
+                       StartIcon="@Icons.Material.Filled.LockOpen"
+                       OnClick="OpenDecryptDialogLatest"
+                       Disabled="_loading">
+                Descifrar
+            </MudButton>
+        }
+        @if (_decryptedContent is not null && !_isEditing)
+        {
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Edit"
+                       OnClick="StartEditing">
+                Editar
+            </MudButton>
+        }
+        @if (_isEditing || _isNew)
+        {
+            <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="CancelEdit" Disabled="_saving">
+                Cancelar
+            </MudButton>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       OnClick="SaveDocument"
+                       Disabled="@(_saving || string.IsNullOrWhiteSpace(_editTitle))">
+                @if (_saving)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                }
+                Guardar cifrado
+            </MudButton>
+        }
+    </MudStack>
+</div>
+
+<!-- Alerta de seguridad -->
+<MudAlert Severity="Severity.Info" Dense="true" Class="mb-3" Icon="@Icons.Material.Filled.Security">
+    <MudText Typo="Typo.caption">
+        El contenido se cifra con <strong>AES-256</strong> antes de guardarse.
+        La base de datos nunca contiene texto legible.
+    </MudText>
+</MudAlert>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center pa-8">
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    </div>
+}
+else
+{
+    <div class="sdoc-layout">
+
+        <!-- Columna izquierda: editor / vista cifrada -->
+        <div>
+            @if (_isNew || _isEditing)
+            {
+                <!-- Metadatos -->
+                <MudCard Elevation="1" Class="mb-3">
+                    <MudCardContent>
+                        <MudGrid Spacing="2">
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_editTitle"
+                                              Label="Título del documento"
+                                              Variant="Variant.Outlined"
+                                              Adornment="Adornment.Start"
+                                              AdornmentIcon="@Icons.Material.Filled.Title"
+                                              Disabled="_saving" />
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudDatePicker @bind-Date="_editDate"
+                                               Label="Fecha"
+                                               Variant="Variant.Outlined"
+                                               DateFormat="dd/MM/yyyy"
+                                               Disabled="_saving" />
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudTextField @bind-Value="_editObservation"
+                                              Label="Observación"
+                                              Variant="Variant.Outlined"
+                                              Adornment="Adornment.Start"
+                                              AdornmentIcon="@Icons.Material.Filled.Comment"
+                                              Disabled="_saving" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
+
+                <!-- Toolbar + Editor -->
+                <div class="sdoc-paper-wrap">
+                    <div class="sdoc-toolbar">
+                        <span class="sdoc-toolbar-label">Formato</span>
+                        <MudTooltip Text="Negrita (Ctrl+B)">
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatBold"
+                                           Size="Size.Small" Class="@BtnCls(_isBold)" OnClick="CmdBold" />
+                        </MudTooltip>
+                        <MudTooltip Text="Cursiva (Ctrl+I)">
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatItalic"
+                                           Size="Size.Small" Class="@BtnCls(_isItalic)" OnClick="CmdItalic" />
+                        </MudTooltip>
+                        <MudTooltip Text="Subrayado (Ctrl+U)">
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatUnderlined"
+                                           Size="Size.Small" Class="@BtnCls(_isUnderline)" OnClick="CmdUnderline" />
+                        </MudTooltip>
+                        <MudTooltip Text="Tachado">
+                            <MudIconButton Icon="@Icons.Material.Filled.StrikethroughS"
+                                           Size="Size.Small" Class="@BtnCls(_isStrike)" OnClick="CmdStrike" />
+                        </MudTooltip>
+
+                        <div class="sdoc-toolbar-sep"></div>
+                        <span class="sdoc-toolbar-label">Tamaño</span>
+                        <select @bind="_currentFontSize" @bind:after="ApplyFontSizeAsync" style="width:80px">
+                            <option value="10pt">10pt</option>
+                            <option value="11pt">11pt</option>
+                            <option value="12pt">12pt</option>
+                            <option value="14pt">14pt</option>
+                            <option value="16pt">16pt</option>
+                            <option value="18pt">18pt</option>
+                            <option value="24pt">24pt</option>
+                            <option value="36pt">36pt</option>
+                        </select>
+
+                        <div class="sdoc-toolbar-sep"></div>
+                        <span class="sdoc-toolbar-label">Color</span>
+                        <MudTooltip Text="Color de texto">
+                            <input type="color" @bind="_currentForeColor" @bind:after="ApplyForeColorAsync" />
+                        </MudTooltip>
+                        <MudTooltip Text="Resaltado">
+                            <input type="color" @bind="_currentBackColor" @bind:after="ApplyBackColorAsync" />
+                        </MudTooltip>
+
+                        <div class="sdoc-toolbar-sep"></div>
+                        <span class="sdoc-toolbar-label">Alineación</span>
+                        <MudTooltip Text="Izquierda">
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatAlignLeft"
+                                           Size="Size.Small" Class="@BtnCls(_isAlignLeft)" OnClick="CmdAlignLeft" />
+                        </MudTooltip>
+                        <MudTooltip Text="Centro">
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatAlignCenter"
+                                           Size="Size.Small" Class="@BtnCls(_isAlignCenter)" OnClick="CmdAlignCenter" />
+                        </MudTooltip>
+                        <MudTooltip Text="Derecha">
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatAlignRight"
+                                           Size="Size.Small" Class="@BtnCls(_isAlignRight)" OnClick="CmdAlignRight" />
+                        </MudTooltip>
+                        <MudTooltip Text="Justificado">
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatAlignJustify"
+                                           Size="Size.Small" Class="@BtnCls(_isAlignJustify)" OnClick="CmdAlignJustify" />
+                        </MudTooltip>
+
+                        <div class="sdoc-toolbar-sep"></div>
+                        <span class="sdoc-toolbar-label">Listas</span>
+                        <MudTooltip Text="Viñetas">
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatListBulleted"
+                                           Size="Size.Small" Class="@BtnCls(_isBulletList)" OnClick="CmdBulletList" />
+                        </MudTooltip>
+                        <MudTooltip Text="Numerada">
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatListNumbered"
+                                           Size="Size.Small" Class="@BtnCls(_isNumberList)" OnClick="CmdNumberList" />
+                        </MudTooltip>
+                        <MudTooltip Text="Sangría +">
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatIndentIncrease"
+                                           Size="Size.Small" OnClick="CmdIndent" />
+                        </MudTooltip>
+                        <MudTooltip Text="Sangría -">
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatIndentDecrease"
+                                           Size="Size.Small" OnClick="CmdOutdent" />
+                        </MudTooltip>
+
+                        <div class="sdoc-toolbar-sep"></div>
+                        <span class="sdoc-toolbar-label">Insertar</span>
+                        <MudTooltip Text="Tabla 3×3">
+                            <MudIconButton Icon="@Icons.Material.Filled.TableChart"
+                                           Size="Size.Small" OnClick="InsertTable" />
+                        </MudTooltip>
+                        <MudTooltip Text="Hipervínculo">
+                            <MudIconButton Icon="@Icons.Material.Filled.InsertLink"
+                                           Size="Size.Small" OnClick="InsertLink" />
+                        </MudTooltip>
+                        <MudTooltip Text="Línea horizontal">
+                            <MudIconButton Icon="@Icons.Material.Filled.HorizontalRule"
+                                           Size="Size.Small" OnClick="CmdHRule" />
+                        </MudTooltip>
+
+                        <div class="sdoc-toolbar-sep"></div>
+                        <MudTooltip Text="Deshacer">
+                            <MudIconButton Icon="@Icons.Material.Filled.Undo"
+                                           Size="Size.Small" OnClick="CmdUndo" />
+                        </MudTooltip>
+                        <MudTooltip Text="Rehacer">
+                            <MudIconButton Icon="@Icons.Material.Filled.Redo"
+                                           Size="Size.Small" OnClick="CmdRedo" />
+                        </MudTooltip>
+                    </div>
+
+                    <div id="@_editorId" class="sdoc-editor" tabindex="0"></div>
+                </div>
+            }
+            else if (_decryptedContent is not null)
+            {
+                <MudAlert Severity="Severity.Success" Dense="true" Class="mb-2"
+                          Icon="@Icons.Material.Filled.LockOpen">
+                    <MudText Typo="Typo.caption">
+                        Descifrado — v@(_decryptedContent.VersionNumber) ·
+                        @_decryptedContent.DocumentDate.ToString("dd/MM/yyyy")
+                    </MudText>
+                </MudAlert>
+                <div class="sdoc-readonly-doc">
+                    @((MarkupString)_decryptedContent.HtmlContent)
+                </div>
+            }
+            else
+            {
+                <div class="sdoc-encrypted-view">
+                    <MudIcon Icon="@Icons.Material.Filled.Lock"
+                             Style="font-size:3rem;color:var(--ds-warn);margin-bottom:12px" />
+                    <MudText Typo="Typo.subtitle1" Style="font-weight:700;margin-bottom:4px">
+                        Contenido cifrado con AES-256
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:var(--ds-text-2);margin-bottom:16px">
+                        Versión actual: v@(_doc?.Versions.FirstOrDefault()?.VersionNumber ?? 0)
+                    </MudText>
+                    @if (_doc?.Versions.FirstOrDefault() is { } latestVer)
+                    {
+                        <div class="sdoc-cipher-text">@latestVer.EncryptedContent</div>
+                    }
+                    <MudText Typo="Typo.caption" Style="color:var(--ds-text-2)">
+                        Presiona <strong>Descifrar</strong> e ingresa tus credenciales para visualizar
+                    </MudText>
+                </div>
+            }
+        </div>
+
+        <!-- Columna derecha: historial de versiones -->
+        @if (!_isNew && _doc is not null)
+        {
+            <div class="sdoc-history-panel">
+                <div class="sdoc-history-header">
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Filled.History"
+                                 Style="color:white;font-size:1rem" />
+                        <MudText Typo="Typo.subtitle2" Style="color:white;font-weight:700">
+                            Historial
+                        </MudText>
+                        <MudSpacer />
+                        <span class="app-badge"
+                              style="background:rgba(255,255,255,0.2);color:white">
+                            @_doc.Versions.Count
+                        </span>
+                    </MudStack>
+                </div>
+
+                @foreach (var ver in _doc.Versions.OrderByDescending(v => v.VersionNumber))
+                {
+                    bool isCurrent = _decryptedContent?.VersionId == ver.Id;
+                    <div class="sdoc-version-card @(isCurrent ? "active" : "")">
+                        <div class="sdoc-version-number">Versión @ver.VersionNumber</div>
+                        <div class="sdoc-version-date">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarToday"
+                                     Style="font-size:.75rem;vertical-align:middle;margin-right:3px" />
+                            @ver.DocumentDate.ToString("dd/MM/yyyy")
+                        </div>
+                        <div class="sdoc-version-obs">
+                            @if (string.IsNullOrWhiteSpace(ver.Observation))
+                            {
+                                <em style="opacity:.6">Sin observación</em>
+                            }
+                            else
+                            {
+                                @ver.Observation
+                            }
+                        </div>
+                        <div class="sdoc-version-author">
+                            <MudIcon Icon="@Icons.Material.Filled.Person"
+                                     Style="font-size:.65rem;vertical-align:middle" />
+                            @ver.CreatedBy ·
+                            @_tz.ToUserTime(ver.CreatedAt).ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                        @if (!_isEditing)
+                        {
+                            <div class="sdoc-version-actions">
+                                <MudButton Size="Size.Small"
+                                           Variant="Variant.Outlined"
+                                           Color="Color.Warning"
+                                           StartIcon="@Icons.Material.Filled.LockOpen"
+                                           Style="font-size:.7rem;height:24px"
+                                           OnClick="@(() => OpenDecryptDialogForVersion(ver.Id))">
+                                    Ver
+                                </MudButton>
+                                <MudTooltip Text="Imprimir esta versión">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Print"
+                                                   Size="Size.Small"
+                                                   Style="height:24px;width:24px"
+                                                   OnClick="@(() => PrintVersion(ver.Id))" />
+                                </MudTooltip>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+    </div>
+}
+
+@code {
+    [Parameter] public int? DocumentId { get; set; }
+
+    private bool _isNew => DocumentId is null;
+    private bool _loading = true;
+    private bool _saving;
+
+    private SecureDocumentModel? _doc;
+    private DecryptedContentModel? _decryptedContent;
+    private bool _isEditing;
+
+    private string _editTitle = string.Empty;
+    private string _editObservation = string.Empty;
+    private DateTime? _editDate = DateTime.Now;
+
+    private const string _editorId = "sdoc-editor-area";
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<SecureDocumentDetailPage>? _dotNetRef;
+    private bool _editorInitialized;
+
+    // Estado de formato de la toolbar
+    private bool _isBold;
+    private bool _isItalic;
+    private bool _isUnderline;
+    private bool _isStrike;
+    private bool _isAlignLeft;
+    private bool _isAlignCenter;
+    private bool _isAlignRight;
+    private bool _isAlignJustify;
+    private bool _isBulletList;
+    private bool _isNumberList;
+    private string _currentFontSize  = "11pt";
+    private string _currentForeColor = "#000000";
+    private string _currentBackColor = "#ffff00";
+
+    private static string BtnCls(bool active) => active ? "sdoc-btn-active" : string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var state = await AuthProvider.GetAuthenticationStateAsync();
+        if (!state.User.Identity?.IsAuthenticated ?? true)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/securedoc-editor.js");
+
+        if (_isNew)
+        {
+            _isEditing = true;
+            _loading = false;
+            StateHasChanged();
+            await InitEditorAsync();
+        }
+        else
+        {
+            await LoadDocumentAsync();
+        }
+    }
+
+    private async Task LoadDocumentAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+        var resp = await Api.GetByIdAsync(DocumentId!.Value);
+        _doc = resp?.Data;
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task InitEditorAsync()
+    {
+        if (_jsModule is null || _editorInitialized) return;
+        await Task.Delay(80);
+        _dotNetRef ??= DotNetObjectReference.Create(this);
+        await _jsModule.InvokeVoidAsync("initEditor", _editorId, _dotNetRef);
+        _editorInitialized = true;
+    }
+
+    // Llamado desde JS cada vez que el cursor cambia de posición
+    [JSInvokable]
+    public Task UpdateFormatState(FormatStateModel state)
+    {
+        _isBold         = state.Bold;
+        _isItalic       = state.Italic;
+        _isUnderline    = state.Underline;
+        _isStrike       = state.Strike;
+        _isAlignLeft    = state.AlignLeft;
+        _isAlignCenter  = state.AlignCenter;
+        _isAlignRight   = state.AlignRight;
+        _isAlignJustify = state.AlignJustify;
+        _isBulletList   = state.BulletList;
+        _isNumberList   = state.NumberList;
+        if (!string.IsNullOrEmpty(state.FontSize))  _currentFontSize  = state.FontSize;
+        if (!string.IsNullOrEmpty(state.ForeColor)) _currentForeColor = state.ForeColor;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    // Refresca la toolbar tras aplicar un comando desde botón
+    private async Task RefreshFormatStateAsync()
+    {
+        if (_jsModule is null || !_editorInitialized) return;
+        try
+        {
+            var state = await _jsModule.InvokeAsync<FormatStateModel>("getFormatState");
+            _isBold         = state.Bold;
+            _isItalic       = state.Italic;
+            _isUnderline    = state.Underline;
+            _isStrike       = state.Strike;
+            _isAlignLeft    = state.AlignLeft;
+            _isAlignCenter  = state.AlignCenter;
+            _isAlignRight   = state.AlignRight;
+            _isAlignJustify = state.AlignJustify;
+            _isBulletList   = state.BulletList;
+            _isNumberList   = state.NumberList;
+            if (!string.IsNullOrEmpty(state.FontSize))  _currentFontSize  = state.FontSize;
+            if (!string.IsNullOrEmpty(state.ForeColor)) _currentForeColor = state.ForeColor;
+            StateHasChanged();
+        }
+        catch { }
+    }
+
+    // ── Toolbar handlers ──────────────────────────────────────────────
+    private async Task CmdBold()        { await ExecCmdAsync("bold");                await RefreshFormatStateAsync(); }
+    private async Task CmdItalic()      { await ExecCmdAsync("italic");              await RefreshFormatStateAsync(); }
+    private async Task CmdUnderline()   { await ExecCmdAsync("underline");           await RefreshFormatStateAsync(); }
+    private async Task CmdStrike()      { await ExecCmdAsync("strikeThrough");       await RefreshFormatStateAsync(); }
+    private async Task CmdAlignLeft()   { await ExecCmdAsync("justifyLeft");         await RefreshFormatStateAsync(); }
+    private async Task CmdAlignCenter() { await ExecCmdAsync("justifyCenter");       await RefreshFormatStateAsync(); }
+    private async Task CmdAlignRight()  { await ExecCmdAsync("justifyRight");        await RefreshFormatStateAsync(); }
+    private async Task CmdAlignJustify(){ await ExecCmdAsync("justifyFull");         await RefreshFormatStateAsync(); }
+    private async Task CmdBulletList()  { await ExecCmdAsync("insertUnorderedList"); await RefreshFormatStateAsync(); }
+    private async Task CmdNumberList()  { await ExecCmdAsync("insertOrderedList");   await RefreshFormatStateAsync(); }
+    private async Task CmdUndo()        { await ExecCmdAsync("undo");                await RefreshFormatStateAsync(); }
+    private async Task CmdRedo()        { await ExecCmdAsync("redo");                await RefreshFormatStateAsync(); }
+    private Task CmdIndent()  => ExecCmdAsync("indent");
+    private Task CmdOutdent() => ExecCmdAsync("outdent");
+    private Task CmdHRule()   => ExecCmdAsync("insertHorizontalRule");
+
+    private async Task ExecCmdAsync(string command)
+    {
+        if (_jsModule is not null)
+            await _jsModule.InvokeVoidAsync("execCmd", command);
+    }
+
+    private async Task ApplyFontSizeAsync()
+    {
+        if (_jsModule is not null)
+            await _jsModule.InvokeVoidAsync("setFontSize", _currentFontSize);
+    }
+
+    private async Task ApplyForeColorAsync()
+    {
+        if (_jsModule is not null)
+            await _jsModule.InvokeVoidAsync("setForeColor", _currentForeColor);
+    }
+
+    private async Task ApplyBackColorAsync()
+    {
+        if (_jsModule is not null)
+            await _jsModule.InvokeVoidAsync("setBackColor", _currentBackColor);
+    }
+
+    private async Task InsertTable()
+    {
+        if (_jsModule is not null)
+            await _jsModule.InvokeVoidAsync("insertTable", 3, 3);
+    }
+
+    private async Task InsertLink()
+    {
+        var url = await JS.InvokeAsync<string?>("prompt", "Ingresa la URL:", "https://");
+        if (!string.IsNullOrWhiteSpace(url) && _jsModule is not null)
+            await _jsModule.InvokeVoidAsync("insertLink", url, url);
+    }
+
+    private async Task StartEditing()
+    {
+        _isEditing = true;
+        _editTitle = _doc?.Title ?? string.Empty;
+        _editObservation = string.Empty;
+        _editDate = _decryptedContent?.DocumentDate ?? _tz.ToUserTime(DateTime.UtcNow).Date;
+        _editorInitialized = false;
+        StateHasChanged();
+        await Task.Delay(100);
+        await InitEditorAsync();
+        if (_decryptedContent is not null && _jsModule is not null)
+            await _jsModule.InvokeVoidAsync("setContent", _editorId, _decryptedContent.HtmlContent);
+    }
+
+    private void CancelEdit()
+    {
+        _isEditing = false;
+        _editorInitialized = false;
+        if (_isNew) Nav.NavigateTo("/secure-docs");
+    }
+
+    private async Task SaveDocument()
+    {
+        if (_jsModule is null) return;
+        _saving = true;
+        StateHasChanged();
+
+        var html = await _jsModule.InvokeAsync<string>("getContent", _editorId);
+        if (string.IsNullOrWhiteSpace(html))
+        {
+            Snackbar.Add("El contenido no puede estar vacío", Severity.Warning);
+            _saving = false;
+            return;
+        }
+
+        if (_isNew)
+        {
+            var req = new CreateSecureDocumentRequest
+            {
+                Title = _editTitle,
+                HtmlContent = html,
+                Observation = _editObservation,
+                DocumentDate = _editDate ?? DateTime.Now,
+            };
+            var resp = await Api.CreateAsync(req);
+            if (resp?.Success == true)
+            {
+                Snackbar.Add("Documento creado y cifrado con AES-256", Severity.Success);
+                _saving = false;
+                Nav.NavigateTo($"/secure-docs/{resp.Data!.Id}", forceLoad: true);
+                return;
+            }
+            Snackbar.Add("Error al guardar el documento", Severity.Error);
+        }
+        else
+        {
+            var req = new AddVersionRequest
+            {
+                HtmlContent = html,
+                Observation = _editObservation,
+                DocumentDate = _editDate ?? DateTime.Now,
+            };
+            var resp = await Api.AddVersionAsync(DocumentId!.Value, req);
+            if (resp?.Success == true)
+            {
+                Snackbar.Add("Nueva versión guardada y cifrada", Severity.Success);
+                _doc = resp.Data;
+                _decryptedContent = null;
+                _isEditing = false;
+                _editorInitialized = false;
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add("Error al guardar la versión", Severity.Error);
+            }
+        }
+        _saving = false;
+    }
+
+    private Task OpenDecryptDialogLatest() => OpenDecryptDialogForVersion(null);
+
+    private async Task OpenDecryptDialogForVersion(int? versionId)
+    {
+        var parameters = new DialogParameters<DecryptDialog>
+        {
+            { x => x.DocumentId, DocumentId ?? 0 },
+            { x => x.VersionId, versionId }
+        };
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            CloseButton = true
+        };
+
+        var dialog = await DialogService.ShowAsync<DecryptDialog>("Descifrar documento", parameters, options);
+        var result = await dialog.Result;
+        if (result?.Canceled == true || result?.Data is not DecryptRequest creds) return;
+
+        var resp = await Api.DecryptAsync(DocumentId!.Value, creds);
+        if (resp?.Success == true)
+        {
+            _decryptedContent = resp.Data;
+            Snackbar.Add("Documento descifrado correctamente", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Credenciales incorrectas o documento no disponible", Severity.Error);
+        }
+        StateHasChanged();
+    }
+
+    // ── Impresión ─────────────────────────────────────────────────────
+
+    private async Task PrintEncrypted()
+    {
+        if (_doc is null || _jsModule is null) return;
+        var latest = _doc.Versions.OrderByDescending(v => v.VersionNumber).FirstOrDefault();
+        if (latest is null) return;
+        var meta = $"Versión {latest.VersionNumber} · " +
+                   $"Fecha: {latest.DocumentDate:dd/MM/yyyy} · " +
+                   $"Creado por: {latest.CreatedBy}";
+        await _jsModule.InvokeVoidAsync("printDocument",
+            _doc.Title, true, latest.EncryptedContent, meta);
+    }
+
+    private async Task PrintDecrypted()
+    {
+        if (_doc is null || _jsModule is null) return;
+        if (_decryptedContent is not null)
+        {
+            await DoPrintDecrypted(_decryptedContent);
+            return;
+        }
+        // No hay contenido descifrado — pedir credenciales primero
+        await OpenDecryptDialogLatest();
+        if (_decryptedContent is not null)
+            await DoPrintDecrypted(_decryptedContent);
+    }
+
+    private async Task PrintVersion(int versionId)
+    {
+        if (_doc is null || _jsModule is null) return;
+        // Si esa versión ya está descifrada, imprimir directo
+        if (_decryptedContent?.VersionId == versionId)
+        {
+            await DoPrintDecrypted(_decryptedContent!);
+            return;
+        }
+        // Pedir credenciales para esa versión
+        var parameters = new DialogParameters<DecryptDialog>
+        {
+            { x => x.DocumentId, DocumentId ?? 0 },
+            { x => x.VersionId,  versionId }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var dialog = await DialogService.ShowAsync<DecryptDialog>("Descifrar para imprimir", parameters, options);
+        var result = await dialog.Result;
+        if (result?.Canceled == true || result?.Data is not DecryptRequest creds) return;
+
+        var resp = await Api.DecryptAsync(DocumentId!.Value, creds);
+        if (resp?.Success == true && resp.Data is not null)
+        {
+            _decryptedContent = resp.Data;
+            StateHasChanged();
+            await DoPrintDecrypted(resp.Data);
+        }
+        else
+        {
+            Snackbar.Add("Credenciales incorrectas", Severity.Error);
+        }
+    }
+
+    private async Task DoPrintDecrypted(DecryptedContentModel content)
+    {
+        if (_jsModule is null) return;
+        var ver = _doc?.Versions.FirstOrDefault(v => v.Id == content.VersionId);
+        var meta = $"Versión {content.VersionNumber} · " +
+                   $"Fecha: {content.DocumentDate:dd/MM/yyyy} · " +
+                   (string.IsNullOrWhiteSpace(ver?.Observation) ? "" : $"Obs: {ver!.Observation} · ") +
+                   $"Descifrado por: {content.DecryptedBy}";
+        await _jsModule.InvokeVoidAsync("printDocument",
+            _doc!.Title, false, content.HtmlContent, meta);
+    }
+
+    private void GoBack() => Nav.NavigateTo("/secure-docs");
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule is not null)
+        {
+            try { await _jsModule.InvokeVoidAsync("disposeEditor"); } catch { }
+            await _jsModule.DisposeAsync();
+        }
+        _dotNetRef?.Dispose();
+    }
+
+    // Modelo para deserializar el estado de formato devuelto por JS
+    public sealed class FormatStateModel
+    {
+        public bool    Bold         { get; set; }
+        public bool    Italic       { get; set; }
+        public bool    Underline    { get; set; }
+        public bool    Strike       { get; set; }
+        public bool    AlignLeft    { get; set; }
+        public bool    AlignCenter  { get; set; }
+        public bool    AlignRight   { get; set; }
+        public bool    AlignJustify { get; set; }
+        public bool    BulletList   { get; set; }
+        public bool    NumberList   { get; set; }
+        public string? FontSize     { get; set; }
+        public string? ForeColor    { get; set; }
+    }
+}

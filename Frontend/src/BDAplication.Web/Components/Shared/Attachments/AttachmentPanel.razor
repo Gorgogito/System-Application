@@ -1,6 +1,7 @@
 @using BDAplication.Web.Models
 @using BDAplication.Web.Services
 @inject AttachmentApiService AttachmentApi
+@inject DocumentConceptApiService ConceptApi
 @inject IDialogService Dialog
 @inject ISnackbar Snackbar
 @inject IJSRuntime JS
@@ -42,6 +43,10 @@
                             }
                             <MudText Typo="Typo.caption" Color="Color.Tertiary">
                                 @a.FileSizeDisplay · @_tz.ToUserTime(a.DateCreated).ToString("dd/MM/yyyy HH:mm") · @a.UserCreated
+                                @if (a.HasAmount)
+                                {
+                                    <span style="margin-left:6px;color:#2e7d32;font-weight:600">@a.AmountDisplay</span>
+                                }
                             </MudText>
                         </MudStack>
                         <MudTooltip Text="Ver / Abrir">
@@ -88,6 +93,13 @@
                     @FormatSize(_selectedFile.Size) · @_selectedFile.ContentType
                 </MudText>
             }
+            <MudSelect T="int?" @bind-Value="_uploadConceptId" Label="Concepto de Documento"
+                       Variant="Variant.Outlined" Clearable="true" Placeholder="— Sin concepto —">
+                @foreach (var c in _concepts)
+                {
+                    <MudSelectItem T="int?" Value="@((int?)c.Id)">@c.Name</MudSelectItem>
+                }
+            </MudSelect>
             <div>
                 <MudDatePicker @bind-Date="_uploadDocumentDate" Label="Fecha del Documento *"
                                Variant="Variant.Outlined" DateFormat="dd/MM/yyyy"
@@ -98,6 +110,10 @@
                     <MudText Typo="Typo.caption" Color="Color.Error">La Fecha del Documento es obligatoria</MudText>
                 }
             </div>
+            <MudNumericField T="decimal?" @bind-Value="_uploadAmount" Label="Importe"
+                             Variant="Variant.Outlined" Format="N2" Min="0"
+                             Adornment="Adornment.Start" AdornmentText="S/"
+                             HideSpinButtons="true" Placeholder="0.00"/>
             <MudTextField @bind-Value="_uploadDescription" Label="Descripción" Variant="Variant.Outlined"
                           MaxLength="200" Immediate="true"/>
             <MudTextField @bind-Value="_uploadComment" Label="Comentario" Variant="Variant.Outlined"
@@ -123,6 +139,7 @@
     [Parameter, EditorRequired] public int EntityId { get; set; }
 
     private List<AttachmentModel> _attachments = new();
+    private List<DocumentConceptModel> _concepts = new();
     private bool _loading;
 
     // Upload state
@@ -132,8 +149,16 @@
     private string _uploadComment = string.Empty;
     private DateTime? _uploadDocumentDate;
     private bool _uploadDateError;
+    private int? _uploadConceptId;
+    private decimal? _uploadAmount;
     private string? _uploadError;
     private bool _uploading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resp = await ConceptApi.GetAllAsync();
+        _concepts = resp?.Data ?? new();
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -156,6 +181,8 @@
         _uploadComment = string.Empty;
         _uploadDocumentDate = null;
         _uploadDateError = false;
+        _uploadConceptId = null;
+        _uploadAmount = null;
         _uploadError = null;
         _uploading = false;
         _showUpload = true;
@@ -198,7 +225,8 @@
             var resp = await AttachmentApi.UploadAsync(
                 EntityType, EntityId,
                 stream, _selectedFile.Name, _selectedFile.ContentType, _selectedFile.Size,
-                _uploadDescription, _uploadComment, _uploadDocumentDate.Value);
+                _uploadDescription, _uploadComment, _uploadDocumentDate.Value, _uploadConceptId,
+                _uploadAmount);
 
             if (resp?.Success == true)
             {
@@ -234,7 +262,8 @@
     {
         var parameters = new DialogParameters<AttachmentEditDialog>
         {
-            { x => x.Attachment, a }
+            { x => x.Attachment, a },
+            { x => x.Concepts, _concepts }
         };
         var dlg = await Dialog.ShowAsync<AttachmentEditDialog>("Editar Adjunto", parameters,
             new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });

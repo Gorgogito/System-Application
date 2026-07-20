@@ -3,6 +3,7 @@
 @using BDAplication.Web.Models.Finance
 @using BDAplication.Web.Services.Finance
 @using BDAplication.Web.Components.Finance
+@using BDAplication.Web.Helpers
 @using MudBlazor
 @inject JwtAuthStateProvider AuthProvider
 @inject NavigationManager Nav
@@ -40,6 +41,17 @@
         padding:1px 5px; border-radius:8px; margin-left:4px;
     }
     .selected-row td { background:rgba(25,118,210,.08) !important; }
+
+    /* ── Accordion de grupos ─────────────────────────────────── */
+    .mov-group-header { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .mov-group-badge  {
+        border-radius:12px; padding:2px 10px; font-size:.76rem; font-weight:600;
+        background:rgba(25,118,210,.12); color:#1565c0;
+    }
+    .mov-group-badge.ing  { background:rgba(46,125,50,.12);  color:#2e7d32; }
+    .mov-group-badge.sal  { background:rgba(198,40,40,.12);  color:#c62828; }
+    .mov-group-badge.bal.pos { background:rgba(46,125,50,.12); color:#2e7d32; }
+    .mov-group-badge.bal.neg { background:rgba(198,40,40,.12); color:#c62828; }
 
     /* ── Responsive ─────────────────────────────────────────── */
     @@media (max-width: 960px) {
@@ -177,79 +189,118 @@
                                StartIcon="@Icons.Material.Filled.Close" OnClick="ClearSelection">
                         Cerrar
                     </MudButton>
-                    @if (_loadingMovements)
-                    {
-                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary"/>
-                    }
                 </div>
 
-                <!-- Grid de movimientos -->
+                <!-- Grid de movimientos agrupados por mes -->
                 <div class="fin-grid-scroll">
-                    <MudTable T="MovementModel" Items="@_movements" Dense="true" Hover="true"
-                              SelectedItem="@_selectedMovement"
-                              SelectedItemChanged="@(m => _selectedMovement = m)"
-                              RowClassFunc="MovementRowClass">
-                        <HeaderContent>
-                            <MudTh Class="d-none d-sm-table-cell">Código</MudTh>
-                            <MudTh>Fecha</MudTh>
-                            <MudTh>Concepto</MudTh>
-                            <MudTh Class="d-none d-md-table-cell">Tipo Concepto</MudTh>
-                            <MudTh Style="text-align:center">Tipo</MudTh>
-                            <MudTh Style="text-align:right">Importe</MudTh>
-                            <MudTh Style="text-align:right">Saldo</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd DataLabel="Código" Class="d-none d-sm-table-cell">
-                                <MudText Typo="Typo.body2" Style="font-family:monospace">@context.Code</MudText>
-                                @if (context.IsTransfer)
-                                {
-                                    <span class="mov-transfer-badge">
-                                        @(context.TransferSourceDestiny == "O" ? "⬆ Origen" : "⬇ Destino")
-                                    </span>
-                                }
-                            </MudTd>
-                            <MudTd DataLabel="Fecha">
-                                @context.Date.ToString("dd/MM/yy HH:mm")
-                                @if (context.IsTransfer)
-                                {
-                                    <span class="mov-transfer-badge d-sm-none">
-                                        @(context.TransferSourceDestiny == "O" ? "⬆" : "⬇")
-                                    </span>
-                                }
-                            </MudTd>
-                            <MudTd DataLabel="Concepto">@context.Concept</MudTd>
-                            <MudTd DataLabel="Tipo Concepto" Class="d-none d-md-table-cell">@context.TypeConceptDescription</MudTd>
-                            <MudTd DataLabel="Tipo" Style="text-align:center">
-                                @if (context.Type == "I")
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Success"
-                                             Style="height:22px;font-size:.72rem">
-                                        <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" Style="font-size:13px"/> Ingreso
-                                    </MudChip>
-                                }
-                                else
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Error"
-                                             Style="height:22px;font-size:.72rem">
-                                        <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Style="font-size:13px"/> Salida
-                                    </MudChip>
-                                }
-                            </MudTd>
-                            <MudTd DataLabel="Importe" Style="text-align:right">
-                                <span class="@(context.Type == "I" ? "mov-income" : "mov-outcome")">
-                                    $@context.Amount.ToString("N2")
-                                </span>
-                            </MudTd>
-                            <MudTd DataLabel="Saldo" Style="text-align:right">
-                                <span class="mov-balance">$@context.Balance.ToString("N2")</span>
-                            </MudTd>
-                        </RowTemplate>
-                        <NoRecordsContent>
-                            <MudText Align="Align.Center" Class="pa-6 mud-text-secondary">
-                                Sin movimientos — presione <b>Nuevo</b> para registrar el primero
-                            </MudText>
-                        </NoRecordsContent>
-                    </MudTable>
+                    @if (_loadingMovements)
+                    {
+                        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-1"/>
+                    }
+                    else if (!_movementGroups.Any())
+                    {
+                        <div class="d-flex align-center justify-center pa-8" style="opacity:.55">
+                            <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Outlined.ReceiptLong" Style="font-size:48px"/>
+                                <MudText Typo="Typo.body1">Sin movimientos — presione <b>Nuevo</b> para registrar el primero</MudText>
+                            </MudStack>
+                        </div>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="px-3 pt-2 pb-1">
+                            @_movements.Count movimiento(s) · @_movementGroups.Count período(s)
+                        </MudText>
+                        <MudExpansionPanels MultiExpansion="true" Elevation="0">
+                            @foreach (var g in _movementGroups)
+                            {
+                                <MudExpansionPanel @bind-IsExpanded="g.IsExpanded">
+                                    <TitleContent>
+                                        <div class="mov-group-header">
+                                            <MudIcon Icon="@Icons.Material.Filled.CalendarMonth"
+                                                     Color="Color.Primary" Size="Size.Small"/>
+                                            <MudText Typo="Typo.subtitle2" Style="font-weight:700">@g.Label</MudText>
+                                            <span class="mov-group-badge">@g.Items.Count mov.</span>
+                                            @if (g.TotalIngresos > 0)
+                                            {
+                                                <span class="mov-group-badge ing">&#43; S/ @g.TotalIngresos.ToString("N2")</span>
+                                            }
+                                            @if (g.TotalEgresos > 0)
+                                            {
+                                                <span class="mov-group-badge sal">&#8722; S/ @g.TotalEgresos.ToString("N2")</span>
+                                            }
+                                            <span class="mov-group-badge bal @(g.SaldoCierre >= 0 ? "pos" : "neg")">
+                                                Saldo S/ @g.SaldoCierre.ToString("N2")
+                                            </span>
+                                        </div>
+                                    </TitleContent>
+                                    <ChildContent>
+                                        <MudTable T="MovementModel" Items="@g.Items" Dense="true" Hover="true"
+                                                  Elevation="0" Class="mb-0"
+                                                  SelectedItem="@_selectedMovement"
+                                                  SelectedItemChanged="@(m => _selectedMovement = m)"
+                                                  RowClassFunc="MovementRowClass">
+                                            <HeaderContent>
+                                                <MudTh Class="d-none d-sm-table-cell">Código</MudTh>
+                                                <MudTh>Fecha</MudTh>
+                                                <MudTh>Concepto</MudTh>
+                                                <MudTh Class="d-none d-md-table-cell">Tipo Concepto</MudTh>
+                                                <MudTh Style="text-align:center">Tipo</MudTh>
+                                                <MudTh Style="text-align:right">Importe</MudTh>
+                                                <MudTh Style="text-align:right">Saldo</MudTh>
+                                            </HeaderContent>
+                                            <RowTemplate>
+                                                <MudTd DataLabel="Código" Class="d-none d-sm-table-cell">
+                                                    <MudText Typo="Typo.body2" Style="font-family:monospace">@context.Code</MudText>
+                                                    @if (context.IsTransfer)
+                                                    {
+                                                        <span class="mov-transfer-badge">
+                                                            @(context.TransferSourceDestiny == "O" ? "⬆ Origen" : "⬇ Destino")
+                                                        </span>
+                                                    }
+                                                </MudTd>
+                                                <MudTd DataLabel="Fecha">
+                                                    @context.Date.ToString("dd/MM/yy HH:mm")
+                                                    @if (context.IsTransfer)
+                                                    {
+                                                        <span class="mov-transfer-badge d-sm-none">
+                                                            @(context.TransferSourceDestiny == "O" ? "⬆" : "⬇")
+                                                        </span>
+                                                    }
+                                                </MudTd>
+                                                <MudTd DataLabel="Concepto">@context.Concept</MudTd>
+                                                <MudTd DataLabel="Tipo Concepto" Class="d-none d-md-table-cell">@context.TypeConceptDescription</MudTd>
+                                                <MudTd DataLabel="Tipo" Style="text-align:center">
+                                                    @if (context.Type == "I")
+                                                    {
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Success"
+                                                                 Style="height:22px;font-size:.72rem">
+                                                            <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" Style="font-size:13px"/> Ingreso
+                                                        </MudChip>
+                                                    }
+                                                    else
+                                                    {
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Error"
+                                                                 Style="height:22px;font-size:.72rem">
+                                                            <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Style="font-size:13px"/> Salida
+                                                        </MudChip>
+                                                    }
+                                                </MudTd>
+                                                <MudTd DataLabel="Importe" Style="text-align:right">
+                                                    <span class="@(context.Type == "I" ? "mov-income" : "mov-outcome")">
+                                                        $@context.Amount.ToString("N2")
+                                                    </span>
+                                                </MudTd>
+                                                <MudTd DataLabel="Saldo" Style="text-align:right">
+                                                    <span class="mov-balance">$@context.Balance.ToString("N2")</span>
+                                                </MudTd>
+                                            </RowTemplate>
+                                        </MudTable>
+                                    </ChildContent>
+                                </MudExpansionPanel>
+                            }
+                        </MudExpansionPanels>
+                    }
                 </div>
             </MudPaper>
         </div>
@@ -271,8 +322,37 @@
     private List<AccountModel> _accounts = new();
     private List<TypeConceptModel> _typeConcepts = new();
     private List<MovementModel> _movements = new();
+    private List<MovementGroup> _movementGroups = new();
     private AccountModel? _selectedAccount;
     private MovementModel? _selectedMovement;
+
+    private class MovementGroup
+    {
+        public string Label { get; set; } = string.Empty;
+        public List<MovementModel> Items { get; set; } = new();
+        public bool IsExpanded { get; set; }
+        // Saldo de cierre = Balance del último movimiento cronológico del mes (saldo corrido real).
+        public decimal SaldoCierre { get; set; }
+        public decimal TotalIngresos => Items.Where(m => m.Type == "I").Sum(m => m.Amount);
+        public decimal TotalEgresos  => Items.Where(m => m.Type == "O").Sum(m => m.Amount);
+    }
+
+    private void BuildMovementGroups()
+    {
+        _movementGroups = _movements
+            .GroupBy(m => (m.Date.Year, m.Date.Month))
+            .OrderByDescending(g => g.Key.Year).ThenByDescending(g => g.Key.Month)
+            .Select((g, i) => new MovementGroup
+            {
+                Label      = DateGroupHelper.FormatPeriod(g.Key.Year, g.Key.Month),
+                // Ordenar descendente para mostrar los más recientes primero en la tabla
+                Items      = g.OrderByDescending(m => m.Date).ThenByDescending(m => m.Id).ToList(),
+                IsExpanded = i == 0,
+                // Mismo criterio de ordenación que RecalculateAccountAsync (Date ASC, Id ASC)
+                SaldoCierre = g.OrderBy(m => m.Date).ThenBy(m => m.Id).Last().Balance
+            })
+            .ToList();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -302,6 +382,7 @@
         _selectedAccount = account;
         _selectedMovement = null;
         _movements.Clear();
+        _movementGroups.Clear();
         if (account == null) { StateHasChanged(); return; }
         await LoadMovementsAsync(account.Id);
     }
@@ -314,11 +395,19 @@
         {
             var resp = await MovementApi.ListByAccountAsync(accountId);
             _movements = resp?.Data ?? new();
+            BuildMovementGroups();
         }
         finally { _loadingMovements = false; StateHasChanged(); }
     }
 
-    private void ClearSelection() { _selectedAccount = null; _selectedMovement = null; _movements.Clear(); StateHasChanged(); }
+    private void ClearSelection()
+    {
+        _selectedAccount = null;
+        _selectedMovement = null;
+        _movements.Clear();
+        _movementGroups.Clear();
+        StateHasChanged();
+    }
 
     // ── Cuentas ────────────────────────────────────────────
     private async Task OpenCreateAccount()

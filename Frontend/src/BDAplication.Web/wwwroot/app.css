@@ -3,22 +3,71 @@ html, body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    font-family: Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 #blazor-error-ui {
     display: none;
 }
 
+/* ─── Active nav link ───────────────────────────────────────── */
 .mud-nav-link.active {
     background-color: rgba(255,255,255,0.12) !important;
     border-radius: 8px;
 }
 
-/* ─── CSS Variables ──────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN SYSTEM TOKENS
+   ═══════════════════════════════════════════════════════════════ */
 :root {
+    /* Spacing */
     --app-padding:       24px;
     --app-appbar-height: 64px;
+
+    /* Design tokens — light */
+    --ds-bg:         #f4f5f7;
+    --ds-surface:    #ffffff;
+    --ds-border:     #e0e3ea;
+    --ds-radius:     8px;
+    --ds-radius-lg:  12px;
+    --ds-text:       #1c2333;
+    --ds-text-2:     #546e7a;
+    --ds-primary:    #1565c0;
+    --ds-primary-lt: #e3edfd;
+    --ds-success:    #2e7d32;
+    --ds-success-lt: #e8f5e9;
+    --ds-warn:       #e65100;
+    --ds-warn-lt:    #fff3e0;
+    --ds-error:      #c62828;
+    --ds-error-lt:   #ffebee;
+    --ds-mono:       'Courier New', Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ds-bg:         #111827;
+        --ds-surface:    #1e2535;
+        --ds-border:     #2d3a50;
+        --ds-text:       #e8edf5;
+        --ds-text-2:     #8a9ab5;
+        --ds-primary-lt: #0d2b55;
+        --ds-success-lt: #0a2e0d;
+        --ds-warn-lt:    #2e1a00;
+        --ds-error-lt:   #2e0a0a;
+    }
+}
+
+/* MudBlazor stamps data-theme on <html> when user toggles theme */
+html[data-mud-theme="Dark"] {
+    --ds-bg:         #111827;
+    --ds-surface:    #1e2535;
+    --ds-border:     #2d3a50;
+    --ds-text:       #e8edf5;
+    --ds-text-2:     #8a9ab5;
+    --ds-primary-lt: #0d2b55;
+    --ds-success-lt: #0a2e0d;
+    --ds-warn-lt:    #2e1a00;
+    --ds-error-lt:   #2e0a0a;
 }
 
 @media (max-width: 960px) {
@@ -29,20 +78,202 @@ html, body {
     :root { --app-padding: 12px; }
 }
 
-/* ─── Wrapper del contenido principal ──────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   MAIN CONTENT WRAPPER
+   ═══════════════════════════════════════════════════════════════ */
 .app-main-content {
     padding: var(--app-padding);
     height: calc(100vh - var(--app-appbar-height));
     overflow-y: auto;
-    animation: appFadeIn 0.18s ease both;
+    animation: appFadeIn 0.2s ease both;
 }
 
 @keyframes appFadeIn {
-    from { opacity: 0; transform: translateY(5px); }
+    from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── Scrollbars globales ────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   PAGE HEADER — patrón unificado para todas las páginas
+   Uso:
+     <div class="app-page-header">
+       <div class="app-page-header-left">
+         <MudIcon ... Class="app-page-icon" />
+         <div>
+           <MudText Typo="Typo.h5" Class="app-page-title">Título</MudText>
+           <MudText Typo="Typo.caption" Class="app-page-sub">Subtítulo</MudText>
+         </div>
+       </div>
+       <!-- acción derecha opcional -->
+     </div>
+   ═══════════════════════════════════════════════════════════════ */
+.app-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.app-page-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.app-page-icon {
+    font-size: 2rem !important;
+    flex-shrink: 0;
+}
+
+.app-page-title {
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+}
+
+.app-page-sub {
+    margin-top: 1px;
+    color: var(--ds-text-2);
+    font-size: .78rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BADGES INLINE — chips de estado compactos
+   Uso: <span class="app-badge app-badge-success">Activo</span>
+   ═══════════════════════════════════════════════════════════════ */
+.app-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 20px;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.app-badge-primary { background: var(--ds-primary-lt);       color: var(--ds-primary); }
+.app-badge-success { background: var(--ds-success-lt);       color: var(--ds-success); }
+.app-badge-warn    { background: var(--ds-warn-lt);          color: var(--ds-warn);    }
+.app-badge-error   { background: var(--ds-error-lt);         color: var(--ds-error);   }
+.app-badge-neutral { background: rgba(84,110,122,.1);        color: var(--ds-text-2);  }
+.app-badge-admin   {
+    background: var(--ds-error-lt);
+    color: var(--ds-error);
+    border: 1px solid var(--ds-error);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DATOS FINANCIEROS — monospace, alineación tabular
+   ═══════════════════════════════════════════════════════════════ */
+.app-mono {
+    font-family: var(--ds-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+.app-amount {
+    font-family: var(--ds-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.app-amount-pos { color: var(--ds-success); }
+.app-amount-neg { color: var(--ds-error);   }
+
+/* ═══════════════════════════════════════════════════════════════
+   METRIC CHIPS — chips de resumen con número grande
+   ═══════════════════════════════════════════════════════════════ */
+.app-metric-chip {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 18px;
+    border-radius: var(--ds-radius);
+    border: 1px solid var(--ds-border);
+    background: var(--ds-surface);
+    min-width: 120px;
+    gap: 2px;
+}
+
+.app-metric-val {
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+
+.app-metric-lbl {
+    font-size: .72rem;
+    color: var(--ds-text-2);
+    text-align: center;
+    line-height: 1.3;
+}
+
+.app-metric-primary { border-color: var(--ds-primary); }
+.app-metric-primary .app-metric-val { color: var(--ds-primary); }
+.app-metric-success { border-color: var(--ds-success); }
+.app-metric-success .app-metric-val { color: var(--ds-success); }
+.app-metric-warn { border-color: var(--ds-warn); }
+.app-metric-warn .app-metric-val { color: var(--ds-warn); }
+.app-metric-error { border-color: var(--ds-error); }
+.app-metric-error .app-metric-val { color: var(--ds-error); }
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD — tarjetas de módulo
+   ═══════════════════════════════════════════════════════════════ */
+.dash-module-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+    border-radius: var(--ds-radius);
+    border: 1px solid var(--ds-border);
+    background: var(--ds-surface);
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.dash-module-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.10);
+    border-color: var(--ds-primary);
+    color: inherit;
+    text-decoration: none;
+}
+
+.dash-module-title {
+    font-weight: 700;
+    font-size: .9rem;
+    color: var(--ds-text);
+}
+
+.dash-module-desc {
+    font-size: .75rem;
+    color: var(--ds-text-2);
+    line-height: 1.4;
+}
+
+.dash-group-label {
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ds-text-2);
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid var(--ds-primary);
+    display: inline-block;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SCROLLBARS
+   ═══════════════════════════════════════════════════════════════ */
 * {
     scrollbar-width: thin;
     scrollbar-color: rgba(0,0,0,.18) transparent;
@@ -52,9 +283,9 @@ html, body {
 *::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 4px; }
 *::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,.28); }
 
-/* ─── Columnas de tabla responsive ──────────────────────────── */
-/* Uso: Class="d-none d-sm-table-cell"  → oculta en xs, visible en sm+ */
-/* Uso: Class="d-none d-md-table-cell"  → oculta en xs+sm, visible en md+ */
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE TABLE COLUMNS
+   ═══════════════════════════════════════════════════════════════ */
 @media (min-width: 600px) {
     .d-sm-table-cell { display: table-cell !important; }
     .d-sm-none       { display: none !important; }
@@ -64,10 +295,56 @@ html, body {
     .d-md-table-cell { display: table-cell !important; }
 }
 
-/* ─── Touch targets mínimos ──────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   TOUCH TARGETS MÍNIMOS
+   ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 600px) {
     .mud-icon-button {
         min-width: 40px !important;
         min-height: 40px !important;
     }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MUDBLAZOR OVERRIDES — ajustes de refinamiento visual
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Tabla: cabecera más sutil */
+.mud-table-head th {
+    font-size: .72rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: .04em !important;
+    opacity: .75;
+}
+
+/* Chip con borde más pronunciado en variante Outlined */
+.mud-chip-outlined {
+    font-weight: 600 !important;
+}
+
+/* Elevación consistente en dialogs */
+.mud-dialog {
+    border-radius: var(--ds-radius-lg) !important;
+}
+
+/* Card header con separador */
+.mud-card-header {
+    padding-bottom: 10px !important;
+}
+
+/* Input Outlined más limpio */
+.mud-input-outlined .mud-input-outlined-border {
+    border-radius: var(--ds-radius) !important;
+}
+
+/* ExpansionPanel header más definido */
+.mud-expand-panel-header {
+    padding: 12px 16px !important;
+    font-weight: 600;
+}
+
+/* Snackbar más redondeado */
+.mud-snackbar {
+    border-radius: var(--ds-radius) !important;
 }

@@ -35,10 +35,13 @@ public class AttachmentService : IAttachmentService
 
     public async Task<AttachmentDto> UploadAsync(string entityType, int entityId,
         Stream fileStream, string fileName, string contentType, long fileSize,
-        string description, string comment, DateTime documentDate, int? documentConceptId, string user)
+        string description, string comment, DateTime documentDate, int? documentConceptId, decimal? amount, string user)
     {
         if (!_allowedMime.Contains(contentType))
             throw new ArgumentException($"Tipo de archivo no permitido: {contentType}");
+
+        if (amount.HasValue && amount.Value < 0)
+            throw new ArgumentException("El importe no puede ser negativo");
 
         var ext = Path.GetExtension(fileName).ToLowerInvariant();
         var storedName = $"{Guid.NewGuid()}{ext}";
@@ -63,6 +66,7 @@ public class AttachmentService : IAttachmentService
                 Comment = comment,
                 DocumentDate = documentDate,
                 DocumentConceptId = documentConceptId,
+                Amount = amount,
                 UserCreated = user,
                 DateCreated = DateTime.UtcNow
             });
@@ -81,10 +85,14 @@ public class AttachmentService : IAttachmentService
         var attachment = await _repo.GetByIdAsync(request.Id)
             ?? throw new KeyNotFoundException($"Adjunto {request.Id} no encontrado");
 
+        if (request.Amount.HasValue && request.Amount.Value < 0)
+            throw new ArgumentException("El importe no puede ser negativo");
+
         attachment.Description = request.Description;
         attachment.Comment = request.Comment;
         attachment.DocumentDate = request.DocumentDate;
         attachment.DocumentConceptId = request.DocumentConceptId;
+        attachment.Amount = request.Amount;
         attachment.UserModified = user;
         attachment.DateModified = DateTime.UtcNow;
 
@@ -113,6 +121,6 @@ public class AttachmentService : IAttachmentService
         new(a.Id, a.EntityType, a.EntityId, a.OriginalName, a.BlobPath,
             a.ContentType, a.Extension, a.FileSizeBytes,
             a.Description, a.Comment, a.DocumentDate,
-            a.DocumentConceptId, a.DocumentConcept?.Name,
+            a.DocumentConceptId, a.DocumentConcept?.Name, a.Amount,
             a.UserCreated, a.DateCreated, a.UserModified, a.DateModified);
 }

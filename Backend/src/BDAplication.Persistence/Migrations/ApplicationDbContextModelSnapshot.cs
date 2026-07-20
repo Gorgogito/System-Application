@@ -30,6 +30,9 @@ namespace BDAplication.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal?>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("BlobPath")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -349,6 +352,48 @@ namespace BDAplication.Persistence.Migrations
                     b.ToTable("movement", (string)null);
                 });
 
+            modelBuilder.Entity("BDAplication.Domain.Entities.Finance.ReprocessLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccountIdsJson")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("AccountsProcessed")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExecutedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExecutedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("InconsistenciesFound")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsSimulation")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LogDetailsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MovementsRecalculated")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ReprocessLog", (string)null);
+                });
+
             modelBuilder.Entity("BDAplication.Domain.Entities.Finance.Transfer", b =>
                 {
                     b.Property<int>("Id")
@@ -528,6 +573,88 @@ namespace BDAplication.Persistence.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("BDAplication.Domain.Entities.SecureDoc.SecureDocument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("SecureDocuments", (string)null);
+                });
+
+            modelBuilder.Entity("BDAplication.Domain.Entities.SecureDoc.SecureDocumentVersion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("DocumentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EncryptedContent")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Observation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SecureDocumentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SecureDocumentId", "VersionNumber")
+                        .IsUnique();
+
+                    b.ToTable("SecureDocumentVersions", (string)null);
+                });
+
             modelBuilder.Entity("BDAplication.Domain.Entities.SubTask", b =>
                 {
                     b.Property<int>("Id")
@@ -685,6 +812,17 @@ namespace BDAplication.Persistence.Migrations
                     b.Navigation("Backlog");
                 });
 
+            modelBuilder.Entity("BDAplication.Domain.Entities.SecureDoc.SecureDocumentVersion", b =>
+                {
+                    b.HasOne("BDAplication.Domain.Entities.SecureDoc.SecureDocument", "Document")
+                        .WithMany("Versions")
+                        .HasForeignKey("SecureDocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Document");
+                });
+
             modelBuilder.Entity("BDAplication.Domain.Entities.SubTask", b =>
                 {
                     b.HasOne("BDAplication.Domain.Entities.BoardTask", "BoardTask")
@@ -730,6 +868,11 @@ namespace BDAplication.Persistence.Migrations
             modelBuilder.Entity("BDAplication.Domain.Entities.Role", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("BDAplication.Domain.Entities.SecureDoc.SecureDocument", b =>
+                {
+                    b.Navigation("Versions");
                 });
 #pragma warning restore 612, 618
         }

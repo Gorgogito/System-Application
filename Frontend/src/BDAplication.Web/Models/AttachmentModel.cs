@@ -15,6 +15,7 @@ public class AttachmentModel
     public DateTime DocumentDate { get; set; }
     public int? DocumentConceptId { get; set; }
     public string? DocumentConceptName { get; set; }
+    public decimal? Amount { get; set; }
     public string UserCreated { get; set; } = string.Empty;
     public DateTime DateCreated { get; set; }
     public string? UserModified { get; set; }
@@ -22,6 +23,8 @@ public class AttachmentModel
 
     public bool IsImage => ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
     public bool IsPdf => ContentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase);
+    public bool HasAmount => Amount.HasValue && Amount.Value > 0;
+    public string AmountDisplay => Amount.HasValue ? $"S/ {Amount.Value:N2}" : string.Empty;
 
     public string FileSizeDisplay => FileSizeBytes switch
     {
@@ -37,4 +40,5 @@ public class UpdateAttachmentRequest
     public string Comment { get; set; } = string.Empty;
     public DateTime DocumentDate { get; set; }
     public int? DocumentConceptId { get; set; }
+    public decimal? Amount { get; set; }
 }

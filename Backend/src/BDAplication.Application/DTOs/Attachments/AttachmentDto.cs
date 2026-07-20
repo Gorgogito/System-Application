@@ -14,6 +14,7 @@ public record AttachmentDto(
     DateTime DocumentDate,
     int? DocumentConceptId,
     string? DocumentConceptName,
+    decimal? Amount,
     string UserCreated,
     DateTime DateCreated,
     string? UserModified,

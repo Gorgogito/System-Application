@@ -16,6 +16,7 @@ public class Attachment
     public DateTime DocumentDate { get; set; }
     public int? DocumentConceptId { get; set; }
     public DocumentConcept? DocumentConcept { get; set; }
+    public decimal? Amount { get; set; }
     public string UserCreated { get; set; } = string.Empty;
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
     public string? UserModified { get; set; }

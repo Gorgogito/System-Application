@@ -82,10 +82,6 @@ public class MovementRepository : IMovementRepository
 
         decimal running = 0;
         foreach (var m in movements)
-            running = m.Type == "I" ? running + m.Amount : running - m.Amount;
-        // Store balance in each movement
-        running = 0;
-        foreach (var m in movements)
         {
             running = m.Type == "I" ? running + m.Amount : running - m.Amount;
             m.Balance = running;

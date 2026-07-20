@@ -20,7 +20,8 @@ public class AttachmentApiService : ApiService
     public async Task<ApiResponse<AttachmentModel>?> UploadAsync(
         string entityType, int entityId,
         Stream fileStream, string fileName, string contentType, long fileSize,
-        string description, string comment, DateTime documentDate, int? documentConceptId = null)
+        string description, string comment, DateTime documentDate, int? documentConceptId = null,
+        decimal? amount = null)
     {
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent(entityType), "entityType");
@@ -30,6 +31,8 @@ public class AttachmentApiService : ApiService
         content.Add(new StringContent(documentDate.ToString("o")), "documentDate");
         if (documentConceptId.HasValue)
             content.Add(new StringContent(documentConceptId.Value.ToString()), "documentConceptId");
+        if (amount.HasValue)
+            content.Add(new StringContent(amount.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)), "amount");
 
         var fileContent = new StreamContent(fileStream);
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);

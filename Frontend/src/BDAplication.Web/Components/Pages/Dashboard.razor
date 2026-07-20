@@ -6,48 +6,161 @@
 
 <PageTitle>Dashboard - BDAplication</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
-    <MudText Typo="Typo.h4" Class="mb-6">Dashboard</MudText>
+<style>
+    .dash-hero {
+        background: var(--mud-palette-primary);
+        color: white;
+        border-radius: 10px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .dash-hero-greeting {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
+    .dash-hero-sub {
+        font-size: .82rem;
+        opacity: .8;
+    }
+    .dash-hero-meta {
+        text-align: right;
+        font-size: .82rem;
+        opacity: .85;
+    }
+    .dash-hero-date {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+</style>
 
-    <MudGrid>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="3" Class="pa-6" Style="border-radius:12px">
-                <MudStack AlignItems="AlignItems.Center" Spacing="2">
-                    <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" Size="Size.Large" />
-                    <MudText Typo="Typo.h6">Usuarios</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Gestiona los usuarios del sistema</MudText>
-                    <MudButton Href="/users" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">
-                        Ir a Usuarios
-                    </MudButton>
-                </MudStack>
-            </MudPaper>
-        </MudItem>
+<!-- Hero de bienvenida -->
+<div class="dash-hero">
+    <div>
+        <div class="dash-hero-greeting">
+            @if (_user != null)
+            {
+                <span>Bienvenido, @(_user.FullName.Split(' ')[0])</span>
+            }
+            else
+            {
+                <span>Bienvenido</span>
+            }
+        </div>
+        <div class="dash-hero-sub">Sistema de Administración · BDAplication</div>
+    </div>
+    <div class="dash-hero-meta">
+        <div class="dash-hero-date">@DateTime.Now.ToString("dd/MM/yyyy")</div>
+        <div>Lima, Perú</div>
+        @if (_role != null)
+        {
+            <MudChip T="string" Size="Size.Small"
+                     Style="background:rgba(255,255,255,0.18);color:white;margin-top:6px;">
+                @_role.Name
+            </MudChip>
+        }
+    </div>
+</div>
 
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="3" Class="pa-6" Style="border-radius:12px">
-                <MudStack AlignItems="AlignItems.Center" Spacing="2">
-                    <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Secondary" Size="Size.Large" />
-                    <MudText Typo="Typo.h6">Roles</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Administra los roles de acceso</MudText>
-                    <MudButton Href="/roles" Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small">
-                        Ir a Roles
-                    </MudButton>
-                </MudStack>
-            </MudPaper>
-        </MudItem>
+<!-- Módulos -->
+<MudGrid Spacing="3">
 
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="3" Class="pa-6" Style="border-radius:12px">
-                <MudStack AlignItems="AlignItems.Center" Spacing="2">
-                    <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Tertiary" Size="Size.Large" />
-                    <MudText Typo="Typo.h6">Mi Perfil</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">@_user?.FullName</MudText>
-                    <MudChip T="string" Color="Color.Tertiary" Size="Size.Small">@_role?.Name</MudChip>
-                </MudStack>
-            </MudPaper>
+    <!-- Planificación -->
+    <MudItem xs="12" sm="6" lg="3">
+        <div class="dash-group-label">Planificación</div>
+        <MudStack Spacing="2">
+            <a class="dash-module-card" href="/taskplanner">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Primary" Style="font-size:1.8rem" />
+                <div class="dash-module-title">Task Planner</div>
+                <div class="dash-module-desc">Planifica tareas en el calendario mensual con drag &amp; drop</div>
+            </a>
+            <a class="dash-module-card" href="/taskboard">
+                <MudIcon Icon="@Icons.Material.Filled.ViewKanban" Color="Color.Info" Style="font-size:1.8rem" />
+                <div class="dash-module-title">Task Board</div>
+                <div class="dash-module-desc">Tablero Kanban — organiza tareas por estado</div>
+            </a>
+        </MudStack>
+    </MudItem>
+
+    <!-- Finanzas -->
+    <MudItem xs="12" sm="6" lg="3">
+        <div class="dash-group-label">Finanzas</div>
+        <MudStack Spacing="2">
+            <a class="dash-module-card" href="/finance/statement">
+                <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Color="Color.Success" Style="font-size:1.8rem" />
+                <div class="dash-module-title">Cuentas y Movimientos</div>
+                <div class="dash-module-desc">Registra ingresos, egresos y transferencias entre cuentas</div>
+            </a>
+            <a class="dash-module-card" href="/finance/account-statement">
+                <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Color="Color.Primary" Style="font-size:1.8rem" />
+                <div class="dash-module-title">Estado de Cuenta</div>
+                <div class="dash-module-desc">Analiza el historial financiero agrupado por período</div>
+            </a>
+            <a class="dash-module-card" href="/finance/typeconcept">
+                <MudIcon Icon="@Icons.Material.Filled.Category" Color="Color.Secondary" Style="font-size:1.8rem" />
+                <div class="dash-module-title">Tipos de Concepto</div>
+                <div class="dash-module-desc">Catálogo de categorías para clasificar movimientos</div>
+            </a>
+            @if (_role?.Name?.Equals("Admin", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                <a class="dash-module-card" href="/finance/reprocess">
+                    <MudIcon Icon="@Icons.Material.Filled.Sync" Color="Color.Warning" Style="font-size:1.8rem" />
+                    <div class="dash-module-title">Reproceso de Saldos</div>
+                    <div class="dash-module-desc">Recalcula y corrige saldos acumulados históricos</div>
+                </a>
+            }
+        </MudStack>
+    </MudItem>
+
+    <!-- Documentos -->
+    <MudItem xs="12" sm="6" lg="3">
+        <div class="dash-group-label">Documentos</div>
+        <MudStack Spacing="2">
+            <a class="dash-module-card" href="/secure-docs">
+                <MudIcon Icon="@Icons.Material.Filled.Shield" Color="Color.Warning" Style="font-size:1.8rem" />
+                <div class="dash-module-title">Documentos Seguros</div>
+                <div class="dash-module-desc">Editor cifrado AES-256 con historial de versiones</div>
+            </a>
+            <a class="dash-module-card" href="/attachments">
+                <MudIcon Icon="@Icons.Material.Filled.AttachFile" Color="Color.Info" Style="font-size:1.8rem" />
+                <div class="dash-module-title">Archivos Adjuntos</div>
+                <div class="dash-module-desc">Gestión centralizada de documentos y comprobantes</div>
+            </a>
+            <a class="dash-module-card" href="/documentconcepts">
+                <MudIcon Icon="@Icons.Material.Filled.Label" Color="Color.Secondary" Style="font-size:1.8rem" />
+                <div class="dash-module-title">Conceptos de Documento</div>
+                <div class="dash-module-desc">Catálogo de tipos para clasificar adjuntos</div>
+            </a>
+        </MudStack>
+    </MudItem>
+
+    <!-- Administración -->
+    @if (_role?.Name?.Equals("Admin", StringComparison.OrdinalIgnoreCase) == true)
+    {
+        <MudItem xs="12" sm="6" lg="3">
+            <div class="dash-group-label">Administración</div>
+            <MudStack Spacing="2">
+                <a class="dash-module-card" href="/users">
+                    <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" Style="font-size:1.8rem" />
+                    <div class="dash-module-title">Usuarios</div>
+                    <div class="dash-module-desc">Gestiona las cuentas de acceso al sistema</div>
+                </a>
+                <a class="dash-module-card" href="/roles">
+                    <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Secondary" Style="font-size:1.8rem" />
+                    <div class="dash-module-title">Roles</div>
+                    <div class="dash-module-desc">Administra roles y permisos de acceso</div>
+                </a>
+            </MudStack>
         </MudItem>
-    </MudGrid>
-</MudContainer>
+    }
+
+</MudGrid>
 
 @code {
     private UserModel? _user;
@@ -55,17 +168,15 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender) return;
+        var state = await AuthProvider.GetAuthenticationStateAsync();
+        if (!state.User.Identity?.IsAuthenticated ?? true)
         {
-            var state = await AuthProvider.GetAuthenticationStateAsync();
-            if (!state.User.Identity?.IsAuthenticated ?? true)
-            {
-                Nav.NavigateTo("/login");
-                return;
-            }
-            _user = await AuthProvider.GetCurrentUserAsync();
-            _role = await AuthProvider.GetCurrentRoleAsync();
-            StateHasChanged();
+            Nav.NavigateTo("/login");
+            return;
         }
+        _user = await AuthProvider.GetCurrentUserAsync();
+        _role = await AuthProvider.GetCurrentRoleAsync();
+        StateHasChanged();
     }
 }
