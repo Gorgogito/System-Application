@@ -10,6 +10,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Aumentar límite de mensajes SignalR para soportar documentos grandes con formato HTML
+builder.Services.AddSignalR(options =>
+{
+    options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10 MB
+});
+
 // MudBlazor
 builder.Services.AddMudServices();
 
