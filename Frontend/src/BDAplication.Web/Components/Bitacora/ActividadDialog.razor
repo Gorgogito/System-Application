@@ -1,0 +1,264 @@
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services.Bitacora
+@inject BitacoraApiService BitacoraApi
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+@inject IDialogService Dialog
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@(IsEdit ? Icons.Material.Filled.Edit : Icons.Material.Filled.Add)" Class="mr-2"/>
+            @(IsEdit ? "Editar Actividad" : "Nueva Actividad")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+            <MudStack Spacing="3">
+                <MudStack Row="true" Spacing="3">
+                    <MudTimePicker Label="Hora inicio *" @bind-Time="_horaInicio" Variant="Variant.Outlined"
+                                   AmPm="false" Required="true"/>
+                    <MudTimePicker Label="Hora fin *" @bind-Time="_horaFin" Variant="Variant.Outlined"
+                                   AmPm="false" Required="true"/>
+                </MudStack>
+                <MudTextField @bind-Value="_descripcion" Label="Descripción *" Variant="Variant.Outlined"
+                              Required="true" RequiredError="La descripción es obligatoria"
+                              MaxLength="300" Lines="2" Immediate="true"/>
+                @if (_error != null)
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true">@_error</MudAlert>
+                }
+            </MudStack>
+        </MudForm>
+
+        @if (IsEdit)
+        {
+            <MudDivider Class="my-4"/>
+            <MudText Typo="Typo.subtitle2" Class="mb-2"><b>Evidencias</b></MudText>
+
+            <div @ref="_dropZoneRef"
+                 style="border:2px dashed var(--mud-palette-lines-default);border-radius:8px;padding:16px;text-align:center;cursor:pointer;outline:none;"
+                 @onclick="TriggerFileSelect">
+                <InputFile @ref="_inputFileRef" OnChange="OnFilesSelected" multiple
+                           accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm"
+                           style="display:none"/>
+                <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Color="Color.Primary" Size="Size.Large"/>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Arrastra fotos o videos aquí, pega desde el portapapeles, o haz clic para elegir archivos
+                </MudText>
+                @if (_uploading)
+                {
+                    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-2"/>
+                }
+            </div>
+
+            @if (_evidencias.Count > 0)
+            {
+                <MudGrid Class="mt-3" Spacing="2">
+                    @foreach (var ev in _evidencias)
+                    {
+                        <MudItem xs="4" sm="3">
+                            <MudPaper Elevation="1" Class="pa-2 rounded-lg" Style="text-align:center;position:relative">
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                               Style="position:absolute;top:0;right:0;z-index:1"
+                                               OnClick="() => DeleteEvidenciaAsync(ev)"/>
+                                <div style="cursor:pointer" @onclick="() => VerEvidenciaAsync(ev)">
+                                    <MudIcon Icon="@(ev.IsVideo ? Icons.Material.Filled.Videocam : Icons.Material.Filled.Image)"
+                                             Color="@(ev.IsVideo ? Color.Secondary : Color.Success)" Size="Size.Large"/>
+                                    <MudText Typo="Typo.caption" Style="display:block;word-break:break-all">@ev.NombreOriginal</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Tertiary">@ev.TamanoDisplay</MudText>
+                                </div>
+                            </MudPaper>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cerrar</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="!_valid">Guardar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public int BitacoraId { get; set; }
+    [Parameter] public BitacoraActividadModel? Actividad { get; set; }
+
+    private bool IsEdit => Actividad != null;
+
+    private MudForm _form = default!;
+    private bool _valid;
+    private TimeSpan? _horaInicio;
+    private TimeSpan? _horaFin;
+    private string _descripcion = string.Empty;
+    private string? _error;
+    private bool _changed;
+
+    private InputFile _inputFileRef = default!;
+    private ElementReference _dropZoneRef;
+    private bool _dropZoneWired;
+    private bool _uploading;
+    private List<BitacoraEvidenciaModel> _evidencias = new();
+
+    protected override void OnParametersSet()
+    {
+        if (Actividad != null)
+        {
+            _horaInicio = Actividad.HoraInicio.ToTimeSpan();
+            _horaFin = Actividad.HoraFin.ToTimeSpan();
+            _descripcion = Actividad.Descripcion;
+            _evidencias = new List<BitacoraEvidenciaModel>(Actividad.Evidencias);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && IsEdit && !_dropZoneWired)
+        {
+            _dropZoneWired = true;
+            await JS.InvokeVoidAsync("bitacora.wireDropZone", _dropZoneRef, _inputFileRef.Element);
+        }
+    }
+
+    private async Task TriggerFileSelect() =>
+        await JS.InvokeVoidAsync("bitacora.clickElement", _inputFileRef.Element);
+
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(_changed));
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_valid || _horaInicio is null || _horaFin is null) return;
+
+        var inicio = TimeOnly.FromTimeSpan(_horaInicio.Value);
+        var fin = TimeOnly.FromTimeSpan(_horaFin.Value);
+        _error = null;
+
+        if (IsEdit)
+        {
+            var resp = await BitacoraApi.UpdateActividadAsync(Actividad!.Id,
+                new UpdateActividadRequest { Id = Actividad.Id, HoraInicio = inicio, HoraFin = fin, Descripcion = _descripcion });
+            if (resp?.Success == true) { Snackbar.Add("Actividad actualizada", Severity.Success); MudDialog.Close(DialogResult.Ok(true)); }
+            else _error = resp?.Message ?? "Error al actualizar la actividad";
+        }
+        else
+        {
+            var resp = await BitacoraApi.CreateActividadAsync(
+                new CreateActividadRequest { BitacoraId = BitacoraId, HoraInicio = inicio, HoraFin = fin, Descripcion = _descripcion });
+            if (resp?.Success == true) { Snackbar.Add("Actividad creada", Severity.Success); MudDialog.Close(DialogResult.Ok(true)); }
+            else _error = resp?.Message ?? "Error al crear la actividad";
+        }
+    }
+
+    // ── Evidencias ───────────────────────────────────────────
+    private static readonly string[] VideoExtensions = { ".mp4", ".mov", ".webm" };
+
+    private async Task OnFilesSelected(InputFileChangeEventArgs e)
+    {
+        if (!IsEdit) return;
+        _uploading = true;
+        _error = null;
+        StateHasChanged();
+
+        var files = e.GetMultipleFiles(20);
+        for (var i = 0; i < files.Count; i++)
+        {
+            try
+            {
+                await ProcessFileAsync(files[i], i);
+            }
+            catch (Exception ex)
+            {
+                _error = $"Error subiendo {files[i].Name}: {ex.Message}";
+            }
+        }
+
+        _uploading = false;
+        StateHasChanged();
+    }
+
+    private async Task ProcessFileAsync(IBrowserFile file, int index)
+    {
+        var ext = Path.GetExtension(file.Name).ToLowerInvariant();
+        var isVideo = VideoExtensions.Contains(ext);
+
+        if (!isVideo)
+        {
+            const long maxImageBytes = 15 * 1024 * 1024;
+            await using var stream = file.OpenReadStream(maxImageBytes + 1024);
+            var resp = await BitacoraApi.UploadEvidenciaAsync(Actividad!.Id, stream, file.Name, file.ContentType);
+            if (resp?.Success == true && resp.Data != null)
+            {
+                _evidencias.Add(resp.Data);
+                _changed = true;
+            }
+            else
+            {
+                _error = resp?.Message ?? $"No se pudo subir {file.Name}";
+            }
+            return;
+        }
+
+        var sasResp = await BitacoraApi.GetSasUploadUrlAsync(Actividad!.Id,
+            new SasUploadRequest { FileName = file.Name, ContentType = file.ContentType, DeclaredSizeBytes = file.Size });
+
+        if (sasResp?.Success != true || sasResp.Data == null)
+        {
+            _error = sasResp?.Message ?? $"No se pudo iniciar la subida de {file.Name}";
+            return;
+        }
+
+        await JS.InvokeVoidAsync("bitacora.uploadToBlob", _inputFileRef.Element, index, sasResp.Data.UploadUrl, file.ContentType);
+
+        var confirmResp = await BitacoraApi.ConfirmEvidenciaAsync(Actividad!.Id, new ConfirmEvidenciaRequest
+        {
+            BitacoraActividadId = Actividad.Id,
+            BlobPath = sasResp.Data.BlobPath,
+            NombreOriginal = file.Name,
+            DeclaredSizeBytes = file.Size
+        });
+
+        if (confirmResp?.Success == true && confirmResp.Data != null)
+        {
+            _evidencias.Add(confirmResp.Data);
+            _changed = true;
+        }
+        else
+        {
+            _error = confirmResp?.Message ?? $"No se pudo confirmar {file.Name}";
+        }
+    }
+
+    private async Task DeleteEvidenciaAsync(BitacoraEvidenciaModel ev)
+    {
+        var confirm = await Dialog.ShowMessageBox("Confirmar eliminación",
+            $"¿Eliminar \"{ev.NombreOriginal}\"? Esta acción no se puede deshacer.",
+            yesText: "Eliminar", cancelText: "Cancelar");
+        if (confirm != true) return;
+
+        var resp = await BitacoraApi.DeleteEvidenciaAsync(ev.Id);
+        if (resp?.Success == true)
+        {
+            _evidencias.Remove(ev);
+            _changed = true;
+            Snackbar.Add("Evidencia eliminada", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(resp?.Message ?? "Error al eliminar la evidencia", Severity.Error);
+        }
+    }
+
+    private async Task VerEvidenciaAsync(BitacoraEvidenciaModel ev)
+    {
+        var parameters = new DialogParameters<EvidenciaGaleriaDialog>
+        {
+            { x => x.Evidencias, _evidencias },
+            { x => x.IndiceInicial, _evidencias.IndexOf(ev) }
+        };
+        await Dialog.ShowAsync<EvidenciaGaleriaDialog>("Evidencia", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true });
+    }
+}

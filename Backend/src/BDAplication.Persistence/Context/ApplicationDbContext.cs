@@ -1,4 +1,5 @@
 using BDAplication.Domain.Entities;
+using BDAplication.Domain.Entities.Bitacora;
 using BDAplication.Domain.Entities.Finance;
 using BDAplication.Domain.Entities.SecureDoc;
 using BDAplication.Domain.Enums;
@@ -30,6 +31,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<Movement> Movements => Set<Movement>();
     public DbSet<Transfer> Transfers => Set<Transfer>();
     public DbSet<ReprocessLog> ReprocessLogs => Set<ReprocessLog>();
+
+    // Bitácora Diaria
+    public DbSet<Bitacora> Bitacoras => Set<Bitacora>();
+    public DbSet<BitacoraActividad> BitacoraActividades => Set<BitacoraActividad>();
+    public DbSet<BitacoraEvidencia> BitacoraEvidencias => Set<BitacoraEvidencia>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -217,6 +223,51 @@ public class ApplicationDbContext : DbContext
             e.Property(x => x.Description).HasMaxLength(300);
             e.Property(x => x.CreatedBy).HasMaxLength(50);
             e.HasIndex(x => x.Code).IsUnique();
+        });
+
+        // ── Bitácora Diaria ────────────────────────────────────────
+        modelBuilder.Entity<Bitacora>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.ToTable("Bitacoras");
+            e.Property(x => x.Observacion).HasMaxLength(1000);
+            e.Property(x => x.UserCreated).IsRequired().HasMaxLength(50);
+            e.Property(x => x.UserModified).HasMaxLength(50);
+            e.HasIndex(x => new { x.UserId, x.Fecha }).IsUnique();
+        });
+
+        modelBuilder.Entity<BitacoraActividad>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.ToTable("BitacoraActividades");
+            e.Property(x => x.HoraInicio).HasColumnType("time").IsRequired();
+            e.Property(x => x.HoraFin).HasColumnType("time").IsRequired();
+            e.Property(x => x.Descripcion).IsRequired().HasMaxLength(300);
+            e.Property(x => x.UserCreated).IsRequired().HasMaxLength(50);
+            e.Property(x => x.UserModified).HasMaxLength(50);
+            e.HasIndex(x => new { x.BitacoraId, x.HoraInicio });
+            e.HasOne(x => x.Bitacora)
+             .WithMany(b => b.Actividades)
+             .HasForeignKey(x => x.BitacoraId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<BitacoraEvidencia>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.ToTable("BitacoraEvidencias");
+            e.Property(x => x.NombreOriginal).IsRequired().HasMaxLength(255);
+            e.Property(x => x.NombreAlmacenado).IsRequired().HasMaxLength(100);
+            e.Property(x => x.BlobPath).IsRequired().HasMaxLength(500);
+            e.Property(x => x.Tipo).HasConversion<int>();
+            e.Property(x => x.ContentType).IsRequired().HasMaxLength(100);
+            e.Property(x => x.Extension).IsRequired().HasMaxLength(10);
+            e.Property(x => x.UserCreated).IsRequired().HasMaxLength(50);
+            e.HasIndex(x => x.BitacoraActividadId);
+            e.HasOne(x => x.Actividad)
+             .WithMany(a => a.Evidencias)
+             .HasForeignKey(x => x.BitacoraActividadId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
 
         // ── Attachments ──────────────────────────────────────────

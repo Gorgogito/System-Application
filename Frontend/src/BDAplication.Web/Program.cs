@@ -68,6 +68,9 @@ builder.Services.AddScoped<BDAplication.Web.Services.Finance.MovementApiService>
 builder.Services.AddScoped<BDAplication.Web.Services.Finance.AccountStatementApiService>();
 builder.Services.AddScoped<BDAplication.Web.Services.Finance.ReprocesarApiService>();
 
+// Bitácora Diaria
+builder.Services.AddScoped<BDAplication.Web.Services.Bitacora.BitacoraApiService>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

@@ -1,3 +1,4 @@
+using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
@@ -52,5 +53,53 @@ public class BlobStorageService : IBlobStorageService
 
         var uri = blob.GenerateSasUri(sasBuilder);
         return Task.FromResult(uri.ToString());
+    }
+
+    public async Task<string> GetSasUploadUrlAsync(string blobPath, TimeSpan expiry)
+    {
+        var container = _client.GetBlobContainerClient(_containerName);
+        await container.CreateIfNotExistsAsync(PublicAccessType.None);
+
+        var blob = container.GetBlobClient(blobPath);
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = _containerName,
+            BlobName = blobPath,
+            Resource = "b",
+            ExpiresOn = DateTimeOffset.UtcNow.Add(expiry)
+        };
+        sasBuilder.SetPermissions(BlobSasPermissions.Create | BlobSasPermissions.Write);
+
+        var uri = blob.GenerateSasUri(sasBuilder);
+        return uri.ToString();
+    }
+
+    public async Task<(long SizeBytes, byte[] Header)> GetBlobHeaderAsync(string blobPath, int headerBytes = 64)
+    {
+        var container = _client.GetBlobContainerClient(_containerName);
+        var blob = container.GetBlobClient(blobPath);
+
+        var props = await blob.GetPropertiesAsync();
+        var len = (int)Math.Min(headerBytes, props.Value.ContentLength);
+        var buffer = Array.Empty<byte>();
+
+        if (len > 0)
+        {
+            var download = await blob.DownloadStreamingAsync(new BlobDownloadOptions
+            {
+                Range = new HttpRange(0, len)
+            });
+            buffer = new byte[len];
+            await using var stream = download.Value.Content;
+            var offset = 0;
+            while (offset < len)
+            {
+                var read = await stream.ReadAsync(buffer.AsMemory(offset, len - offset));
+                if (read == 0) break;
+                offset += read;
+            }
+        }
+
+        return (props.Value.ContentLength, buffer);
     }
 }

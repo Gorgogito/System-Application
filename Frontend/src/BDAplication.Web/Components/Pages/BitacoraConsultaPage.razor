@@ -1,0 +1,102 @@
+@page "/bitacora/consulta"
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@using BDAplication.Web.Services.Bitacora
+@inject BitacoraApiService BitacoraApi
+@inject NavigationManager Nav
+@inject IUserTimeZoneService _tz
+@inject ISnackbar Snackbar
+
+<PageTitle>Consultar Bitácora</PageTitle>
+
+<MudStack Spacing="4">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudText Typo="Typo.h5">
+            <MudIcon Icon="@Icons.Material.Filled.Search" Class="mr-2"/>Consultar Bitácora
+        </MudText>
+        <MudButton Href="/bitacora" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.MenuBook">
+            Volver al día
+        </MudButton>
+    </MudStack>
+
+    <MudPaper Elevation="0" Class="pa-3 rounded-lg" Style="border:1px solid var(--mud-palette-lines-default)">
+        <MudStack Row="true" Spacing="3" Wrap="Wrap.Wrap" AlignItems="AlignItems.End">
+            <MudDatePicker Label="Desde" @bind-Date="_desde" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" Style="max-width:180px"/>
+            <MudDatePicker Label="Hasta" @bind-Date="_hasta" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" Style="max-width:180px"/>
+            <MudTextField @bind-Value="_texto" Label="Buscar texto" Variant="Variant.Outlined" Immediate="true"
+                          Class="flex-grow-1" Style="min-width:200px"/>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search"
+                       OnClick="BuscarAsync">
+                Buscar
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (_resultados.Count == 0)
+    {
+        <MudText Color="Color.Secondary" Class="text-center py-8" Style="display:block">
+            No se encontraron días con actividades en el rango seleccionado.
+        </MudText>
+    }
+    else
+    {
+        <MudList T="BitacoraResumenModel" Dense="false">
+            @foreach (var dia in _resultados)
+            {
+                <MudListItem T="BitacoraResumenModel" OnClick="() => IrAlDia(dia.Fecha)" Style="cursor:pointer">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.subtitle1"><b>@dia.Fecha.ToString("dddd dd/MM/yyyy")</b></MudText>
+                        <MudStack Row="true" Spacing="4">
+                            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.EventNote">@dia.TotalActividades actividad(es)</MudChip>
+                            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Image" Color="Color.Success">@dia.TotalImagenes</MudChip>
+                            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Videocam" Color="Color.Secondary">@dia.TotalVideos</MudChip>
+                        </MudStack>
+                    </MudStack>
+                </MudListItem>
+                <MudDivider/>
+            }
+        </MudList>
+    }
+</MudStack>
+
+@code {
+    private DateTime? _desde;
+    private DateTime? _hasta;
+    private string? _texto;
+    private bool _loading;
+    private List<BitacoraResumenModel> _resultados = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hasta = _tz.UserToday;
+        _desde = new DateTime(_hasta.Value.Year, _hasta.Value.Month, 1);
+        await BuscarAsync();
+    }
+
+    private async Task BuscarAsync()
+    {
+        if (_desde is null || _hasta is null) return;
+
+        _loading = true;
+        StateHasChanged();
+
+        var resp = await BitacoraApi.GetResumenAsync(_desde.Value, _hasta.Value, _texto);
+        if (resp?.Success == true)
+        {
+            _resultados = resp.Data ?? new();
+        }
+        else
+        {
+            _resultados = new();
+            Snackbar.Add(resp?.Message ?? "Error al consultar la bitácora", Severity.Error);
+        }
+
+        _loading = false;
+    }
+
+    private void IrAlDia(DateTime fecha) => Nav.NavigateTo($"/bitacora?fecha={fecha:yyyy-MM-dd}");
+}

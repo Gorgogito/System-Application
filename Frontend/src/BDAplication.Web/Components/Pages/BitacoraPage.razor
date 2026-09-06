@@ -1,0 +1,202 @@
+@page "/bitacora"
+@using BDAplication.Web.Components.Bitacora
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@using BDAplication.Web.Services.Bitacora
+@inject BitacoraApiService BitacoraApi
+@inject IDialogService Dialog
+@inject ISnackbar Snackbar
+@inject IUserTimeZoneService _tz
+
+<PageTitle>Bitácora Diaria</PageTitle>
+
+<MudStack Spacing="4">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudText Typo="Typo.h5">
+            <MudIcon Icon="@Icons.Material.Filled.MenuBook" Class="mr-2"/>Bitácora Diaria
+        </MudText>
+        <MudButton Href="/bitacora/consulta" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Search">
+            Consultar
+        </MudButton>
+    </MudStack>
+
+    <MudPaper Elevation="0" Class="pa-3 rounded-lg d-flex align-center" Style="border:1px solid var(--mud-palette-lines-default);gap:8px">
+        <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="() => CambiarDiaAsync(-1)"/>
+        <MudDatePicker Date="_fecha" DateChanged="OnFechaChangedAsync" Variant="Variant.Text"
+                       DateFormat="dddd dd/MM/yyyy" Editable="false" Class="flex-grow-1" Style="max-width:280px"/>
+        <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="() => CambiarDiaAsync(1)"/>
+        <MudSpacer/>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="NuevaActividadAsync" Disabled="@(_bitacora is null)">
+            Nueva actividad
+        </MudButton>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary"/>
+    }
+    else if (_bitacora != null)
+    {
+        <MudPaper Elevation="0" Class="pa-3 rounded-lg" Style="border:1px solid var(--mud-palette-lines-default)">
+            <MudTextField @bind-Value="_observacion" Label="Observación del día" Variant="Variant.Outlined"
+                          Lines="2" MaxLength="1000" Immediate="false" OnBlur="GuardarObservacionAsync"/>
+        </MudPaper>
+
+        @if (_bitacora.Actividades.Count == 0)
+        {
+            <MudText Color="Color.Secondary" Class="text-center py-8" Style="display:block">
+                Sin actividades registradas este día.
+            </MudText>
+        }
+        else
+        {
+            <MudTimeline TimelinePosition="TimelinePosition.Start">
+                @foreach (var act in _bitacora.Actividades.OrderBy(a => a.HoraInicio))
+                {
+                    <MudTimelineItem Color="Color.Primary" Size="Size.Small">
+                        <MudPaper Elevation="1" Class="pa-3 rounded-lg">
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+                                <MudStack Spacing="1" Style="min-width:0">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Primary"><b>@act.RangoHorario</b></MudText>
+                                    <MudText Typo="Typo.body1" Style="word-break:break-word">@act.Descripcion</MudText>
+                                    @if (act.Evidencias.Count > 0)
+                                    {
+                                        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Class="mt-1">
+                                            @foreach (var ev in act.Evidencias)
+                                            {
+                                                <MudChip T="string" Size="Size.Small"
+                                                         Icon="@(ev.IsVideo ? Icons.Material.Filled.Videocam : Icons.Material.Filled.Image)"
+                                                         OnClick="() => VerEvidenciaAsync(act, ev)">
+                                                    @ev.NombreOriginal
+                                                </MudChip>
+                                            }
+                                        </MudStack>
+                                    }
+                                </MudStack>
+                                <MudStack Row="true" Spacing="0" Style="flex-shrink:0">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                   OnClick="() => EditarActividadAsync(act)"/>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                   OnClick="() => EliminarActividadAsync(act)"/>
+                                </MudStack>
+                            </MudStack>
+                        </MudPaper>
+                    </MudTimelineItem>
+                }
+            </MudTimeline>
+        }
+    }
+</MudStack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "fecha")]
+    public string? FechaQuery { get; set; }
+
+    private DateTime _fecha;
+    private BitacoraModel? _bitacora;
+    private string _observacion = string.Empty;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _fecha = DateTime.TryParse(FechaQuery, out var parsed) ? parsed.Date : _tz.UserToday;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        var resp = await BitacoraApi.GetByFechaAsync(_fecha);
+        if (resp?.Success == true && resp.Data != null)
+        {
+            _bitacora = resp.Data;
+            _observacion = _bitacora.Observacion;
+        }
+        else
+        {
+            _bitacora = null;
+            Snackbar.Add(resp?.Message ?? "No se pudo cargar la bitácora del día", Severity.Error);
+        }
+
+        _loading = false;
+    }
+
+    private async Task OnFechaChangedAsync(DateTime? fecha)
+    {
+        if (!fecha.HasValue) return;
+        _fecha = fecha.Value.Date;
+        await LoadAsync();
+    }
+
+    private async Task CambiarDiaAsync(int delta)
+    {
+        _fecha = _fecha.AddDays(delta);
+        await LoadAsync();
+    }
+
+    private async Task GuardarObservacionAsync()
+    {
+        if (_bitacora == null) return;
+        var resp = await BitacoraApi.UpdateObservacionAsync(_bitacora.Id, new UpdateBitacoraRequest { Observacion = _observacion });
+        if (resp?.Success != true)
+            Snackbar.Add(resp?.Message ?? "Error al guardar la observación", Severity.Error);
+    }
+
+    private async Task NuevaActividadAsync()
+    {
+        if (_bitacora == null) return;
+        var parameters = new DialogParameters<ActividadDialog> { { x => x.BitacoraId, _bitacora.Id } };
+        var dlg = await Dialog.ShowAsync<ActividadDialog>("Nueva Actividad", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dlg.Result;
+        if (result is { Canceled: false, Data: true })
+            await LoadAsync();
+    }
+
+    private async Task EditarActividadAsync(BitacoraActividadModel actividad)
+    {
+        var parameters = new DialogParameters<ActividadDialog>
+        {
+            { x => x.BitacoraId, actividad.BitacoraId },
+            { x => x.Actividad, actividad }
+        };
+        var dlg = await Dialog.ShowAsync<ActividadDialog>("Editar Actividad", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dlg.Result;
+        if (result is { Canceled: false, Data: true })
+            await LoadAsync();
+    }
+
+    private async Task EliminarActividadAsync(BitacoraActividadModel actividad)
+    {
+        var confirm = await Dialog.ShowMessageBox("Confirmar eliminación",
+            $"¿Eliminar la actividad \"{actividad.Descripcion}\" ({actividad.RangoHorario})? Se eliminarán también sus evidencias.",
+            yesText: "Eliminar", cancelText: "Cancelar");
+        if (confirm != true) return;
+
+        var resp = await BitacoraApi.DeleteActividadAsync(actividad.Id);
+        if (resp?.Success == true)
+        {
+            Snackbar.Add("Actividad eliminada", Severity.Success);
+            await LoadAsync();
+        }
+        else
+        {
+            Snackbar.Add(resp?.Message ?? "Error al eliminar la actividad", Severity.Error);
+        }
+    }
+
+    private async Task VerEvidenciaAsync(BitacoraActividadModel actividad, BitacoraEvidenciaModel evidencia)
+    {
+        var parameters = new DialogParameters<EvidenciaGaleriaDialog>
+        {
+            { x => x.Evidencias, actividad.Evidencias },
+            { x => x.IndiceInicial, actividad.Evidencias.IndexOf(evidencia) }
+        };
+        await Dialog.ShowAsync<EvidenciaGaleriaDialog>("Evidencia", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true });
+    }
+}

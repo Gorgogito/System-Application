@@ -1,18 +1,22 @@
 using BDAplication.Application.Interfaces;
+using BDAplication.Application.Interfaces.Bitacora;
 using BDAplication.Application.Interfaces.Finance;
 using BDAplication.Application.Interfaces.SecureDoc;
 using BDAplication.Application.Interfaces.TaskBoard;
 using BDAplication.Application.Interfaces.TaskPlanner;
 using BDAplication.Application.Services;
+using BDAplication.Application.Services.Bitacora;
 using BDAplication.Application.Services.Finance;
 using BDAplication.Application.Services.SecureDoc;
 using BDAplication.Application.Services.TaskBoard;
 using BDAplication.Application.Services.TaskPlanner;
 using BDAplication.Domain.Interfaces;
+using BDAplication.Domain.Interfaces.Bitacora;
 using BDAplication.Domain.Interfaces.Finance;
 using BDAplication.Domain.Interfaces.SecureDoc;
 using BDAplication.Persistence.Context;
 using BDAplication.Persistence.Repositories;
+using BDAplication.Persistence.Repositories.Bitacora;
 using BDAplication.Persistence.Repositories.Finance;
 using BDAplication.Persistence.Repositories.SecureDoc;
 using BDAplication.Persistence.Repositories.TaskBoard;
@@ -75,6 +79,10 @@ public static class PersistenceExtensions
         // Documentos Seguros
         services.AddScoped<ISecureDocumentRepository, SecureDocumentRepository>();
         services.AddScoped<ISecureDocumentService, SecureDocumentService>();
+
+        // Bitácora Diaria
+        services.AddScoped<IBitacoraRepository, BitacoraRepository>();
+        services.AddScoped<IBitacoraService, BitacoraService>();
 
         return services;
     }

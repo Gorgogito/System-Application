@@ -1,0 +1,99 @@
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services.Bitacora
+@inject BitacoraApiService BitacoraApi
+@inject IJSRuntime JS
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6" Style="word-break:break-all">@Actual?.NombreOriginal</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="Prev" Disabled="@(_indice <= 0)"/>
+            <div style="flex-grow:1;text-align:center;min-height:280px;display:flex;align-items:center;justify-content:center">
+                @if (_loading)
+                {
+                    <MudProgressCircular Indeterminate="true"/>
+                }
+                else if (_url != null && Actual != null)
+                {
+                    @if (Actual.IsVideo)
+                    {
+                        <video controls style="max-width:100%;max-height:60vh" src="@_url"></video>
+                    }
+                    else
+                    {
+                        <img src="@_url" style="max-width:100%;max-height:60vh" alt="@Actual.NombreOriginal"/>
+                    }
+                }
+                else
+                {
+                    <MudText Color="Color.Secondary">No se pudo cargar la evidencia</MudText>
+                }
+            </div>
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="Next" Disabled="@(_indice >= Evidencias.Count - 1)"/>
+        </MudStack>
+        @if (Actual != null)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2" Style="display:block;text-align:center">
+                @Actual.TamanoDisplay · @(_indice + 1) de @Evidencias.Count
+            </MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Descargar" StartIcon="@Icons.Material.Filled.Download" Disabled="@(_url is null)">Descargar</MudButton>
+        <MudButton OnClick="Cerrar" Variant="Variant.Filled" Color="Color.Primary">Cerrar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public List<BitacoraEvidenciaModel> Evidencias { get; set; } = new();
+    [Parameter] public int IndiceInicial { get; set; }
+
+    private int _indice;
+    private string? _url;
+    private bool _loading;
+
+    private BitacoraEvidenciaModel? Actual => _indice >= 0 && _indice < Evidencias.Count ? Evidencias[_indice] : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _indice = Math.Clamp(IndiceInicial, 0, Math.Max(0, Evidencias.Count - 1));
+        await LoadUrlAsync();
+    }
+
+    private async Task LoadUrlAsync()
+    {
+        if (Actual == null) return;
+        _loading = true;
+        _url = null;
+        StateHasChanged();
+
+        var resp = await BitacoraApi.GetEvidenciaUrlAsync(Actual.Id);
+        _url = resp?.Success == true ? resp.Data : null;
+        _loading = false;
+    }
+
+    private async Task Prev()
+    {
+        if (_indice <= 0) return;
+        _indice--;
+        await LoadUrlAsync();
+    }
+
+    private async Task Next()
+    {
+        if (_indice >= Evidencias.Count - 1) return;
+        _indice++;
+        await LoadUrlAsync();
+    }
+
+    private async Task Descargar()
+    {
+        if (_url != null)
+            await JS.InvokeVoidAsync("bitacora.openInNewTab", _url);
+    }
+
+    private void Cerrar() => MudDialog.Close();
+}
