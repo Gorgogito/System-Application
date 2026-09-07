@@ -257,6 +257,43 @@ al arrancar la API (`DbSeeder.SeedAsync` → `Database.MigrateAsync()`), confirm
 `/swagger/index.html` respondió 200 después del despliegue (si la migración hubiese
 fallado, la API no habría arrancado).
 
+### Fixes post-despliegue (2026-09-07)
+
+**Bug 1 — "Failed to fetch" al subir video:** la cuenta de Blob Storage
+(`taskplannerstorage`) no tenía ninguna regla CORS configurada. Como el video se sube
+directo desde el navegador a Blob Storage (SAS de escritura, para evitar el límite de
+10 MB del servidor — ver más arriba), el navegador bloqueaba el `PUT` entre orígenes
+distintos. **Fix (infraestructura, sin cambio de código):**
+`az storage cors add --account-name taskplannerstorage --services b` permitiendo
+`GET/PUT/POST/OPTIONS/HEAD` desde el dominio de producción de `TaskPlanner` y los
+orígenes de `localhost` de desarrollo. Sin este fix, **cualquier** subida directa a Blob
+desde el navegador (no solo Bitácora) fallaría igual.
+
+**Bug 2 — pantalla de error genérica intermitente ("An error occurred while processing
+your request") al usar Bitácora:** causa raíz en `Frontend/Services/ApiService.cs` —
+`GetAsync<T>` usaba `HttpClient.GetFromJsonAsync`, que internamente llama
+`EnsureSuccessStatusCode()` y **lanza una excepción** ante cualquier respuesta no-2xx
+(401, 404, 500, etc.), en vez de devolver el `ApiResponse<T>.Fail(...)` que el backend sí
+envía en el cuerpo. Los demás métodos (`PostAsync`, `PutAsync`, `DeleteAsync`,
+`PatchAsync`) ya leían el contenido manualmente sin lanzar — `GetAsync` era la excepción
+al patrón. Como ninguna página nueva de Bitácora envolvía sus llamadas iniciales en
+`try/catch` (siguiendo el patrón `try/finally` — sin `catch`— ya usado en el resto del
+sistema, ej. `TaskBoard.razor`), cualquier fallo transitorio del backend durante un `GET`
+(frío arranque de `TaskPlannerApi`, token expirado, etc.) tumbaba el circuito de Blazor
+Server completo. **Este bug preexistía en toda la app** (afecta cualquier página que use
+`GetAsync<T>`), pero se manifestaba más en Bitácora por ser la pantalla con más llamadas
+GET por sesión (cambio de fecha, ver evidencias). **Fix:**
+1. `ApiService.GetAsync<T>` corregido para leer la respuesta manualmente (igual que
+   Post/Put/Delete/Patch) — beneficia a toda la app, no solo a Bitácora.
+2. Se agregó `try/catch` real (no solo `try/finally`) alrededor de las llamadas a la API
+   en `BitacoraPage`, `BitacoraConsultaPage`, `ActividadDialog` y
+   `EvidenciaGaleriaDialog`, para que un error de conectividad real (no solo un status
+   code) muestre un `Snackbar` en vez de tumbar el circuito. **Nota:** el resto de páginas
+   del sistema (TaskBoard, Finance, etc.) siguen con el patrón `try/finally` sin `catch`
+   — comparten la misma vulnerabilidad residual ante errores de conectividad pura (no de
+   status code, ya cubierto por el fix de `ApiService`). No se tocaron porque estaba
+   fuera del alcance de este reporte de bug.
+
 ### Pendiente / no implementado en esta iteración
 
 - Exportación de la bitácora a PDF/Excel (se decidió no construirlo sin que se pida

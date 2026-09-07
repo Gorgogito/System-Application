@@ -109,19 +109,29 @@
         _loading = true;
         StateHasChanged();
 
-        var resp = await BitacoraApi.GetByFechaAsync(_fecha);
-        if (resp?.Success == true && resp.Data != null)
+        try
         {
-            _bitacora = resp.Data;
-            _observacion = _bitacora.Observacion;
+            var resp = await BitacoraApi.GetByFechaAsync(_fecha);
+            if (resp?.Success == true && resp.Data != null)
+            {
+                _bitacora = resp.Data;
+                _observacion = _bitacora.Observacion;
+            }
+            else
+            {
+                _bitacora = null;
+                Snackbar.Add(resp?.Message ?? "No se pudo cargar la bitácora del día", Severity.Error);
+            }
         }
-        else
+        catch (Exception)
         {
             _bitacora = null;
-            Snackbar.Add(resp?.Message ?? "No se pudo cargar la bitácora del día", Severity.Error);
+            Snackbar.Add("No se pudo conectar con el servidor. Intenta de nuevo.", Severity.Error);
         }
-
-        _loading = false;
+        finally
+        {
+            _loading = false;
+        }
     }
 
     private async Task OnFechaChangedAsync(DateTime? fecha)
@@ -140,9 +150,16 @@
     private async Task GuardarObservacionAsync()
     {
         if (_bitacora == null) return;
-        var resp = await BitacoraApi.UpdateObservacionAsync(_bitacora.Id, new UpdateBitacoraRequest { Observacion = _observacion });
-        if (resp?.Success != true)
-            Snackbar.Add(resp?.Message ?? "Error al guardar la observación", Severity.Error);
+        try
+        {
+            var resp = await BitacoraApi.UpdateObservacionAsync(_bitacora.Id, new UpdateBitacoraRequest { Observacion = _observacion });
+            if (resp?.Success != true)
+                Snackbar.Add(resp?.Message ?? "Error al guardar la observación", Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("No se pudo conectar con el servidor. Intenta de nuevo.", Severity.Error);
+        }
     }
 
     private async Task NuevaActividadAsync()
@@ -177,15 +194,22 @@
             yesText: "Eliminar", cancelText: "Cancelar");
         if (confirm != true) return;
 
-        var resp = await BitacoraApi.DeleteActividadAsync(actividad.Id);
-        if (resp?.Success == true)
+        try
         {
-            Snackbar.Add("Actividad eliminada", Severity.Success);
-            await LoadAsync();
+            var resp = await BitacoraApi.DeleteActividadAsync(actividad.Id);
+            if (resp?.Success == true)
+            {
+                Snackbar.Add("Actividad eliminada", Severity.Success);
+                await LoadAsync();
+            }
+            else
+            {
+                Snackbar.Add(resp?.Message ?? "Error al eliminar la actividad", Severity.Error);
+            }
         }
-        else
+        catch (Exception)
         {
-            Snackbar.Add(resp?.Message ?? "Error al eliminar la actividad", Severity.Error);
+            Snackbar.Add("No se pudo conectar con el servidor. Intenta de nuevo.", Severity.Error);
         }
     }
 

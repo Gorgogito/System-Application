@@ -9,8 +9,11 @@ public class ApiService
 
     public ApiService(HttpClient http) => _http = http;
 
-    protected async Task<ApiResponse<T>?> GetAsync<T>(string url) =>
-        await _http.GetFromJsonAsync<ApiResponse<T>>(url);
+    protected async Task<ApiResponse<T>?> GetAsync<T>(string url)
+    {
+        var response = await _http.GetAsync(url);
+        return await response.Content.ReadFromJsonAsync<ApiResponse<T>>();
+    }
 
     protected async Task<ApiResponse<T>?> PostAsync<T>(string url, object body)
     {

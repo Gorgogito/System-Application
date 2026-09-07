@@ -84,18 +84,28 @@
         _loading = true;
         StateHasChanged();
 
-        var resp = await BitacoraApi.GetResumenAsync(_desde.Value, _hasta.Value, _texto);
-        if (resp?.Success == true)
+        try
         {
-            _resultados = resp.Data ?? new();
+            var resp = await BitacoraApi.GetResumenAsync(_desde.Value, _hasta.Value, _texto);
+            if (resp?.Success == true)
+            {
+                _resultados = resp.Data ?? new();
+            }
+            else
+            {
+                _resultados = new();
+                Snackbar.Add(resp?.Message ?? "Error al consultar la bitácora", Severity.Error);
+            }
         }
-        else
+        catch (Exception)
         {
             _resultados = new();
-            Snackbar.Add(resp?.Message ?? "Error al consultar la bitácora", Severity.Error);
+            Snackbar.Add("No se pudo conectar con el servidor. Intenta de nuevo.", Severity.Error);
         }
-
-        _loading = false;
+        finally
+        {
+            _loading = false;
+        }
     }
 
     private void IrAlDia(DateTime fecha) => Nav.NavigateTo($"/bitacora?fecha={fecha:yyyy-MM-dd}");

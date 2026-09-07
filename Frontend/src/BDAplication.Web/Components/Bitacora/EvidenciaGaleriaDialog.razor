@@ -70,9 +70,19 @@
         _url = null;
         StateHasChanged();
 
-        var resp = await BitacoraApi.GetEvidenciaUrlAsync(Actual.Id);
-        _url = resp?.Success == true ? resp.Data : null;
-        _loading = false;
+        try
+        {
+            var resp = await BitacoraApi.GetEvidenciaUrlAsync(Actual.Id);
+            _url = resp?.Success == true ? resp.Data : null;
+        }
+        catch (Exception)
+        {
+            _url = null;
+        }
+        finally
+        {
+            _loading = false;
+        }
     }
 
     private async Task Prev()

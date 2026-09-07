@@ -136,19 +136,26 @@
         var fin = TimeOnly.FromTimeSpan(_horaFin.Value);
         _error = null;
 
-        if (IsEdit)
+        try
         {
-            var resp = await BitacoraApi.UpdateActividadAsync(Actividad!.Id,
-                new UpdateActividadRequest { Id = Actividad.Id, HoraInicio = inicio, HoraFin = fin, Descripcion = _descripcion });
-            if (resp?.Success == true) { Snackbar.Add("Actividad actualizada", Severity.Success); MudDialog.Close(DialogResult.Ok(true)); }
-            else _error = resp?.Message ?? "Error al actualizar la actividad";
+            if (IsEdit)
+            {
+                var resp = await BitacoraApi.UpdateActividadAsync(Actividad!.Id,
+                    new UpdateActividadRequest { Id = Actividad.Id, HoraInicio = inicio, HoraFin = fin, Descripcion = _descripcion });
+                if (resp?.Success == true) { Snackbar.Add("Actividad actualizada", Severity.Success); MudDialog.Close(DialogResult.Ok(true)); }
+                else _error = resp?.Message ?? "Error al actualizar la actividad";
+            }
+            else
+            {
+                var resp = await BitacoraApi.CreateActividadAsync(
+                    new CreateActividadRequest { BitacoraId = BitacoraId, HoraInicio = inicio, HoraFin = fin, Descripcion = _descripcion });
+                if (resp?.Success == true) { Snackbar.Add("Actividad creada", Severity.Success); MudDialog.Close(DialogResult.Ok(true)); }
+                else _error = resp?.Message ?? "Error al crear la actividad";
+            }
         }
-        else
+        catch (Exception)
         {
-            var resp = await BitacoraApi.CreateActividadAsync(
-                new CreateActividadRequest { BitacoraId = BitacoraId, HoraInicio = inicio, HoraFin = fin, Descripcion = _descripcion });
-            if (resp?.Success == true) { Snackbar.Add("Actividad creada", Severity.Success); MudDialog.Close(DialogResult.Ok(true)); }
-            else _error = resp?.Message ?? "Error al crear la actividad";
+            _error = "No se pudo conectar con el servidor. Intenta de nuevo.";
         }
     }
 
@@ -238,16 +245,23 @@
             yesText: "Eliminar", cancelText: "Cancelar");
         if (confirm != true) return;
 
-        var resp = await BitacoraApi.DeleteEvidenciaAsync(ev.Id);
-        if (resp?.Success == true)
+        try
         {
-            _evidencias.Remove(ev);
-            _changed = true;
-            Snackbar.Add("Evidencia eliminada", Severity.Success);
+            var resp = await BitacoraApi.DeleteEvidenciaAsync(ev.Id);
+            if (resp?.Success == true)
+            {
+                _evidencias.Remove(ev);
+                _changed = true;
+                Snackbar.Add("Evidencia eliminada", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(resp?.Message ?? "Error al eliminar la evidencia", Severity.Error);
+            }
         }
-        else
+        catch (Exception)
         {
-            Snackbar.Add(resp?.Message ?? "Error al eliminar la evidencia", Severity.Error);
+            Snackbar.Add("No se pudo conectar con el servidor. Intenta de nuevo.", Severity.Error);
         }
     }
 
