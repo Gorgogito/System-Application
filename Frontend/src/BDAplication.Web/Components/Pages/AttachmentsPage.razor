@@ -15,13 +15,13 @@
 @inject IUserTimeZoneService _tz
 
 <style>
-    .att-type-image { color:#2e7d32; }
-    .att-type-pdf   { color:#c62828; }
-    .att-type-other { color:#616161; }
+    .att-type-image { color: var(--mud-palette-success); }
+    .att-type-pdf   { color: var(--mud-palette-error); }
+    .att-type-other { color: var(--mud-palette-text-secondary); }
     .att-group-header { display:flex; align-items:center; gap:12px; }
-    .att-group-badge  { background:rgba(25,118,210,.12); color:#1976d2; border-radius:12px;
+    .att-group-badge  { background: var(--ds-primary-lt); color: var(--ds-primary); border-radius:12px;
                         padding:2px 10px; font-size:.78rem; font-weight:600; }
-    .att-no-date .att-group-badge { background:rgba(120,120,120,.12); color:#757575; }
+    .att-no-date .att-group-badge { background: var(--mud-palette-action-disabled); color: var(--mud-palette-text-secondary); }
 </style>
 
 <!-- Encabezado -->
@@ -98,7 +98,7 @@ else
                         <span class="att-group-badge">@g.Items.Count documento(s)</span>
                         @if (g.TotalAmount > 0)
                         {
-                            <span class="att-group-badge" style="background:rgba(46,125,50,.12);color:#2e7d32">
+                            <span class="att-group-badge" style="background:var(--ds-success-lt);color:var(--mud-palette-success)">
                                 S/ @g.TotalAmount.ToString("N2")
                             </span>
                         }

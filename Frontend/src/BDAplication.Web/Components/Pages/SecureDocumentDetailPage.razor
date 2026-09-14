@@ -27,20 +27,20 @@
         border-radius: var(--ds-radius);
         min-height: 500px;
     }
-    /* Toolbar siempre con fondo claro independientemente del tema (como MS Word) */
+    /* Toolbar y editor se adaptan al tema (--ds-*), igual que el resto de la app */
     .sdoc-toolbar {
         display: flex;
         flex-wrap: wrap;
         gap: 2px;
         padding: 6px 10px;
         border-radius: var(--ds-radius) var(--ds-radius) 0 0;
-        border: 1px solid #d1d5db;
+        border: 1px solid var(--ds-border);
         border-bottom: 2px solid var(--ds-primary);
-        background: #f4f6f9;
+        background: var(--mud-palette-background-gray);
     }
     .sdoc-toolbar-sep {
         width: 1px;
-        background: #c8cdd6;
+        background: var(--ds-border);
         margin: 2px 6px;
         align-self: stretch;
     }
@@ -49,34 +49,33 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: .06em;
-        color: #6b7280;
+        color: var(--ds-text-2);
         align-self: center;
         padding: 0 4px;
         white-space: nowrap;
     }
     .sdoc-toolbar select {
-        border: 1px solid #c8cdd6;
+        border: 1px solid var(--ds-border);
         border-radius: 4px;
         padding: 2px 6px;
         font-size: .8rem;
-        background: white;
-        color: #374151;
+        background: var(--ds-surface);
+        color: var(--ds-text);
         height: 28px;
         cursor: pointer;
     }
-    .sdoc-toolbar select:hover { border-color: #9ca3af; }
+    .sdoc-toolbar select:hover { border-color: var(--ds-text-2); }
     .sdoc-toolbar input[type=color] {
         width: 28px; height: 28px;
-        border: 2px solid #c8cdd6;
+        border: 2px solid var(--ds-border);
         border-radius: 4px;
         padding: 1px;
         cursor: pointer;
-        background: white;
+        background: var(--ds-surface);
     }
-    .sdoc-toolbar input[type=color]:hover { border-color: #6b7280; }
-    /* Iconos siempre oscuros dentro de la toolbar */
+    .sdoc-toolbar input[type=color]:hover { border-color: var(--ds-text-2); }
     .sdoc-toolbar .mud-icon-button {
-        color: #374151 !important;
+        color: var(--ds-text) !important;
         border-radius: 4px !important;
         width: 28px !important;
         height: 28px !important;
@@ -84,15 +83,15 @@
         padding: 4px !important;
     }
     .sdoc-toolbar .mud-icon-button:hover {
-        background: rgba(55,65,81,.13) !important;
-        color: #111827 !important;
+        background: var(--mud-palette-action-default-hover) !important;
+        color: var(--ds-text) !important;
     }
     .sdoc-toolbar .mud-icon-button:active {
-        background: rgba(55,65,81,.25) !important;
+        background: rgba(128,128,128,.25) !important;
     }
     .sdoc-toolbar .mud-icon-button.sdoc-btn-active {
-        background: rgba(21,101,192,.15) !important;
-        color: #1565c0 !important;
+        background: var(--ds-primary-lt) !important;
+        color: var(--ds-primary) !important;
     }
     .sdoc-editor {
         min-height: 500px;
@@ -100,8 +99,8 @@
         border: 1px solid var(--ds-border);
         border-top: none;
         border-radius: 0 0 var(--ds-radius) var(--ds-radius);
-        background: white;
-        color: #1a1a1a;
+        background: var(--ds-surface);
+        color: var(--ds-text);
         font-family: 'Calibri', 'Georgia', serif;
         font-size: 11pt;
         line-height: 1.6;
@@ -110,7 +109,7 @@
     }
     .sdoc-editor:focus { outline: none; }
     .sdoc-editor table { border-collapse: collapse; width: 100%; }
-    .sdoc-editor td, .sdoc-editor th { border: 1px solid #bbb; padding: 6px 10px; min-width: 80px; }
+    .sdoc-editor td, .sdoc-editor th { border: 1px solid var(--ds-border); padding: 6px 10px; min-width: 80px; }
     .sdoc-encrypted-view {
         padding: 32px;
         border: 1px solid var(--ds-border);
@@ -149,7 +148,7 @@
     .sdoc-version-card:hover { background: var(--ds-bg); }
     .sdoc-version-card.active {
         border-left: 3px solid var(--ds-primary);
-        background: rgba(21,101,192,.07);
+        background: var(--ds-primary-lt);
     }
     .sdoc-version-number {
         font-size: .68rem;
@@ -180,8 +179,8 @@
     .sdoc-readonly-doc {
         min-height: 400px;
         padding: 48px 64px;
-        background: white;
-        color: #1a1a1a;
+        background: var(--ds-surface);
+        color: var(--ds-text);
         font-family: 'Calibri','Georgia',serif;
         font-size: 11pt;
         line-height: 1.6;

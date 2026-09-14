@@ -64,8 +64,24 @@ public class UserService : IUserService
         return ToDto(withRole);
     }
 
+    public async Task<UserDto> UpdateThemePreferenceAsync(int userId, string? themePreference)
+    {
+        if (themePreference is not (null or "Light" or "Dark" or "System"))
+            throw new ArgumentException("Preferencia de tema inválida. Use Light, Dark o System.");
+
+        var user = await _repo.GetByIdAsync(userId)
+            ?? throw new KeyNotFoundException($"User {userId} not found");
+
+        user.ThemePreference = themePreference;
+        await _repo.UpdateAsync(user);
+
+        var withRole = await _repo.GetByIdWithRoleAsync(userId)
+            ?? throw new InvalidOperationException("User updated but not retrievable");
+        return ToDto(withRole);
+    }
+
     public async Task<bool> DeleteAsync(int id) => await _repo.DeleteAsync(id);
 
     private static UserDto ToDto(User u) =>
-        new(u.Id, u.Username, u.FullName, u.Email, u.RoleId, u.Role?.Name ?? "", u.IsActive, u.CreatedAt);
+        new(u.Id, u.Username, u.FullName, u.Email, u.RoleId, u.Role?.Name ?? "", u.IsActive, u.CreatedAt, u.ThemePreference);
 }

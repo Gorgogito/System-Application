@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BDAplication.Application.DTOs;
 using BDAplication.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -70,6 +71,16 @@ public class MasterController : ControllerBase
         var deleted = await _users.DeleteAsync(id);
         if (!deleted) return NotFound(ApiResponse<object>.Fail("User not found"));
         return Ok(ApiResponse<object>.Ok(null!, "User deleted successfully"));
+    }
+
+    /// <summary>Actualiza la preferencia de tema (claro/oscuro/sistema) del usuario autenticado</summary>
+    [HttpPut("updatetheme")]
+    [Authorize]
+    public async Task<IActionResult> UpdateTheme([FromBody] UpdateThemePreferenceRequest request)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var user = await _users.UpdateThemePreferenceAsync(userId, request.ThemePreference);
+        return Ok(ApiResponse<UserDto>.Ok(user, "Theme preference updated"));
     }
 
     // ── Roles ──────────────────────────────────────────────────────

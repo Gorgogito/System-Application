@@ -1,10 +1,16 @@
 @inherits LayoutComponentBase
 @using BDAplication.Web.Authentication
+@using BDAplication.Web.Components.Shared
 @using BDAplication.Web.Helpers
 @using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@using Microsoft.AspNetCore.Http
 @inject JwtAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 @inject IBrowserViewportService BrowserViewportService
+@inject IHttpContextAccessor HttpContextAccessor
+@inject UserApiService UserApi
+@inject IJSRuntime JS
 @implements IBrowserViewportObserver
 @implements IAsyncDisposable
 
@@ -23,11 +29,7 @@
                        OnClick="ToggleDrawer" />
         <MudText Typo="Typo.h6" Class="ml-2">BDAplication</MudText>
         <MudSpacer />
-        <MudTooltip Text="@(_isDark ? "Modo claro" : "Modo oscuro")">
-            <MudIconButton Icon="@(_isDark ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
-                           Color="Color.Inherit"
-                           OnClick="ToggleTheme" />
-        </MudTooltip>
+        <ThemeToggle Mode="_themeMode" IsDark="_isDark" ModeChanged="OnThemeModeChanged" />
         <MudTooltip Text="Cerrar sesión">
             <MudIconButton Icon="@Icons.Material.Filled.Logout"
                            Color="Color.Inherit"
@@ -43,117 +45,112 @@
                Color="Color.Dark">
 
         <!-- Perfil del usuario -->
-        <div style="padding: 20px 16px 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.12);">
+        <div class="app-drawer-profile">
             <MudStack AlignItems="AlignItems.Center" Spacing="1">
-                <MudAvatar Color="Color.Primary"
-                           Style="width:52px;height:52px;font-size:1.4rem;font-weight:bold;">
+                <MudAvatar Color="Color.Primary" Class="app-drawer-avatar">
                     @_inicial
                 </MudAvatar>
-                <MudText Typo="Typo.subtitle2"
-                         Style="color:white;font-weight:600;text-align:center;margin-top:6px;">
+                <MudText Typo="Typo.subtitle2" Class="app-drawer-username">
                     @(_currentUser?.FullName ?? "Cargando...")
                 </MudText>
-                <MudChip T="string"
-                         Color="Color.Primary"
-                         Size="Size.Small"
-                         Style="margin-top:2px;">
+                <MudChip T="string" Color="Color.Primary" Size="Size.Small" Class="mt-1">
                     @(_currentRole?.Name ?? "---")
                 </MudChip>
             </MudStack>
         </div>
 
         <!-- Menú de navegación -->
-        <MudNavMenu Color="Color.Primary" Style="margin-top:8px;">
+        <MudNavMenu Color="Color.Primary" Class="app-nav-menu">
             <MudNavLink Href="/dashboard"
                         Icon="@Icons.Material.Filled.Dashboard"
                         Match="NavLinkMatch.All"
-                        Style="color:rgba(255,255,255,0.85);"
+                        Class="app-nav-link"
                         OnClick="CloseDrawerOnMobile">
                 Dashboard
             </MudNavLink>
             <MudNavLink Href="/users"
                         Icon="@Icons.Material.Filled.People"
-                        Style="color:rgba(255,255,255,0.85);"
+                        Class="app-nav-link"
                         OnClick="CloseDrawerOnMobile">
                 Usuarios
             </MudNavLink>
             <MudNavLink Href="/roles"
                         Icon="@Icons.Material.Filled.AdminPanelSettings"
-                        Style="color:rgba(255,255,255,0.85);"
+                        Class="app-nav-link"
                         OnClick="CloseDrawerOnMobile">
                 Roles
             </MudNavLink>
-            <MudDivider Class="my-1" Style="border-color:rgba(255,255,255,0.15)" />
+            <MudDivider Class="my-1 app-nav-divider" />
             <MudNavLink Href="/taskplanner"
                         Icon="@Icons.Material.Filled.CalendarMonth"
-                        Style="color:rgba(255,255,255,0.85);"
+                        Class="app-nav-link"
                         OnClick="CloseDrawerOnMobile">
                 Task Planner
             </MudNavLink>
             <MudNavLink Href="/taskboard"
                         Icon="@Icons.Material.Filled.ViewKanban"
-                        Style="color:rgba(255,255,255,0.85);"
+                        Class="app-nav-link"
                         OnClick="CloseDrawerOnMobile">
                 Task Board
             </MudNavLink>
             <MudNavLink Href="/bitacora"
                         Icon="@Icons.Material.Filled.MenuBook"
-                        Style="color:rgba(255,255,255,0.85);"
+                        Class="app-nav-link"
                         OnClick="CloseDrawerOnMobile">
                 Bitácora Diaria
             </MudNavLink>
-            <MudDivider Class="my-1" Style="border-color:rgba(255,255,255,0.15)" />
+            <MudDivider Class="my-1 app-nav-divider" />
             <MudNavGroup Title="Documentos"
                          Icon="@Icons.Material.Filled.Folder"
-                         Style="color:rgba(255,255,255,0.85);"
+                         Class="app-nav-link"
                          IconColor="Color.Inherit"
                          Expanded="false">
                 <MudNavLink Href="/secure-docs"
                             Icon="@Icons.Material.Filled.Shield"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            Class="app-nav-link-sub"
                             OnClick="CloseDrawerOnMobile">
                     Documentos Seguros
                 </MudNavLink>
                 <MudNavLink Href="/attachments"
                             Icon="@Icons.Material.Filled.AttachFile"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            Class="app-nav-link-sub"
                             OnClick="CloseDrawerOnMobile">
                     Archivos Adjuntos
                 </MudNavLink>
                 <MudNavLink Href="/documentconcepts"
                             Icon="@Icons.Material.Filled.Label"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            Class="app-nav-link-sub"
                             OnClick="CloseDrawerOnMobile">
                     Conceptos de Documento
                 </MudNavLink>
             </MudNavGroup>
-            <MudDivider Class="my-1" Style="border-color:rgba(255,255,255,0.15)" />
+            <MudDivider Class="my-1 app-nav-divider" />
             <MudNavGroup Title="Finanzas"
                          Icon="@Icons.Material.Filled.AccountBalance"
-                         Style="color:rgba(255,255,255,0.85);"
+                         Class="app-nav-link"
                          IconColor="Color.Inherit"
                          Expanded="false">
                 <MudNavLink Href="/finance/statement"
                             Icon="@Icons.Material.Filled.AccountBalanceWallet"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            Class="app-nav-link-sub"
                             OnClick="CloseDrawerOnMobile">
                     Cuentas y Movimientos
                 </MudNavLink>
                 <MudNavLink Href="/finance/account-statement"
                             Icon="@Icons.Material.Filled.ReceiptLong"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            Class="app-nav-link-sub"
                             OnClick="CloseDrawerOnMobile">
                     Estado de Cuenta
                 </MudNavLink>
                 <MudNavLink Href="/finance/typeconcept"
                             Icon="@Icons.Material.Filled.Category"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            Class="app-nav-link-sub"
                             OnClick="CloseDrawerOnMobile">
                     Tipos de Concepto
                 </MudNavLink>
                 <MudNavLink Href="/finance/reprocess"
                             Icon="@Icons.Material.Filled.Sync"
-                            Style="color:rgba(255,255,255,0.75);padding-left:16px"
+                            Class="app-nav-link-sub"
                             OnClick="CloseDrawerOnMobile">
                     Reproceso de Saldos
                 </MudNavLink>
@@ -174,7 +171,8 @@
 @code {
     private bool _drawerOpen = true;
     private bool _isMobile   = false;
-    private bool _isDark     = false;
+    private bool _isDark;
+    private string _themeMode = "System"; // "Light" | "Dark" | "System"
     private UserModel? _currentUser;
     private RoleModel? _currentRole;
     private string _inicial = "U";
@@ -185,6 +183,17 @@
 
     Guid IBrowserViewportObserver.Id => _observerId;
     MudBlazor.Services.ResizeOptions? IBrowserViewportObserver.ResizeOptions => _resizeOptions;
+
+    protected override void OnInitialized()
+    {
+        // Se lee la cookie durante el render estático (SSR) inicial, antes de que exista
+        // el circuito interactivo — evita el parpadeo de tema por defecto en la carga.
+        var cookieMode = HttpContextAccessor.HttpContext?.Request.Cookies["theme_mode"];
+        if (cookieMode is "Light" or "Dark" or "System")
+            _themeMode = cookieMode;
+
+        _isDark = _themeMode == "Dark"; // "System" se resuelve tras conectar el circuito (requiere JS)
+    }
 
     async Task IBrowserViewportObserver.NotifyBrowserViewportChangeAsync(BrowserViewportEventArgs notification)
     {
@@ -197,14 +206,42 @@
     {
         if (!firstRender) return;
         await BrowserViewportService.SubscribeAsync(this, fireImmediately: true);
+
+        if (_themeMode == "System")
+        {
+            _isDark = await JS.InvokeAsync<bool>("appTheme.prefersDark");
+            StateHasChanged();
+        }
+
         _currentUser = await AuthProvider.GetCurrentUserAsync();
         _currentRole = await AuthProvider.GetCurrentRoleAsync();
         _inicial = (_currentUser?.FullName ?? "U").FirstOrDefault().ToString().ToUpper();
+
+        // La preferencia guardada en BD es la fuente de verdad (persiste entre dispositivos);
+        // si difiere de lo que trajo la cookie de este navegador, la BD gana.
+        var dbMode = _currentUser?.ThemePreference;
+        if (dbMode is "Light" or "Dark" or "System" && dbMode != _themeMode)
+        {
+            _themeMode = dbMode;
+            _isDark = dbMode switch
+            {
+                "Dark" => true,
+                "Light" => false,
+                _ => await JS.InvokeAsync<bool>("appTheme.prefersDark")
+            };
+            await JS.InvokeVoidAsync("appTheme.setCookie", _themeMode);
+        }
+
         StateHasChanged();
     }
 
+    private void OnThemeModeChanged((string Mode, bool IsDark) change)
+    {
+        _themeMode = change.Mode;
+        _isDark = change.IsDark;
+    }
+
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
-    private void ToggleTheme()  => _isDark = !_isDark;
 
     private void CloseDrawerOnMobile()
     {

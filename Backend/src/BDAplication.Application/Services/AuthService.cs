@@ -27,7 +27,7 @@ public class AuthService : IAuthService
 
         var userDto = new UserDto(
             user.Id, user.Username, user.FullName, user.Email,
-            user.RoleId, user.Role?.Name ?? "", user.IsActive, user.CreatedAt);
+            user.RoleId, user.Role?.Name ?? "", user.IsActive, user.CreatedAt, user.ThemePreference);
 
         var roleDto = new RoleDto(
             user.Role!.Id, user.Role.Name, user.Role.Description,

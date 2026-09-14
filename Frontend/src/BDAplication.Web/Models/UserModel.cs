@@ -10,6 +10,7 @@ public class UserModel
     public string RoleName { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? ThemePreference { get; set; }
 }
 
 public class CreateUserModel
@@ -30,4 +31,9 @@ public class UpdateUserModel
     public string Email { get; set; } = string.Empty;
     public int RoleId { get; set; }
     public bool IsActive { get; set; }
+}
+
+public class UpdateThemePreferenceModel
+{
+    public string? ThemePreference { get; set; }
 }

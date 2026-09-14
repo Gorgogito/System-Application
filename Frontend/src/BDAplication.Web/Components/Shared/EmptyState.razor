@@ -1,0 +1,16 @@
+<div class="app-empty-state">
+    <MudIcon Icon="@Icon" Class="app-empty-icon" />
+    <MudText Typo="Typo.body1" Class="app-empty-text">@Text</MudText>
+    @if (ChildContent != null)
+    {
+        <div class="mt-3">@ChildContent</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Icon { get; set; } = MudBlazor.Icons.Material.Outlined.Inbox;
+    [Parameter, EditorRequired] public string Text { get; set; } = string.Empty;
+
+    /// <summary>Acción opcional (ej. un botón "Agregar el primero").</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -17,4 +17,7 @@ public class UserApiService : ApiService
 
     public async Task<ApiResponse<object>?> DeleteAsync(int id) =>
         await DeleteAsync<object>($"api/master/deleteuser?id={id}");
+
+    public async Task<ApiResponse<UserModel>?> UpdateThemePreferenceAsync(UpdateThemePreferenceModel model) =>
+        await PutAsync<UserModel>("api/master/updatetheme", model);
 }

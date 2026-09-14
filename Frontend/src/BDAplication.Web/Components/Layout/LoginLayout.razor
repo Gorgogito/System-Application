@@ -1,9 +1,47 @@
 @inherits LayoutComponentBase
+@using BDAplication.Web.Components.Shared
 @using BDAplication.Web.Helpers
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IJSRuntime JS
 
-<MudThemeProvider Theme="AppTheme.Current" />
+<MudThemeProvider Theme="AppTheme.Current" @bind-IsDarkMode="_isDark" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
+<div class="app-login-theme-toggle">
+    <ThemeToggle Mode="_themeMode" IsDark="_isDark" ModeChanged="OnThemeModeChanged" />
+</div>
+
 @Body
+
+@code {
+    private bool _isDark;
+    private string _themeMode = "System";
+
+    protected override void OnInitialized()
+    {
+        var cookieMode = HttpContextAccessor.HttpContext?.Request.Cookies["theme_mode"];
+        if (cookieMode is "Light" or "Dark" or "System")
+            _themeMode = cookieMode;
+
+        _isDark = _themeMode == "Dark";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        if (_themeMode == "System")
+        {
+            _isDark = await JS.InvokeAsync<bool>("appTheme.prefersDark");
+            StateHasChanged();
+        }
+    }
+
+    private void OnThemeModeChanged((string Mode, bool IsDark) change)
+    {
+        _themeMode = change.Mode;
+        _isDark = change.IsDark;
+    }
+}

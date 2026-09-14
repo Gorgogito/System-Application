@@ -39,14 +39,14 @@
     }
     .planner-task:hover { transform: translateX(2px); }
     .planner-task.dragging { opacity: 0.4; }
-    .priority-low    { border-color: #4caf50 !important; }
-    .priority-medium { border-color: #ff9800 !important; }
-    .priority-high   { border-color: #f44336 !important; }
-    .priority-critical { border-color: #9c27b0 !important; }
-    .pill-low     { background:#e8f5e9; color:#2e7d32; }
-    .pill-medium  { background:#fff3e0; color:#e65100; }
-    .pill-high    { background:#ffebee; color:#c62828; }
-    .pill-critical{ background:#f3e5f5; color:#6a1b9a; }
+    .priority-low    { border-color: var(--mud-palette-success) !important; }
+    .priority-medium { border-color: var(--mud-palette-warning) !important; }
+    .priority-high   { border-color: var(--mud-palette-error) !important; }
+    .priority-critical { border-color: var(--ds-critical) !important; }
+    .pill-low     { background: var(--ds-success-lt); color: var(--mud-palette-success); }
+    .pill-medium  { background: var(--ds-warn-lt);    color: var(--mud-palette-warning); }
+    .pill-high    { background: var(--ds-error-lt);   color: var(--mud-palette-error); }
+    .pill-critical{ background: var(--ds-critical-lt);color: var(--ds-critical); }
     .calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
     .calendar-header { text-align:center; font-weight:600; font-size:0.75rem; padding:4px 0; opacity:0.65; }
     .day-number { font-size:0.78rem; font-weight:600; color: var(--mud-palette-text-secondary); margin-bottom:4px; }
@@ -57,7 +57,7 @@
     .backlog-list   { flex:1; overflow-y:auto; padding-right:6px; margin-top:8px; }
     .planner-panel  { height: calc(100vh - 112px); overflow-y:auto; }
     .backlog-list::-webkit-scrollbar { width:4px; }
-    .backlog-list::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.18); border-radius:4px; }
+    .backlog-list::-webkit-scrollbar-thumb { background: var(--mud-palette-action-disabled); border-radius:4px; }
 
     /* ── Responsive: tablet ──────────────────────────────────── */
     @@media (max-width: 960px) {

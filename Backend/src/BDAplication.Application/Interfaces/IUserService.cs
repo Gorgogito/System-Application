@@ -8,5 +8,6 @@ public interface IUserService
     Task<UserDto?> GetByIdAsync(int id);
     Task<UserDto> CreateAsync(CreateUserRequest request);
     Task<UserDto> UpdateAsync(UpdateUserRequest request);
+    Task<UserDto> UpdateThemePreferenceAsync(int userId, string? themePreference);
     Task<bool> DeleteAsync(int id);
 }

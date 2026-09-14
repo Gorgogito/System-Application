@@ -1,0 +1,49 @@
+@using BDAplication.Web.Authentication
+@using BDAplication.Web.Models
+@using BDAplication.Web.Services
+@inject IJSRuntime JS
+@inject UserApiService UserApi
+@inject JwtAuthStateProvider AuthProvider
+
+<MudMenu Icon="@ModeIcon" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+    <MudMenuItem OnClick="@(() => SetModeAsync("Light"))" Icon="@Icons.Material.Filled.LightMode">
+        Claro @(Mode == "Light" ? "✓" : "")
+    </MudMenuItem>
+    <MudMenuItem OnClick="@(() => SetModeAsync("Dark"))" Icon="@Icons.Material.Filled.DarkMode">
+        Oscuro @(Mode == "Dark" ? "✓" : "")
+    </MudMenuItem>
+    <MudMenuItem OnClick="@(() => SetModeAsync("System"))" Icon="@Icons.Material.Filled.SettingsSuggest">
+        Sistema @(Mode == "System" ? "✓" : "")
+    </MudMenuItem>
+</MudMenu>
+
+@code {
+    /// <summary>"Light" | "Dark" | "System" — modo actualmente seleccionado.</summary>
+    [Parameter] public string Mode { get; set; } = "System";
+
+    /// <summary>Si el tema visual efectivo actual es oscuro (ya resuelto: System -> según el SO).</summary>
+    [Parameter] public bool IsDark { get; set; }
+
+    [Parameter] public EventCallback<(string Mode, bool IsDark)> ModeChanged { get; set; }
+
+    private string ModeIcon => IsDark ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode;
+
+    private async Task SetModeAsync(string mode)
+    {
+        var isDark = mode switch
+        {
+            "Dark" => true,
+            "Light" => false,
+            _ => await JS.InvokeAsync<bool>("appTheme.prefersDark")
+        };
+
+        await JS.InvokeVoidAsync("appTheme.setCookie", mode);
+        await ModeChanged.InvokeAsync((mode, isDark));
+
+        var state = await AuthProvider.GetAuthenticationStateAsync();
+        if (state.User.Identity?.IsAuthenticated == true)
+        {
+            await UserApi.UpdateThemePreferenceAsync(new UpdateThemePreferenceModel { ThemePreference = mode });
+        }
+    }
+}

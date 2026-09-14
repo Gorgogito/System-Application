@@ -8,7 +8,8 @@ public record UserDto(
     int RoleId,
     string RoleName,
     bool IsActive,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string? ThemePreference);
 
 public record CreateUserRequest(
     string Username,
@@ -25,3 +26,5 @@ public record UpdateUserRequest(
     string Email,
     int RoleId,
     bool IsActive);
+
+public record UpdateThemePreferenceRequest(string? ThemePreference);

@@ -1,3 +1,4 @@
+@using BDAplication.Web.Helpers
 @using BDAplication.Web.Models
 
 <div class="tb-column @(_dragOver ? "tb-column-drag-over" : "")"
@@ -56,15 +57,7 @@
 
     private bool _dragOver;
 
-    private string HeaderColor => Status switch
-    {
-        TaskBoardStatus.Pending    => "#1565c0",
-        TaskBoardStatus.InProgress => "#e65100",
-        TaskBoardStatus.Suspended  => "#f9a825",
-        TaskBoardStatus.Cancelled  => "#b71c1c",
-        TaskBoardStatus.Completed  => "#2e7d32",
-        _                          => "#546e7a"
-    };
+    private string HeaderColor => PriorityPalette.StatusCss(Status);
 
     private string HeaderIcon => Status switch
     {

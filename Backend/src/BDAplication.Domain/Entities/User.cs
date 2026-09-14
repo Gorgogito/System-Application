@@ -10,5 +10,8 @@ public class User : BaseEntity
     public string Email { get; set; } = string.Empty;
     public int RoleId { get; set; }
 
+    /// <summary>Preferencia de tema de UI del usuario: "Light" | "Dark" | "System". Null = no configurado (System).</summary>
+    public string? ThemePreference { get; set; }
+
     public Role Role { get; set; } = null!;
 }

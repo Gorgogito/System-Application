@@ -1,0 +1,29 @@
+<div class="app-page-header">
+    <div class="app-page-header-left">
+        <MudIcon Icon="@Icon" Color="@IconColor" Class="app-page-icon" />
+        <div>
+            <MudText Typo="Typo.h5" Class="app-page-title">@Title</MudText>
+            @if (!string.IsNullOrWhiteSpace(Subtitle))
+            {
+                <MudText Typo="Typo.caption" Class="app-page-sub">@Subtitle</MudText>
+            }
+        </div>
+    </div>
+    @if (ChildContent != null)
+    {
+        <div class="app-page-header-actions">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>Ícono de Material Icons (ej. Icons.Material.Filled.People).</summary>
+    [Parameter, EditorRequired] public string Icon { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public Color IconColor { get; set; } = Color.Primary;
+
+    /// <summary>Acciones a la derecha del encabezado (botones, filtros, etc.).</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

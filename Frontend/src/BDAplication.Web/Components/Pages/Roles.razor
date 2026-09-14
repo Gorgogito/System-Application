@@ -1,4 +1,5 @@
 @page "/roles"
+@using BDAplication.Web.Components.Shared
 @using BDAplication.Web.Models
 @using BDAplication.Web.Services
 @inject RoleApiService RoleApi
@@ -11,15 +12,13 @@
 <PageTitle>Roles - BDAplication</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Style="flex-wrap:wrap;gap:8px">
-        <MudText Typo="Typo.h5">Gestión de Roles</MudText>
-        <MudSpacer />
+    <AppPageHeader Icon="@Icons.Material.Filled.AdminPanelSettings" Title="Gestión de Roles" Subtitle="Define los perfiles de acceso del sistema">
         <MudButton Variant="Variant.Filled" Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.Add"
                    OnClick="OpenCreateDialog">
             Nuevo Rol
         </MudButton>
-    </MudStack>
+    </AppPageHeader>
 
     @if (_loading)
     {
@@ -75,7 +74,7 @@
                     </MudTd>
                 </RowTemplate>
                 <NoRecordsContent>
-                    <MudText>No hay roles registrados.</MudText>
+                    <EmptyState Icon="@Icons.Material.Outlined.AdminPanelSettings" Text="No hay roles registrados." />
                 </NoRecordsContent>
             </MudTable>
         </MudPaper>

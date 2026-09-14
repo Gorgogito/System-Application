@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddHttpContextAccessor();
+
 // Aumentar límite de mensajes SignalR para soportar documentos grandes con formato HTML
 builder.Services.AddSignalR(options =>
 {

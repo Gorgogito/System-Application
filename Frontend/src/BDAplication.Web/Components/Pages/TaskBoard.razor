@@ -52,7 +52,7 @@
     }
 
     .tb-column-drag-over {
-        box-shadow: 0 0 0 3px #1976d2, 0 4px 16px rgba(25,118,210,.25);
+        box-shadow: 0 0 0 3px var(--mud-palette-primary), 0 4px 16px rgba(var(--mud-palette-primary-rgb),.25);
         transform: scale(1.015);
     }
 
@@ -231,11 +231,11 @@
         margin-bottom: 8px;
         letter-spacing: .2px;
     }
-    .tb-due-soon   { background: rgba(255,152,0,.15); color: #e65100; border: 1px solid rgba(255,152,0,.35); }
-    .tb-due-overdue{ background: rgba(244,67,54,.13); color: #b71c1c; border: 1px solid rgba(244,67,54,.35); }
+    .tb-due-soon   { background: var(--ds-warn-lt); color: var(--mud-palette-warning); border: 1px solid var(--mud-palette-warning); }
+    .tb-due-overdue{ background: var(--ds-error-lt); color: var(--mud-palette-error); border: 1px solid var(--mud-palette-error); }
 
-    .tb-card-due-soon   { box-shadow: 0 0 0 1.5px #ff9800, 0 1px 4px rgba(0,0,0,.10); }
-    .tb-card-overdue    { box-shadow: 0 0 0 1.5px #f44336, 0 1px 4px rgba(0,0,0,.10); }
+    .tb-card-due-soon   { box-shadow: 0 0 0 1.5px var(--mud-palette-warning), 0 1px 4px rgba(0,0,0,.10); }
+    .tb-card-overdue    { box-shadow: 0 0 0 1.5px var(--mud-palette-error), 0 1px 4px rgba(0,0,0,.10); }
 
     .tb-dates-row {
         display: flex;
@@ -247,16 +247,16 @@
     }
     .tb-date-item        { display: flex; align-items: center; gap: 3px; }
     .tb-date-icon        { opacity: .55; font-size: .68rem; }
-    .tb-date-overdue     { color: #b71c1c; font-weight: 600; }
-    .tb-date-soon        { color: #e65100; font-weight: 600; }
+    .tb-date-overdue     { color: var(--mud-palette-error); font-weight: 600; }
+    .tb-date-soon        { color: var(--mud-palette-warning); font-weight: 600; }
 
     .tb-remaining {
         font-size: .72rem;
         font-weight: 700;
         margin-top: 3px;
     }
-    .tb-remaining-overdue { color: #b71c1c; }
-    .tb-remaining-soon    { color: #e65100; }
+    .tb-remaining-overdue { color: var(--mud-palette-error); }
+    .tb-remaining-soon    { color: var(--mud-palette-warning); }
     .tb-remaining-normal  { color: var(--mud-palette-text-secondary); }
 </style>
 

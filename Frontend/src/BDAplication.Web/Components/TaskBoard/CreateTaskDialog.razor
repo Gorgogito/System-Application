@@ -1,3 +1,4 @@
+@using BDAplication.Web.Helpers
 @using BDAplication.Web.Models
 @using MudBlazor
 
@@ -33,25 +34,25 @@
                            T="Priority">
                     <MudSelectItem Value="Priority.Low">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#4caf50;font-size:12px" />
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="@($"color:{PriorityPalette.Css(Priority.Low)};font-size:12px")" />
                             <span>Baja</span>
                         </MudStack>
                     </MudSelectItem>
                     <MudSelectItem Value="Priority.Medium">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#ff9800;font-size:12px" />
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="@($"color:{PriorityPalette.Css(Priority.Medium)};font-size:12px")" />
                             <span>Media</span>
                         </MudStack>
                     </MudSelectItem>
                     <MudSelectItem Value="Priority.High">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#f44336;font-size:12px" />
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="@($"color:{PriorityPalette.Css(Priority.High)};font-size:12px")" />
                             <span>Alta</span>
                         </MudStack>
                     </MudSelectItem>
                     <MudSelectItem Value="Priority.Critical">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#9c27b0;font-size:12px" />
+                            <MudIcon Icon="@Icons.Material.Filled.Circle" Style="@($"color:{PriorityPalette.Css(Priority.Critical)};font-size:12px")" />
                             <span>Crítica</span>
                         </MudStack>
                     </MudSelectItem>
