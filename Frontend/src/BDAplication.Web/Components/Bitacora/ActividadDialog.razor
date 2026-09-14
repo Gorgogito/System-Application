@@ -37,8 +37,11 @@
             <MudText Typo="Typo.subtitle2" Class="mb-2"><b>Evidencias</b></MudText>
 
             <div @ref="_dropZoneRef"
-                 style="border:2px dashed var(--mud-palette-lines-default);border-radius:8px;padding:16px;text-align:center;cursor:pointer;outline:none;"
-                 @onclick="TriggerFileSelect">
+                 role="button" tabindex="0"
+                 aria-label="Arrastrar o seleccionar fotos y videos para adjuntar como evidencia"
+                 style="border:2px dashed var(--mud-palette-lines-default);border-radius:8px;padding:16px;text-align:center;cursor:pointer;"
+                 @onclick="TriggerFileSelect"
+                 @onkeydown="@(async e => { if (e.Key is "Enter" or " ") await TriggerFileSelect(); })">
                 <InputFile @ref="_inputFileRef" OnChange="OnFilesSelected" multiple
                            accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm"
                            style="display:none"/>
@@ -60,6 +63,7 @@
                         <MudItem xs="4" sm="3">
                             <MudPaper Elevation="1" Class="pa-2 rounded-lg" Style="text-align:center;position:relative">
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                               Title="Eliminar evidencia"
                                                Style="position:absolute;top:0;right:0;z-index:1"
                                                OnClick="() => DeleteEvidenciaAsync(ev)"/>
                                 <div style="cursor:pointer" @onclick="() => VerEvidenciaAsync(ev)">

@@ -2,7 +2,13 @@
     <div class="app-page-header-left">
         <MudIcon Icon="@Icon" Color="@IconColor" Class="app-page-icon" />
         <div>
-            <MudText Typo="Typo.h5" Class="app-page-title">@Title</MudText>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudText Typo="Typo.h5" Class="app-page-title">@Title</MudText>
+                @if (ShowBusy)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary" />
+                }
+            </MudStack>
             @if (!string.IsNullOrWhiteSpace(Subtitle))
             {
                 <MudText Typo="Typo.caption" Class="app-page-sub">@Subtitle</MudText>
@@ -23,6 +29,9 @@
     [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
     [Parameter] public string? Subtitle { get; set; }
     [Parameter] public Color IconColor { get; set; } = Color.Primary;
+
+    /// <summary>Muestra un spinner pequeño junto al título (ej. mientras recarga datos).</summary>
+    [Parameter] public bool ShowBusy { get; set; }
 
     /// <summary>Acciones a la derecha del encabezado (botones, filtros, etc.).</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }

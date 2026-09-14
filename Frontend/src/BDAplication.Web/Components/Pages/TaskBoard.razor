@@ -3,6 +3,7 @@
 @using BDAplication.Web.Authentication
 @using BDAplication.Web.Models
 @using BDAplication.Web.Services
+@using BDAplication.Web.Components.Shared
 @using BDAplication.Web.Components.TaskBoard
 @using MudBlazor
 @inject JwtAuthStateProvider AuthProvider
@@ -18,14 +19,6 @@
         flex-direction: column;
         height: calc(100vh - 112px);
         overflow: hidden;
-    }
-
-    .tb-topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 16px;
-        flex-shrink: 0;
     }
 
     .tb-board {
@@ -207,8 +200,7 @@
     @@media (max-width: 600px) {
         .tb-page { height: calc(100vh - 88px); }
         .tb-column { flex: 0 0 230px; }
-        .tb-topbar { flex-wrap: wrap; gap: 8px; }
-        .tb-topbar > div:last-child { width: 100%; display: flex; justify-content: flex-end; }
+        .app-page-header-actions { width: 100%; justify-content: flex-end; }
     }
 
     /* ── Botón mover: sólo en touch/tablets ─────────────────── */
@@ -263,33 +255,22 @@
 <div class="tb-page">
 
     <!-- Top bar -->
-    <div class="tb-topbar">
-        <div style="display:flex;align-items:center;gap:10px">
-            <MudIcon Icon="@Icons.Material.Filled.ViewKanban"
-                     Style="font-size:28px;color:var(--mud-palette-primary)" />
-            <MudText Typo="Typo.h5" Style="font-weight:700">Task Board</MudText>
-            @if (_loading || _resetting)
-            {
-                <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Primary" />
-            }
-        </div>
-        <div style="display:flex;gap:8px">
-            <MudButton Variant="Variant.Outlined"
-                       Color="Color.Warning"
-                       StartIcon="@Icons.Material.Filled.RestartAlt"
-                       OnClick="ConfirmResetMonth"
-                       Disabled="@(_loading || _resetting)">
-                Reiniciar Mes
-            </MudButton>
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Primary"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="OpenCreateDialog"
-                       Disabled="@(_loading || _resetting)">
-                Nueva Tarea
-            </MudButton>
-        </div>
-    </div>
+    <AppPageHeader Icon="@Icons.Material.Filled.ViewKanban" Title="Task Board" ShowBusy="@(_loading || _resetting)">
+        <MudButton Variant="Variant.Outlined"
+                   Color="Color.Warning"
+                   StartIcon="@Icons.Material.Filled.RestartAlt"
+                   OnClick="ConfirmResetMonth"
+                   Disabled="@(_loading || _resetting)">
+            Reiniciar Mes
+        </MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenCreateDialog"
+                   Disabled="@(_loading || _resetting)">
+            Nueva Tarea
+        </MudButton>
+    </AppPageHeader>
 
     <!-- Kanban board -->
     <div class="tb-board">

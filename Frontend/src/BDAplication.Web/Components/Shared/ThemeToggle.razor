@@ -5,7 +5,8 @@
 @inject UserApiService UserApi
 @inject JwtAuthStateProvider AuthProvider
 
-<MudMenu Icon="@ModeIcon" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+<MudMenu Icon="@ModeIcon" Color="Color.Inherit" AriaLabel="Cambiar tema de la interfaz"
+         AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
     <MudMenuItem OnClick="@(() => SetModeAsync("Light"))" Icon="@Icons.Material.Filled.LightMode">
         Claro @(Mode == "Light" ? "✓" : "")
     </MudMenuItem>

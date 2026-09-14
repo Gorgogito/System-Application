@@ -206,6 +206,7 @@ html[data-mud-theme="Dark"] {
     flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 20px;
+    flex-shrink: 0; /* nunca se comprime cuando vive dentro de un layout flex-column (ej. TaskBoard) */
 }
 
 .app-page-header-left {

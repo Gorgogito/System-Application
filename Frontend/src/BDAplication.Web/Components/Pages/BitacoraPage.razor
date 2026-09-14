@@ -19,10 +19,10 @@
     </AppPageHeader>
 
     <MudPaper Elevation="0" Class="pa-3 rounded-lg d-flex align-center" Style="border:1px solid var(--mud-palette-lines-default);gap:8px">
-        <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="() => CambiarDiaAsync(-1)"/>
+        <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="() => CambiarDiaAsync(-1)" Title="Día anterior"/>
         <MudDatePicker Date="_fecha" DateChanged="OnFechaChangedAsync" Variant="Variant.Text"
                        DateFormat="dddd dd/MM/yyyy" Editable="false" Class="flex-grow-1" Style="max-width:280px"/>
-        <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="() => CambiarDiaAsync(1)"/>
+        <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="() => CambiarDiaAsync(1)" Title="Día siguiente"/>
         <MudSpacer/>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
                    OnClick="NuevaActividadAsync" Disabled="@(_bitacora is null)">
@@ -71,9 +71,9 @@
                                     }
                                 </MudStack>
                                 <MudStack Row="true" Spacing="0" Style="flex-shrink:0">
-                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Title="Editar actividad"
                                                    OnClick="() => EditarActividadAsync(act)"/>
-                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" Title="Eliminar actividad"
                                                    OnClick="() => EliminarActividadAsync(act)"/>
                                 </MudStack>
                             </MudStack>

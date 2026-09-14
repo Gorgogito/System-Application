@@ -9,7 +9,7 @@
     </TitleContent>
     <DialogContent>
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="Prev" Disabled="@(_indice <= 0)"/>
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="Prev" Disabled="@(_indice <= 0)" Title="Anterior"/>
             <div style="flex-grow:1;text-align:center;min-height:280px;display:flex;align-items:center;justify-content:center">
                 @if (_loading)
                 {
@@ -31,7 +31,7 @@
                     <MudText Color="Color.Secondary">No se pudo cargar la evidencia</MudText>
                 }
             </div>
-            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="Next" Disabled="@(_indice >= Evidencias.Count - 1)"/>
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="Next" Disabled="@(_indice >= Evidencias.Count - 1)" Title="Siguiente"/>
         </MudStack>
         @if (Actual != null)
         {
