@@ -358,3 +358,27 @@ blanco fijo "tipo MS Word" (ver entrada de 2026-07-20) se reemplazó por tokens 
   desconectada esta sesión); todo el trabajo se validó por compilación (0 errores) y
   razonamiento sobre las variables CSS de MudBlazor, no por inspección visual directa.
   Recomendado: abrir la app y probar los 3 modos de tema antes de dar por cerrada la fase.
+
+### 2026-09-14 — Continuación (Fase 2 del plan de 12)
+
+Extensión Chrome seguía desconectada — de nuevo, todo validado por compilación, no
+visualmente. Hecho en esta continuación:
+- Símbolo de moneda unificado a `S/` en `NewMovementDialog`/`EditMovementDialog`/
+  `TransferDialog` (antes usaban `$`).
+- `AppPageHeader`/`EmptyState` adoptados en las ~10 pantallas restantes con patrón de
+  header reinventado: Usuarios, Roles, Adjuntos, Conceptos de Documento, Tipos de
+  Concepto, Reproceso de Saldos, Estado de Cuenta (reporte), Documentos Seguros,
+  Bitácora Diaria y su consulta.
+- Paginación (`MudTablePager`) agregada a Usuarios, Roles, Tipos de Concepto,
+  Documentos Seguros.
+- Dos scrollbars más (`.tb-board` en TaskBoard) con `rgba(0,0,0,.18)` fijo migrados al
+  token de acción deshabilitada de MudBlazor.
+- **Deliberadamente NO tocados:** `TaskBoard.razor` (el topbar tiene un spinner de carga
+  inline junto al título que no encaja en el slot de `AppPageHeader` sin rediseñarlo) y
+  `StatementAccount.razor` (layout maestro-detalle con alturas fijas
+  `calc(100vh - 112px)` — alto riesgo de romper el layout sin poder verlo).
+
+**Pendiente real para continuar el plan de 12 fases:** el resto de pantallas de Finance
+(`StatementAccount`, `TaskBoard`) con patrón de header propio, revisión de accesibilidad
+dirigida (contraste/foco), responsive dirigido, y **sigue pendiente la verificación
+visual real** — ninguna fase de este rediseño se ha visto en un navegador todavía.
