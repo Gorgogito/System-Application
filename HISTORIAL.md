@@ -302,3 +302,59 @@ GET por sesión (cambio de fecha, ver evidencias). **Fix:**
   complejidad vs. beneficio; editar por formulario ya cubre el caso de uso).
 - Costo/cuota real de Azure Storage para el volumen de video esperado — quedó como
   "pendiente de validación" en la propuesta original, no verificable desde el código.
+
+---
+
+## 2026-09-13/14 — Mejora UI/UX: tema claro/oscuro persistente + design system (Fase 1 de 12)
+
+**Contexto:** se pidió un rediseño UI/UX integral inspirado en Vixon (ThemesBrand), sin
+alterar funcionalidad. Se auditó primero (inventario de ~25 pantallas vía agente Explore)
+antes de tocar código. Hallazgo clave: **ya existía** un sistema de diseño real
+(`Helpers/AppTheme.cs` con paleta light/dark propia, `wwwroot/app.css` con tokens
+`--ds-*`) — el problema no era la ausencia de sistema, sino su adopción inconsistente:
+solo 2 de ~25 pantallas usaban `.app-page-header`, y ~40 puntos de color hardcodeado
+duplicaban valores que ya existían como token, rompiendo el modo oscuro donde se tocaban.
+
+**Decisión de persistencia de tema (confirmada por el usuario):** columna
+`User.ThemePreference` (BD, fuente de verdad — persiste entre dispositivos) **+** cookie
+`theme_mode` (aplica el tema sin parpadeo en la carga inicial, ya que una cookie viaja en
+el request HTTP y se puede leer server-side con `IHttpContextAccessor` antes de que el
+circuito de Blazor Server exista — a diferencia de `localStorage`, que solo está
+disponible después de conectar el circuito). Se descartó localStorage puro por esa razón
+específica de Blazor Server, no por preferencia general.
+
+**Decisión sobre el editor de Documentos Seguros (confirmada por el usuario):** el fondo
+blanco fijo "tipo MS Word" (ver entrada de 2026-07-20) se reemplazó por tokens `--ds-*`
+— ahora se adapta al tema oscuro. Revierte una decisión de diseño anterior.
+
+### Hecho en esta sesión (Fase 1, 3-5, 6, 7 y parte de 8-9 del plan de 12 fases)
+- `ThemeToggle.razor` (3 estados: Claro/Oscuro/Sistema) en `MainLayout` y `LoginLayout`
+  (antes el login no tenía ningún selector de tema).
+- Endpoint `PUT api/master/updatetheme`; `UserDto`/`UserModel` incluyen `ThemePreference`.
+- `PriorityPalette.cs` centraliza el color de `Priority`/`TaskBoardStatus` — antes
+  duplicado con hex independientes en `TaskCard`, `TaskColumn`, `TaskPlanner`,
+  `CreateTaskDialog`, `EditTaskDialog` (si se cambia un color de prioridad, ahora se toca
+  un solo archivo).
+- ~40 colores hardcodeados migrados a `var(--mud-palette-*)`/`var(--ds-*)` en:
+  TaskPlanner, TaskBoard, AttachmentsPage, AttachmentPanel, StatementAccount,
+  ReprocesarSaldosPage, ReconnectModal (plantilla de Blazor sin adaptar), scrollbars
+  globales.
+- Tokens nuevos en `app.css`: `--ds-space-*` (escala de espaciado), `--ds-shadow-*`,
+  `--ds-critical`/`--ds-suspended` (para los 2 estados que no tienen slot semántico
+  nativo en MudBlazor).
+- Componentes nuevos `AppPageHeader.razor`/`EmptyState.razor`, adoptados en
+  `Users.razor`/`Roles.razor` como referencia.
+- Fix menor: doble indicador de carga simultáneo en `TypeConceptPage`.
+- `MainLayout`: estilos inline repetidos del drawer (`style="color:rgba(...)"` en cada
+  `MudNavLink`) reemplazados por clases CSS (`.app-nav-link`, `.app-nav-link-sub`).
+
+### Pendiente (no implementado en esta sesión — queda para continuar el plan de 12 fases)
+- Adopción de `AppPageHeader`/`EmptyState` en el resto de pantallas (~20 restantes).
+- Paginación estándar en las tablas que no la tienen (todas excepto `DocumentConceptsPage`).
+- Unificar símbolo de moneda (`$` en diálogos de Finance vs. `S/` en el resto).
+- Revisión de accesibilidad (contraste, foco) y responsive dirigida — no se hizo pase
+  dedicado, solo lo que la migración de colores pudo tocar incidentalmente.
+- **Verificación visual real en navegador** — no se pudo probar (extensión de Chrome
+  desconectada esta sesión); todo el trabajo se validó por compilación (0 errores) y
+  razonamiento sobre las variables CSS de MudBlazor, no por inspección visual directa.
+  Recomendado: abrir la app y probar los 3 modos de tema antes de dar por cerrada la fase.
