@@ -382,3 +382,34 @@ visualmente. Hecho en esta continuación:
 (`StatementAccount`, `TaskBoard`) con patrón de header propio, revisión de accesibilidad
 dirigida (contraste/foco), responsive dirigido, y **sigue pendiente la verificación
 visual real** — ninguna fase de este rediseño se ha visto en un navegador todavía.
+
+### 2026-09-14 — Continuación (Fase 3)
+
+Chrome seguía sin conectarse; se intentó levantar el backend localmente para al menos
+verificar en runtime (no solo compilación), pero no hay `appsettings.Development.json`
+ni user-secrets con connection string local configurados — no se pudo. En su lugar, se
+hizo un smoke test HTTP contra el sitio de producción ya desplegado (`curl` a cada ruta
+migrada, verificando código 200 y ausencia de "An error occurred"): confirma que el
+servidor no revienta al renderizar, pero **sigue sin validar CSS/layout real**.
+
+- `AppPageHeader` ganó un parámetro `ShowBusy` (spinner junto al título) para poder
+  adoptarse en `TaskBoard.razor`, cuyo topbar propio tenía un spinner inline que antes
+  impedía la conversión directa. Se agregó `flex-shrink:0` a `.app-page-header` en
+  `app.css` porque, a diferencia de las páginas normales, `TaskBoard` vive dentro de un
+  contenedor `flex-direction:column` de altura fija (`.tb-page`) — sin esa propiedad el
+  header podía comprimirse.
+- `StatementAccount.razor` se dejó **otra vez sin tocar** — layout maestro-detalle con
+  `calc(100vh - 112px)` sin margen presupuestado para un header; el riesgo de recortar
+  contenido sin poder verlo se consideró mayor que el beneficio cosmético.
+- Accesibilidad (alcance acotado a los componentes creados en estas sesiones, no un
+  audit completo de la app): el drop-zone de evidencias en `ActividadDialog` tenía
+  `outline:none` sin ningún reemplazo — quedaba invisible para navegación por teclado.
+  Se le agregó `role="button"`, `tabindex`, soporte de `Enter`/`Espacio`, y se quitó el
+  `outline:none` para que vuelva el foco nativo del navegador. Se agregaron
+  `Title`/`AriaLabel` a los botones de solo-ícono de `ThemeToggle`, navegación de fecha
+  de Bitácora, y galería de evidencias (antes sin nombre accesible).
+
+**Aún pendiente:** verificación visual real en navegador (bloqueado por la extensión de
+Chrome desconectada en todas las sesiones de este rediseño hasta ahora), accesibilidad
+de contraste real (no se puede medir sin herramienta visual), responsive dirigido más
+allá de lo que ya trae cada pantalla.
