@@ -2,6 +2,7 @@
 @using BDAplication.Web.Authentication
 @using BDAplication.Web.Models
 @using BDAplication.Web.Services
+@using BDAplication.Web.Components.Shared
 @using BDAplication.Web.Components.Shared.Attachments
 @using MudBlazor
 @inject DocumentConceptApiService ConceptApi
@@ -12,20 +13,13 @@
 @inject IUserTimeZoneService _tz
 
 <MudStack Spacing="3">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-            <MudIcon Icon="@Icons.Material.Filled.Label" Style="font-size:2rem" Color="Color.Primary"/>
-            <div>
-                <MudText Typo="Typo.h5" Style="font-weight:700;line-height:1.2">Conceptos de Documento</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary">Categorías para clasificar los archivos adjuntos</MudText>
-            </div>
-        </MudStack>
+    <AppPageHeader Icon="@Icons.Material.Filled.Label" Title="Conceptos de Documento" Subtitle="Categorías para clasificar los archivos adjuntos">
         <MudButton Variant="Variant.Filled" Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.Add"
                    OnClick="OpenCreate" Disabled="_loading">
             Nuevo Concepto
         </MudButton>
-    </div>
+    </AppPageHeader>
 
     <MudTable T="DocumentConceptModel" Items="@_items" Dense="true" Hover="true" Striped="true"
               Elevation="2" Loading="_loading" LoadingProgressColor="Color.Primary">
@@ -55,12 +49,7 @@
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
-            <MudStack AlignItems="AlignItems.Center" Spacing="2" Class="pa-8">
-                <MudIcon Icon="@Icons.Material.Outlined.Label" Style="font-size:48px;opacity:.4"/>
-                <MudText Typo="Typo.body1" Color="Color.Secondary">
-                    No hay conceptos registrados — presione Nuevo Concepto para agregar el primero
-                </MudText>
-            </MudStack>
+            <EmptyState Icon="@Icons.Material.Outlined.Label" Text="No hay conceptos registrados — presione Nuevo Concepto para agregar el primero" />
         </NoRecordsContent>
         <PagerContent>
             <MudTablePager PageSizeOptions="new int[]{10, 25, 50}" RowsPerPageString="Filas por página:"/>

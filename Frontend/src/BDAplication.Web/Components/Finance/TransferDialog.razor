@@ -45,7 +45,7 @@
 
                 <MudNumericField @bind-Value="_req.Amount" Label="Importe" Variant="Variant.Outlined"
                                  Format="N2" Min="0.01m" Required="true"
-                                 Adornment="Adornment.Start" AdornmentText="$"/>
+                                 Adornment="Adornment.Start" AdornmentText="S/"/>
 
                 @if (_req.SourceAccountId > 0 && _req.DestinyAccountId > 0 && _req.Amount > 0)
                 {

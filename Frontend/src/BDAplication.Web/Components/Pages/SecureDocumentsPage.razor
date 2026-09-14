@@ -2,6 +2,7 @@
 @using BDAplication.Web.Authentication
 @using BDAplication.Web.Models
 @using BDAplication.Web.Services
+@using BDAplication.Web.Components.Shared
 @using BDAplication.Web.Components.Shared.SecureDoc
 @inject SecureDocumentApiService Api
 @inject JwtAuthStateProvider AuthProvider
@@ -13,23 +14,15 @@
 <PageTitle>Documentos Seguros</PageTitle>
 
 <!-- Header -->
-<div class="app-page-header">
-    <div class="app-page-header-left">
-        <MudIcon Icon="@Icons.Material.Filled.Shield" Color="Color.Primary" Class="app-page-icon" />
-        <div>
-            <MudText Typo="Typo.h5" Class="app-page-title">Documentos Seguros</MudText>
-            <MudText Typo="Typo.caption" Class="app-page-sub">
-                Documentos cifrados con AES-256 — el contenido solo es legible tras autenticación
-            </MudText>
-        </div>
-    </div>
+<AppPageHeader Icon="@Icons.Material.Filled.Shield" Title="Documentos Seguros"
+               Subtitle="Documentos cifrados con AES-256 — el contenido solo es legible tras autenticación">
     <MudButton Variant="Variant.Filled"
                Color="Color.Primary"
                StartIcon="@Icons.Material.Filled.Add"
                OnClick="CreateNew">
         Nuevo documento
     </MudButton>
-</div>
+</AppPageHeader>
 
 <!-- Tabla de documentos -->
 <MudCard Elevation="1">
@@ -89,6 +82,12 @@
                                        OnClickStopPropagation="true" />
                     </MudTd>
                 </RowTemplate>
+                <NoRecordsContent>
+                    <EmptyState Icon="@Icons.Material.Outlined.Shield" Text="No hay documentos seguros — presione Nuevo documento para agregar el primero" />
+                </NoRecordsContent>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new int[]{10, 25, 50}" RowsPerPageString="Filas por página:"/>
+                </PagerContent>
             </MudTable>
         }
     </MudCardContent>

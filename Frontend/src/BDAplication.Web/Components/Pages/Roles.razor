@@ -76,6 +76,9 @@
                 <NoRecordsContent>
                     <EmptyState Icon="@Icons.Material.Outlined.AdminPanelSettings" Text="No hay roles registrados." />
                 </NoRecordsContent>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new int[]{10, 25, 50}" RowsPerPageString="Filas por página:"/>
+                </PagerContent>
             </MudTable>
         </MudPaper>
     }

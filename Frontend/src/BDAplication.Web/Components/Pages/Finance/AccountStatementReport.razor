@@ -3,6 +3,7 @@
 @using BDAplication.Web.Models.Finance
 @using BDAplication.Web.Services.Finance
 @using MudBlazor
+@using BDAplication.Web.Components.Shared
 @inject JwtAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 @inject AccountApiService AccountApi
@@ -13,20 +14,12 @@
 
 <style>
     .rep-card  { max-width: 680px; margin: 0 auto; }
-    .rep-title { display:flex; align-items:center; gap:10px; }
 </style>
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="pa-4">
 
-    <div class="rep-title mb-4">
-        <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Color="Color.Primary" Style="font-size:2rem"/>
-        <div>
-            <MudText Typo="Typo.h5" Style="font-weight:700">Estado de Cuenta</MudText>
-            <MudText Typo="Typo.body2" Class="mud-text-secondary">
-                Genere el reporte en Excel o PDF por cuenta y rango de fechas
-            </MudText>
-        </div>
-    </div>
+    <AppPageHeader Icon="@Icons.Material.Filled.ReceiptLong" Title="Estado de Cuenta"
+                   Subtitle="Genere el reporte en Excel o PDF por cuenta y rango de fechas" />
 
     <MudPaper Elevation="3" Class="pa-6 rep-card">
 

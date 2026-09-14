@@ -1,6 +1,7 @@
 @page "/finance/reprocess"
 @using BDAplication.Web.Authentication
 @using BDAplication.Web.Helpers
+@using BDAplication.Web.Components.Shared
 @using BDAplication.Web.Models.Finance
 @using BDAplication.Web.Services.Finance
 @inject ReprocesarApiService ReprocesarApi
@@ -35,20 +36,12 @@ else
     <MudContainer MaxWidth="MaxWidth.Large" Class="pa-4">
 
         <!-- Encabezado -->
-        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4" Wrap="Wrap.Wrap">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                <MudIcon Icon="@Icons.Material.Filled.Sync" Color="Color.Primary" Style="font-size:2rem;" />
-                <div>
-                    <MudText Typo="Typo.h5" Style="font-weight:700;">Reproceso de Saldos</MudText>
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">
-                        Reconstruye los saldos acumulados a partir del historial cronológico de movimientos
-                    </MudText>
-                </div>
-            </MudStack>
+        <AppPageHeader Icon="@Icons.Material.Filled.Sync" Title="Reproceso de Saldos"
+                       Subtitle="Reconstruye los saldos acumulados a partir del historial cronológico de movimientos">
             <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Warning">
                 Operación Crítica
             </MudChip>
-        </MudStack>
+        </AppPageHeader>
 
         <!-- Config -->
         <MudCard Class="mb-4" Elevation="2">

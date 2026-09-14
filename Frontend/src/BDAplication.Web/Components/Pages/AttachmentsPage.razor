@@ -2,6 +2,7 @@
 @using BDAplication.Web.Authentication
 @using BDAplication.Web.Models
 @using BDAplication.Web.Services
+@using BDAplication.Web.Components.Shared
 @using BDAplication.Web.Components.Shared.Attachments
 @using BDAplication.Web.Helpers
 @using MudBlazor
@@ -25,20 +26,13 @@
 </style>
 
 <!-- Encabezado -->
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-        <MudIcon Icon="@Icons.Material.Filled.AttachFile" Style="font-size:2rem" Color="Color.Primary"/>
-        <div>
-            <MudText Typo="Typo.h5" Style="font-weight:700;line-height:1.2">Archivos Adjuntos</MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">Gestión centralizada de documentos y comprobantes</MudText>
-        </div>
-    </MudStack>
+<AppPageHeader Icon="@Icons.Material.Filled.AttachFile" Title="Archivos Adjuntos" Subtitle="Gestión centralizada de documentos y comprobantes">
     <MudButton Variant="Variant.Filled" Color="Color.Primary"
                StartIcon="@Icons.Material.Filled.Upload"
                OnClick="OpenUploadDialog">
         Subir Archivo
     </MudButton>
-</div>
+</AppPageHeader>
 
 <!-- Barra de búsqueda -->
 <MudPaper Elevation="2" Class="pa-3 mb-4 rounded-lg">
@@ -69,13 +63,9 @@
 }
 else if (!_groups.Any())
 {
-    <MudPaper Elevation="2" Class="pa-8 rounded-lg">
-        <MudStack AlignItems="AlignItems.Center" Spacing="2">
-            <MudIcon Icon="@Icons.Material.Outlined.FolderOpen" Style="font-size:56px;opacity:.4"/>
-            <MudText Typo="Typo.body1" Color="Color.Secondary">
-                @(_search != null ? "No se encontraron archivos con ese criterio" : "No hay archivos adjuntos — presione Subir Archivo para comenzar")
-            </MudText>
-        </MudStack>
+    <MudPaper Elevation="2" Class="rounded-lg">
+        <EmptyState Icon="@Icons.Material.Outlined.FolderOpen"
+                    Text="@(_search != null ? "No se encontraron archivos con ese criterio" : "No hay archivos adjuntos — presione Subir Archivo para comenzar")" />
     </MudPaper>
 }
 else

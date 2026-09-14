@@ -3,6 +3,7 @@
 @using BDAplication.Web.Models.Finance
 @using BDAplication.Web.Services.Finance
 @using BDAplication.Web.Components.Finance
+@using BDAplication.Web.Components.Shared
 @using MudBlazor
 @inject JwtAuthStateProvider AuthProvider
 @inject NavigationManager Nav
@@ -12,17 +13,13 @@
 @inject IUserTimeZoneService _tz
 
 <MudStack Spacing="3">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-        <MudText Typo="Typo.h5" Style="font-weight:700">
-            <MudIcon Icon="@Icons.Material.Filled.Category" Style="vertical-align:middle;margin-right:8px"/>
-            Tipos de Concepto
-        </MudText>
+    <AppPageHeader Icon="@Icons.Material.Filled.Category" Title="Tipos de Concepto">
         <MudButton Variant="Variant.Filled" Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreate"
                    Disabled="_loading">
             Nuevo
         </MudButton>
-    </div>
+    </AppPageHeader>
 
     <MudTable T="TypeConceptModel" Items="@_items" Dense="true" Hover="true" Striped="true"
               Elevation="2" Loading="_loading" LoadingProgressColor="Color.Primary">
@@ -46,8 +43,11 @@
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
-            <MudText Align="Align.Center" Class="pa-6 mud-text-secondary">No hay tipos de concepto registrados</MudText>
+            <EmptyState Icon="@Icons.Material.Outlined.Category" Text="No hay tipos de concepto registrados" />
         </NoRecordsContent>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[]{10, 25, 50}" RowsPerPageString="Filas por página:"/>
+        </PagerContent>
     </MudTable>
 </MudStack>
 

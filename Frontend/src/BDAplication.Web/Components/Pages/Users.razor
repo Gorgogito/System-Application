@@ -83,6 +83,9 @@
                 <NoRecordsContent>
                     <EmptyState Icon="@Icons.Material.Outlined.PeopleOutline" Text="No hay usuarios registrados." />
                 </NoRecordsContent>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new int[]{10, 25, 50}" RowsPerPageString="Filas por página:"/>
+                </PagerContent>
             </MudTable>
         </MudPaper>
     }

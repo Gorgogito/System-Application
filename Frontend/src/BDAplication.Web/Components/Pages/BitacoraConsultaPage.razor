@@ -1,4 +1,5 @@
 @page "/bitacora/consulta"
+@using BDAplication.Web.Components.Shared
 @using BDAplication.Web.Models
 @using BDAplication.Web.Services
 @using BDAplication.Web.Services.Bitacora
@@ -10,14 +11,11 @@
 <PageTitle>Consultar Bitácora</PageTitle>
 
 <MudStack Spacing="4">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-        <MudText Typo="Typo.h5">
-            <MudIcon Icon="@Icons.Material.Filled.Search" Class="mr-2"/>Consultar Bitácora
-        </MudText>
+    <AppPageHeader Icon="@Icons.Material.Filled.Search" Title="Consultar Bitácora" Subtitle="Resumen de actividades y evidencias por rango de fechas">
         <MudButton Href="/bitacora" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.MenuBook">
             Volver al día
         </MudButton>
-    </MudStack>
+    </AppPageHeader>
 
     <MudPaper Elevation="0" Class="pa-3 rounded-lg" Style="border:1px solid var(--mud-palette-lines-default)">
         <MudStack Row="true" Spacing="3" Wrap="Wrap.Wrap" AlignItems="AlignItems.End">
@@ -38,9 +36,7 @@
     }
     else if (_resultados.Count == 0)
     {
-        <MudText Color="Color.Secondary" Class="text-center py-8" Style="display:block">
-            No se encontraron días con actividades en el rango seleccionado.
-        </MudText>
+        <EmptyState Icon="@Icons.Material.Outlined.SearchOff" Text="No se encontraron días con actividades en el rango seleccionado." />
     }
     else
     {

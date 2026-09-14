@@ -1,5 +1,6 @@
 @page "/bitacora"
 @using BDAplication.Web.Components.Bitacora
+@using BDAplication.Web.Components.Shared
 @using BDAplication.Web.Models
 @using BDAplication.Web.Services
 @using BDAplication.Web.Services.Bitacora
@@ -11,14 +12,11 @@
 <PageTitle>Bitácora Diaria</PageTitle>
 
 <MudStack Spacing="4">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-        <MudText Typo="Typo.h5">
-            <MudIcon Icon="@Icons.Material.Filled.MenuBook" Class="mr-2"/>Bitácora Diaria
-        </MudText>
+    <AppPageHeader Icon="@Icons.Material.Filled.MenuBook" Title="Bitácora Diaria" Subtitle="Registro cronológico de actividades con evidencias">
         <MudButton Href="/bitacora/consulta" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Search">
             Consultar
         </MudButton>
-    </MudStack>
+    </AppPageHeader>
 
     <MudPaper Elevation="0" Class="pa-3 rounded-lg d-flex align-center" Style="border:1px solid var(--mud-palette-lines-default);gap:8px">
         <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="() => CambiarDiaAsync(-1)"/>
@@ -45,9 +43,7 @@
 
         @if (_bitacora.Actividades.Count == 0)
         {
-            <MudText Color="Color.Secondary" Class="text-center py-8" Style="display:block">
-                Sin actividades registradas este día.
-            </MudText>
+            <EmptyState Icon="@Icons.Material.Outlined.EventNote" Text="Sin actividades registradas este día." />
         }
         else
         {
