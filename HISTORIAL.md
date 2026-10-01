@@ -469,3 +469,37 @@ Bitácora (sesión del 2026-09-06) sin detectarse por auditoría de código — 
 encontró porque el usuario lo reportó usándolo en producción. Al escribir una página
 nueva, verificar explícitamente que la carga de datos esté en `OnAfterRenderAsync`,
 comparando contra una página existente que ya funcione bien (ej. `Users.razor`).
+
+### 2026-10-01 — Regresión del fix anterior: Bitácora se quedaba cargando para siempre
+
+El fix de arriba (mover `LoadAsync`/`BuscarAsync` a `OnAfterRenderAsync`) introdujo un
+bug nuevo en el mismo despliegue: el usuario reportó que al entrar a Bitácora la
+pantalla se quedaba en el spinner de carga indefinidamente y el botón "Nueva actividad"
+nunca se habilitaba.
+
+**Causa:** `OnAfterRenderAsync`, a diferencia de `OnInitializedAsync`/
+`OnParametersSetAsync`, **no dispara un re-render automático cuando el `Task` que
+devuelve termina** — hay que llamar `StateHasChanged()` explícitamente para reflejar
+cualquier cambio de estado hecho tras un `await`. `LoadAsync`/`BuscarAsync` ya llamaban
+`StateHasChanged()` al poner `_loading = true` (por eso el spinner sí aparecía), pero el
+bloque `finally` solo hacía `_loading = false` sin pedir el siguiente render — la
+pantalla quedaba congelada en el último estado renderizado (el spinner).
+
+Cuando esta misma lógica vivía en `OnInitializedAsync`, el framework sí re-renderizaba
+automáticamente al completarse, por eso el bug no existía antes — mover la llamada a
+`OnAfterRenderAsync` sin agregar el `StateHasChanged()` faltante en el `finally` fue lo
+que lo destapó.
+
+**Fix:** `StateHasChanged()` agregado al final del `finally` en `LoadAsync` (BitacoraPage)
+y `BuscarAsync` (BitacoraConsultaPage).
+
+**Regla a recordar:** cualquier método async llamado desde `OnAfterRenderAsync` que
+actualiza estado usado en el render (loading flags, datos cargados, errores) debe
+terminar con su propio `StateHasChanged()` — no asumir que el framework lo hace solo,
+como sí ocurre en `OnInitializedAsync`/`OnParametersSetAsync`. Antes de dar por cerrado
+un fix de timing de ciclo de vida de Blazor, repasar explícitamente este punto.
+
+Seguimos sin poder verificar visualmente (sin navegador disponible en ninguna sesión
+hasta ahora) — este fix se infirió leyendo el código y conociendo el comportamiento
+documentado de `OnAfterRenderAsync`, no se vio en pantalla. Si el síntoma persiste tras
+este despliegue, hay que verlo en vivo.
