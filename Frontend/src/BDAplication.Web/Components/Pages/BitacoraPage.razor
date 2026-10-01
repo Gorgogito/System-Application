@@ -94,9 +94,20 @@
     private string _observacion = string.Empty;
     private bool _loading;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _fecha = DateTime.TryParse(FechaQuery, out var parsed) ? parsed.Date : _tz.UserToday;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // La carga inicial se hace aquí (no en OnInitializedAsync) porque esta página se
+        // prerrenderiza de forma estática antes de que el circuito interactivo conecte, y en
+        // esa primera pasada el token JWT (guardado en ProtectedSessionStorage, que requiere
+        // interop de JS) todavía no está disponible — la llamada a la API saldría sin
+        // autenticación y fallaría. OnAfterRenderAsync(firstRender) solo se ejecuta una vez
+        // el circuito ya está interactivo, igual que el resto de páginas del sistema.
+        if (!firstRender) return;
         await LoadAsync();
     }
 

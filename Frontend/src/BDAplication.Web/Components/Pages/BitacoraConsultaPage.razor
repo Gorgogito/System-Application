@@ -66,10 +66,17 @@
     private bool _loading;
     private List<BitacoraResumenModel> _resultados = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _hasta = _tz.UserToday;
         _desde = new DateTime(_hasta.Value.Year, _hasta.Value.Month, 1);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Ver comentario equivalente en BitacoraPage.razor: la búsqueda inicial debe esperar
+        // a que el circuito esté interactivo, no ejecutarse durante el prerenderizado estático.
+        if (!firstRender) return;
         await BuscarAsync();
     }
 
