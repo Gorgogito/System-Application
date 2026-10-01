@@ -413,3 +413,59 @@ servidor no revienta al renderizar, pero **sigue sin validar CSS/layout real**.
 Chrome desconectada en todas las sesiones de este rediseño hasta ahora), accesibilidad
 de contraste real (no se puede medir sin herramienta visual), responsive dirigido más
 allá de lo que ya trae cada pantalla.
+
+---
+
+## 2026-10-01 — Bug real encontrado: Bitácora cargaba su API en OnInitializedAsync
+
+El usuario reportó, usando la app ya en producción: (1) mensaje "No se pudo conectar con
+el servidor. Intenta de nuevo" al entrar o recargar `/bitacora`, aunque todo terminara
+cargando bien; (2) los `MudDatePicker`/`MudTimePicker` de Bitácora a veces no abrían el
+calendario/reloj hasta refrescar la página; (3) el calendario desplegado se veía
+recortado (última columna de números a la mitad).
+
+**Causa raíz confirmada:** `BitacoraPage.razor` y `BitacoraConsultaPage.razor` llamaban a
+su servicio (`LoadAsync`/`BuscarAsync`) desde `OnInitializedAsync`. Esta app usa
+`InteractiveServer` con **prerenderizado activado** (`App.razor`:
+`<Routes @rendermode="InteractiveServer" />`, que por defecto prerrenderiza) — cada
+página se instancia y ejecuta su ciclo de vida **dos veces**: una vez de forma estática
+(prerender, sin circuito SignalR, antes de que exista interop de JS) y otra vez ya
+interactiva. `JwtAuthStateProvider.GetAuthenticationStateAsync()` lee el JWT de
+`ProtectedSessionStorage`, que requiere interop de JS — durante el prerender esto lanza
+y es atrapado por un `catch` genérico que devuelve "Anónimo" sin token. La llamada a la
+API sale entonces sin `Authorization`, el backend responde 401 **sin cuerpo** (la
+autorización de ASP.NET Core corta el pipeline antes de llegar a `ErrorHandlingMiddleware`,
+que es el único que genera el JSON `ApiResponse.Fail(...)`), y
+`response.Content.ReadFromJsonAsync<ApiResponse<T>>()` revienta al intentar parsear un
+cuerpo vacío. La segunda pasada (ya interactiva, instancia nueva del componente) sí tiene
+el token y carga bien — de ahí "el mensaje de error aparece pero todo carga normal".
+
+**El resto de páginas del sistema (Users, Roles, TaskBoard, SecureDocuments, etc.) ya
+evitan esto correctamente** disparando su carga inicial desde
+`OnAfterRenderAsync(firstRender)` — que solo se ejecuta una vez el circuito interactivo
+ya está arriba, nunca durante el prerender. Bitácora (escrita en una sesión anterior) fue
+la única excepción a ese patrón ya establecido. **Regla a seguir en cualquier página
+nueva: la carga inicial de datos vía API va en `OnAfterRenderAsync(firstRender)`, nunca
+en `OnInitializedAsync`/`OnParametersSetAsync`**, salvo que sea cálculo puro sin red ni
+interop de JS (ej. parsear un query param).
+
+**Fix aplicado:**
+1. `BitacoraPage`/`BitacoraConsultaPage`: carga inicial movida a
+   `OnAfterRenderAsync(firstRender)`; `OnInitialized` (sync) solo calcula fechas.
+2. `ApiService` (los 5 métodos Get/Post/Put/Delete/Patch): ya no lanza excepción si el
+   cuerpo de la respuesta no es JSON válido (401 sin cuerpo, 502/503 de infraestructura)
+   — devuelve un `ApiResponse` de error genérico. Defensa en profundidad para cualquier
+   página, no solo Bitácora.
+
+**Sobre el calendario "cortado" y los pickers que no abrían:** se explican con alta
+probabilidad por el mismo problema (un popover de MudBlazor inicializado con JS durante
+una pasada que luego se descarta y reemplaza por una instancia distinta puede quedar con
+medidas/posición obsoletas), pero esto **no se verificó visualmente** — si el síntoma de
+recorte visual persiste después de este fix, es un bug de CSS/MudBlazor independiente
+que sí vamos a necesitar ver en un navegador para diagnosticar.
+
+**Lección para el futuro:** este bug llevaba desde la implementación original de
+Bitácora (sesión del 2026-09-06) sin detectarse por auditoría de código — solo se
+encontró porque el usuario lo reportó usándolo en producción. Al escribir una página
+nueva, verificar explícitamente que la carga de datos esté en `OnAfterRenderAsync`,
+comparando contra una página existente que ya funcione bien (ej. `Users.razor`).
