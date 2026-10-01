@@ -138,6 +138,7 @@
         finally
         {
             _loading = false;
+            StateHasChanged(); // OnAfterRenderAsync no re-renderiza solo al terminar — hay que pedirlo
         }
     }
 
